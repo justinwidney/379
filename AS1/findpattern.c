@@ -19,10 +19,20 @@ struct patmatch {
 
 
 unsigned int findpattern (unsigned char *pattern, unsigned int patlength,
-struct patmatch *locations, unsigned int loclength)
+struct patmatch *locations, unsigned int loclength) {
+
+int occcurances = 0 ; 
+
+
+
+
+return occurances
+}
 
 
 int main(int argc, char ** argv) {
 
+
+unsigned char* locations[]; 
 
 }
