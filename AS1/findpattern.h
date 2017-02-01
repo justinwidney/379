@@ -14,7 +14,7 @@ struct patmatch {
 	unsigned char mode; /* MEM_RW, or MEM_RO */
 };
 
-unsigned int findpattern (unsigned char *pattern, unsigned int patlength,
+unsigned int findpattern (unsigned char *pat, unsigned int patlength,
 struct patmatch *locations, unsigned int loclength);
 
 #endif
