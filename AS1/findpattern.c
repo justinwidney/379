@@ -33,9 +33,9 @@ struct sigaction seg_act;
 	while(1) {
 		sigsetjmp(readonly_memory,1);
 		mode = MEM_RO;
-		char tmp = *address;
+		char * address = 0x0000000;
 		mode = MEM_RW;
-		*address = 20;
+		char c = *address;
 		sigsetjmp(readonly_memory,1);
 		address += getpagesize();
 		
