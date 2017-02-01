@@ -19,15 +19,13 @@ struct patmatch {
    increment to next page */
 
 void seg_handler(int signo) {
-
-	printf("Can't write here! Pointer: %p", address);
 	address = address + getpagesize();
+	
+	//probably don't need this
 	if (address == 0x00000000) {
 		exit(0);
 	}
 	siglongjmp(env,1);
-	
-	//return;
 }
 
 unsigned int findpattern (unsigned char *pattern, unsigned int patlength,
@@ -62,34 +60,24 @@ return occcurances;
 
 int main(int argc, char ** argv) {
 
-struct sigaction seg_act;
-seg_act.sa_handler = seg_handler;
-sigemptyset(&seg_act.sa_mask);
-
-sigaction(SIGSEGV, &seg_act, NULL); 
-
-
-//unsigned char* locations[]; 
-
-//findpattern 
-sigsetjmp(env,1);
-//printf(" got out\n");
-//printf("ADDRESS:");
-//printf("---MODE---\n");
-while(1) {
-	char tmp = &address;
-	//printf("Readable in %p\n", address);
-	//*address = 20;
-	//printf("Writeable in %p\n", address);
-	address += getpagesize();
-	if (address == 0x00000000) {
-		break;
+	struct sigaction seg_act;
+	seg_act.sa_handler = seg_handler;
+	sigemptyset(&seg_act.sa_mask);
+	
+	sigaction(SIGSEGV, &seg_act, NULL); 
+	
+	
+	//unsigned char* locations[]; 
+	
+	sigsetjmp(env,1);
+	while(1) {
+		char tmp = *address;
+		printf("Readable page at %p\n", address);
+		*address = 20;
+		printf("Writeable page at %p\n", address);
+		address += getpagesize();
+		if (address == 0x00000000) {
+			break;
+		}
 	}
-	//break;
-	
-	
-}
-
-//int temp = &address;
-printf("done\n");
 }
