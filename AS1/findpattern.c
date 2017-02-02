@@ -24,26 +24,44 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 	sigemptyset(&seg_act.sa_mask);
 	sigaction(SIGSEGV, &seg_act, NULL); 
 	
-	int occcurances = 0; 
+	int pagesize = getpagesize();
+	
+	
+	int *ip;
 	char pattern = *pat;
+	unsigned char *spat = *pat;
 	int sig_value;
 	int i = 0;
 	int prev_address;
 	char data; 
+	unsigned char bit;
+	int count;
 	
+	// program crashes if not here ??? 
+	int *ptr = (int *)malloc(1*sizeof(int));
+	//*ptr = 0;
+
+
+	int occurances;
 
 	while(1) {
+		
 		
 		
 		sig_value = sigsetjmp(readonly_memory,1);
 
 		if( sig_value == 0) {
 		data = *address;
+
 		
 		}
 		else {
 		//printf("Non Readale memory at %p\n", address);
-		address += getpagesize();
+		address += pagesize;
+		
+		if(address == 0x00000000){ 
+		break;}
+
 		continue;
 		}
 
@@ -66,13 +84,50 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 		// restore stuff 
 		//*address = data;
 		
+		for(i=0; i < pagesize; i++) {
+		unsigned char read_pat = *(address + i);
 		
-		if (mode == MEM_RO) { printf("Readable memory at %p\n", address); }
-		else if (mode == MEM_RW) { printf("Read and Write memory at %p\n", address); }
-		address += getpagesize();
+		bit = *pat;
+	
+		if( read_pat == bit) {
+		
+		pat++;
+		//printf("working... %c \n", bit);
+		bit++;
+		count++;
 
-		if(address == 0x00000000){ 
-		break;}
+			if(count == patlength){
+			//printf("wok");
+			occurances++; 
+			pat = pat - patlength;
+			count = 0;
+			}
+
+		
+		}
+
+		else{
+		pat = pat - count;
+		count = 0;
+
+		}
+			
+		//else{
+		//*pat = *spat;
+		//} 
+
+		// check character = pattern
+			// pattern +i
+		// else pattern[x] = 0		
+
+		
+		}	
+		
+		//if (mode == MEM_RO) { printf("Readable memory at %p\n", address); }
+		//else if (mode == MEM_RW) { printf("Read and Write memory at %p\n", address); }
+		address += pagesize;
+
+		
 	}
-	return occcurances;
+	return occurances;
 }

@@ -1,10 +1,11 @@
 #include "findpattern.h"
 
-int main(int argc, char ** argv) {
+int main(int argc, char ** argv) {	
+
 	struct patmatch pattern;
-	char pat = 'a';
-	int var = findpattern(&pat, 5, &pattern, 10);
-	printf("Total matches= %d\n", &var);
+	unsigned char* pat = (unsigned char*) "JuStinWidney";
+	int var = findpattern(pat, 12, &pattern, 10);
+	printf("Total matches= %d\n", var);
 	printf("------------------------------------ \n");
 	printf("N--R--W");
 	
