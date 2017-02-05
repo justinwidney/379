@@ -37,9 +37,8 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 	int i = 0;
 	int prev_address;
 	int count = 0;
-	unsigned char* bit;
+	unsigned char bit;
 
-	
 	// program crashes if not here ??? 
 	int *ptr = (int *)malloc(1*sizeof(int));
 	//*ptr = 0;
@@ -47,7 +46,7 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 
 	int occurances =0;
 
-	while(1) {
+	while(1) { 
 		
 		
 
@@ -89,8 +88,8 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 		
 		//printf("Address = %p", address);
 		for(i=0; i < pagesize; i++) {
-		unsigned char* read_pat = *(address + i);
-		
+		unsigned char read_pat = *(address + i);
+		unsigned char* print_add = address + i;
 		//printf("%p", read_pat);
 		
 
@@ -110,13 +109,16 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 		bit++;
 		count++;
 		
-			//printf("%d",count);
+			//printf("%d = %d\n",count, patlength);
 
 			if(count == patlength){
-			//printf("wok");
+			
+
 			if(occurances <= loclength){
-			printf("%d", read_pat);
-			locations[occurances].location = read_pat;
+			//printf("%p", address);
+			unsigned int number = address +i - patlength;
+			//printf("(%u\n)", &number);
+			locations[occurances].location = number;
 			locations[occurances].mode = mode;
 			}
 
