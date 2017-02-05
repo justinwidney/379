@@ -56,11 +56,14 @@ int main(int argc, char *argv[]) {
 	
 	printf("----------------------------------- \n");
 	
+	sleep(2);
+	pat = argv[1];
+	length = strlen(argv[1]);
+	struct patmatch *pattern2 = malloc(10 * sizeof(struct patmatch));
+	char check[] = "Justin";
 
-	
-	
-	var = findpattern(pat, length, pattern, 10);
-	printf("Total matches= %d\n", var);
+	int var2 = findpattern(pat, length, pattern2, 10);
+	printf("Total matches= %d\n", var2);
 	
 }
  

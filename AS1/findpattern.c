@@ -3,21 +3,33 @@
 
 jmp_buf unreadable_memory;
 jmp_buf readonly_memory;
-
-
+char data;
+int flag =0;
+struct sigaction seg_act, seg_act2;
+	
 /* Handle Segfault
    increment to next page */
 
 void seg_handler(int signo) {
 
+		//printf("Segfault");
+		//data = 'a';
+		flag= 1;
+		//kill(getpid(),signo);
 		siglongjmp(readonly_memory,1);
-		return;
+		
+		//return;
+}
+
+
+void restore_handler() {
+	sigaction(SIGSEGV, &seg_act2, NULL);
+
 }
 
 unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct patmatch *locations, unsigned int loclength) {
 	
 	// set-up stuff
-	struct sigaction seg_act;
 	
 	seg_act.sa_handler = seg_handler;
 	sigemptyset(&seg_act.sa_mask);
@@ -28,19 +40,20 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 	
 	char * address = (char*) 0x00000000;
 	char mode = MEM_RO;
-	char data;
+	
  
 	int *ip;
 	char pattern = *pat;
 	//unsigned char *spat = *pat;
-	int sig_value;
+	int sig_value =0;
 	int i = 0;
 	int prev_address;
 	int count = 0;
 	unsigned char bit;
+	
 
 	// program crashes if not here ??? 
-	int *ptr = (int *)malloc(1*sizeof(int));
+	//gint *ptr = (int *)malloc(1*sizeof(int));
 	//*ptr = 0;
 
 
@@ -52,24 +65,26 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 
 		sig_value = sigsetjmp(readonly_memory,1);
 
-		if( sig_value == 0) {
+		if( flag == 0) {
 		data = *address;
-
 		
 		}
+
 		else {
 		//printf("Non Readale memory at %p\n", address);
+		flag = 0;
 		address += pagesize;
 		
 		if(address == 0x00000000){ 
 		break;}
-
+		
 		continue;
 		}
 
+		flag = 0;
 		sig_value = sigsetjmp(readonly_memory,1);
 
-		if(sig_value == 0) {
+		if(flag == 0) {
 		
 		*address = 'w';
 		//printf("why?");
@@ -152,8 +167,9 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 		//if (mode == MEM_RO) { printf("Readable memory at %p\n", address); }
 		//else if (mode == MEM_RW) { printf("Read and Write memory at %p\n", address); }
 		address += pagesize;
-
+		flag = 0;
 		
 	}
+	restore_handler();
 	return occurances;
 }
