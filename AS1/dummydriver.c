@@ -1,28 +1,17 @@
 #include "findpattern.h"
-#include <unistd.h>
-#include <string.h>
-#include <alloca.h>
-#include <stdlib.h>
-
-
-
-
-
-
 
 int main(int argc, char *argv[]) {	
 
 	char* tpat;
 	int i;
 	int length;
-	char * p;
 
 	//int length = strlen(argv[1]);
 	//printf("%c", length);
 	//int length = 1;
 	//char check[] = "JustinWidney";
 
-	if(argc!=3){printf(" <pattern> < int loclength>\n"); return 0;}
+	if(argc!=2){printf(" <pattern>"); return 0;}
 
 	//printf("Enter Pattern \n");
 	//scanf("%hhu", tpat);
@@ -34,20 +23,18 @@ int main(int argc, char *argv[]) {
 
 	//unsigned char* pat = (unsigned char*)tpat;
 	unsigned char* pat = argv[1];
-	unsigned int loclength = strtol(argv[2], &p, 10);
-
+	
 	//unsigned char* pat = argv[1];
-	int var = findpattern(pat, length, pattern, loclength);
-	printf("------------------------------------ \n");
+	int var = findpattern(pat, length, pattern, 10);
 	printf("Total matches= %d\n", var);
+	printf("------------------------------------ \n");
 	printf("Address -- Mode \n");
 	
 	for(i = 0; i < var; i++){
 	int unsigned address = pattern[i].location;
-	//unsigned char* hexAddress = (unsigned char*) &address;
-	printf("%p, ", pattern[i].location);
-	if(pattern[i].mode = 1) {printf("MEM_RO\n");} else {printf("MEM_RW\n");}
-	if (i == loclength-1) break;
+	unsigned char* hexAddress = (unsigned char*) &address;
+	printf("%p, %u\n", hexAddress, pattern[i].mode);
+	if (i == 10) break;
 	}
 	
 	/* if(R):
@@ -60,41 +47,14 @@ int main(int argc, char *argv[]) {
 	
 	printf("----------------------------------- \n");
 	
-
-	// Create a new entry in memory of our pattern
+	sleep(2);
 	pat = argv[1];
 	length = strlen(argv[1]);
-
-
 	struct patmatch *pattern2 = malloc(10 * sizeof(struct patmatch));
+	char check[] = "Justin";
 
-	//char *patternloc;
-	//patternloc = malloc(sizeof(char) * 6);
-	//patternloc[0] = "justin";
-
-	
-	char* patternloc;
-	patternloc = alloca(sizeof(char) * length);
-	patternloc = argv[1];
-
-
-	char filename[length];
-	strcpy(filename, argv[1]);
-
-	int var2 = findpattern(pat, length, pattern2, loclength);
+	int var2 = findpattern(pat, length, pattern2, 10);
 	printf("Total matches= %d\n", var2);
 	
-	printf("Address -- Mode \n");
-	
-	for(i = 0; i < var2; i++){
-	//int unsigned address = pattern2[i].location;
-	//unsigned char* hexAddress = (unsigned char*) &address;
-	printf("%p, ", pattern2[i].location);
-
-	if(pattern2[i].mode = 1) {printf("MEM_RO\n");} else {printf("MEM_RW\n");}
-	if (i == loclength-1) break;
-	}
-	
-	printf("------------------------------------ \n");
 }
  

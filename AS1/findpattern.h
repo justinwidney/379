@@ -5,7 +5,9 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <setjmp.h>
-
+#include <unistd.h>
+#include <string.h>
+#include <sys/mman.h>
 #define MEM_RW 0
 #define MEM_RO 1
 
