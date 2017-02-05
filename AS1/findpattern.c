@@ -130,10 +130,12 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 			
 
 			if(occurances <= loclength){
-			//printf("%p", address);
-			unsigned int number = address +i - patlength;
+			//printf("%p\n", address);
+			unsigned char* start_add = address + i - patlength;
+			//printf("%p\n", start_add);
+			//unsigned int number = (unsigned char)start_add[0]<<8| (unsigned char)start_add[1];
 			//printf("(%u\n)", &number);
-			locations[occurances].location = number;
+			locations[occurances].location = start_add;
 			locations[occurances].mode = mode;
 			}
 
