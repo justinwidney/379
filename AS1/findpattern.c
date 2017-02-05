@@ -1,12 +1,10 @@
-#include "findpattern.h"
+ #include "findpattern.h"
 #include <unistd.h>
 
 jmp_buf unreadable_memory;
 jmp_buf readonly_memory;
 
-char * address = (char*) 0x00000000;
-char mode = MEM_RO;
-char data; 
+
 /* Handle Segfault
    increment to next page */
 
@@ -20,23 +18,27 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 	
 	// set-up stuff
 	struct sigaction seg_act;
+	
 	seg_act.sa_handler = seg_handler;
 	sigemptyset(&seg_act.sa_mask);
+	sigaddset(&seg_act.sa_mask, SA_NODEFER);
 	sigaction(SIGSEGV, &seg_act, NULL); 
 	
 	int pagesize = getpagesize();
 	
+	char * address = (char*) 0x00000000;
+	char mode = MEM_RO;
+	char data;
+ 
 	int *ip;
 	char pattern = *pat;
 	//unsigned char *spat = *pat;
 	int sig_value;
 	int i = 0;
 	int prev_address;
-	
-	unsigned char bit;
-	int count;
+	int count = 0;
+	unsigned char* bit;
 
-	printf("test");
 	
 	// program crashes if not here ??? 
 	int *ptr = (int *)malloc(1*sizeof(int));
@@ -87,9 +89,9 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 		
 		//printf("Address = %p", address);
 		for(i=0; i < pagesize; i++) {
-		unsigned char read_pat = *(address + i);
+		unsigned char* read_pat = *(address + i);
 		
-		//printf("%d", read_pat);
+		//printf("%p", read_pat);
 		
 
 		bit = *pat;
@@ -108,11 +110,19 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 		bit++;
 		count++;
 		
-		if(count > 10) { }
+			//printf("%d",count);
 
 			if(count == patlength){
 			//printf("wok");
+			if(occurances <= loclength){
+			printf("%d", read_pat);
+			locations[occurances].location = read_pat;
+			locations[occurances].mode = mode;
+			}
+
 			occurances++;  
+			
+		
 			pat = pat - patlength;
 			count = 0;
 			}

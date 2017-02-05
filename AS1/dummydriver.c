@@ -4,27 +4,32 @@
 int main(int argc, char *argv[]) {	
 
 	char* tpat;
+	int i;
 
-	if (argc !=2 ) { 
-	printf("Enter ./driver <pattern> \n");
-	return 0;
-	}
 
 	//int length = strlen(argv[1]);
 	//printf("%c", length);
-	int length = 12;
+	//int length = 1;
+	//char check[] = "JustinWidney";
 
 	printf("Enter Pattern \n");
 	scanf("%hhu", tpat);
+	int length = strlen(tpat);
 
+	struct patmatch *pattern = malloc(10 * sizeof(struct patmatch));
+	//struct patmatch pattern[10];	
+	
 
-	struct patmatch *pattern = malloc(sizeof(struct patmatch));
 	unsigned char* pat = (unsigned char*)tpat;
 	//unsigned char* pat = argv[1];
 	int var = findpattern(pat, length, pattern, 10);
 	printf("Total matches= %d\n", var);
 	printf("------------------------------------ \n");
-	printf("N--R--W");
+	printf("N--R--W\n");
+
+	for(i = 0; i <10; i++){
+	printf("%i, mode = %u\n", pattern[i].location, pattern[i].mode);
+	}
 	
 	/* if(R):
 		print("%c", location);
@@ -37,7 +42,7 @@ int main(int argc, char *argv[]) {
 	printf("----------------------------------- \n");
 	
 
-	char check[] = "JustinWidney";
+	
 	
 	var = findpattern(pat, length, pattern, 10);
 	printf("Total matches= %d\n", var);
