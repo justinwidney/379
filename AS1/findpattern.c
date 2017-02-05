@@ -6,12 +6,12 @@ jmp_buf readonly_memory;
 
 char * address = (char*) 0x00000000;
 char mode = MEM_RO;
-
+char data; 
 /* Handle Segfault
    increment to next page */
 
 void seg_handler(int signo) {
-	
+
 		siglongjmp(readonly_memory,1);
 		return;
 }
@@ -26,28 +26,29 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 	
 	int pagesize = getpagesize();
 	
-	
 	int *ip;
 	char pattern = *pat;
-	unsigned char *spat = *pat;
+	//unsigned char *spat = *pat;
 	int sig_value;
 	int i = 0;
 	int prev_address;
-	char data; 
+	
 	unsigned char bit;
 	int count;
+
+	printf("test");
 	
 	// program crashes if not here ??? 
 	int *ptr = (int *)malloc(1*sizeof(int));
 	//*ptr = 0;
 
 
-	int occurances;
+	int occurances =0;
 
 	while(1) {
 		
 		
-		
+
 		sig_value = sigsetjmp(readonly_memory,1);
 
 		if( sig_value == 0) {
@@ -84,21 +85,34 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 		// restore stuff 
 		//*address = data;
 		
+		//printf("Address = %p", address);
 		for(i=0; i < pagesize; i++) {
 		unsigned char read_pat = *(address + i);
 		
+		//printf("%d", read_pat);
+		
+
 		bit = *pat;
-	
+		
+		
+
+
 		if( read_pat == bit) {
 		
+		//printf(" bit = %i pat = %i, %d\n", read_pat, bit, count);
+		//sleep(1);
+
 		pat++;
-		//printf("working... %c \n", bit);
+		//printf("working... %c\n", bit);
+		//sleep(1);
 		bit++;
 		count++;
+		
+		if(count > 10) { }
 
 			if(count == patlength){
 			//printf("wok");
-			occurances++; 
+			occurances++;  
 			pat = pat - patlength;
 			count = 0;
 			}
