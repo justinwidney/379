@@ -1,0 +1,177 @@
+ #include "findpattern.h"
+#include <unistd.h>
+
+jmp_buf unreadable_memory;
+jmp_buf readonly_memory;
+char data;
+int flag =0;
+struct sigaction seg_act, seg_act2;
+	
+/* Handle Segfault
+   increment to next page */
+
+void seg_handler(int signo) {
+
+		//printf("Segfault");
+		//data = 'a';
+		flag= 1;
+		//kill(getpid(),signo);
+		siglongjmp(readonly_memory,1);
+		
+		//return;
+}
+
+
+void restore_handler() {
+	sigaction(SIGSEGV, &seg_act2, NULL);
+
+}
+
+unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct patmatch *locations, unsigned int loclength) {
+	
+	// set-up stuff
+	
+	seg_act.sa_handler = seg_handler;
+	sigemptyset(&seg_act.sa_mask);
+	sigaddset(&seg_act.sa_mask, SA_NODEFER);
+	sigaction(SIGSEGV, &seg_act, NULL); 
+	
+	int pagesize = getpagesize();
+	
+	char * address = (char*) 0x00000000;
+	char mode = MEM_RO;
+	
+ 
+	int *ip;
+	char pattern = *pat;
+	//unsigned char *spat = *pat;
+	int sig_value =0;
+	int i = 0;
+	int prev_address;
+	int count = 0;
+	unsigned char bit;
+	
+
+	// program crashes if not here ??? 
+	//gint *ptr = (int *)malloc(1*sizeof(int));
+	//*ptr = 0;
+
+
+	int occurances =0;
+
+	while(1) { 
+		
+		
+
+		sig_value = sigsetjmp(readonly_memory,1);
+
+		if( flag == 0) {
+		data = *address;
+		
+		}
+
+		else {
+		//printf("Non Readale memory at %p\n", address);
+		flag = 0;
+		address += pagesize;
+		
+		if(address == 0x00000000){ 
+		break;}
+		
+		continue;
+		}
+
+		flag = 0;
+		sig_value = sigsetjmp(readonly_memory,1);
+
+		if(flag == 0) {
+		
+		*address = 'w';
+		//printf("why?");
+		*address = data; 
+	
+		mode = MEM_RW;
+		//printf("why2?");
+
+		} else {
+		mode = MEM_RO;
+		//printf("why3?");
+		}
+		
+		// restore stuff 
+		//*address = data;
+		
+		//printf("Address = %p", address);
+		for(i=0; i < pagesize; i++) {
+		unsigned char read_pat = *(address + i);
+		unsigned char* print_add = address + i;
+		//printf("%p", read_pat);
+		
+
+		bit = *pat;
+		
+		
+
+
+		if( read_pat == bit) {
+		
+		//printf(" bit = %i pat = %i, %d\n", read_pat, bit, count);
+		//sleep(1);
+
+		pat++;
+		//printf("working... %c\n", bit);
+		//sleep(1);
+		bit++;
+		count++;
+		
+			//printf("%d = %d\n",count, patlength);
+
+			if(count == patlength){
+			
+
+			if(occurances <= loclength){
+			//printf("%p\n", address);
+			unsigned char* start_add = address + i - patlength;
+			//printf("%p\n", start_add);
+			//unsigned int number = (unsigned char)start_add[0]<<8| (unsigned char)start_add[1];
+			//printf("(%u\n)", &number);
+			locations[occurances].location = start_add;
+			locations[occurances].mode = mode;
+			}
+
+			occurances++;  
+			
+		
+			pat = pat - patlength;
+			count = 0;
+			}
+
+		
+		}
+
+		else{
+		pat = pat - count;
+		count = 0;
+
+		}
+			
+		//else{
+		//*pat = *spat;
+		//} 
+
+		// check character = pattern
+			// pattern +i
+		// else pattern[x] = 0		
+
+		
+		}	
+		
+		//if (mode == MEM_RO) { printf("Readable memory at %p\n", address); }
+		//else if (mode == MEM_RW) { printf("Read and Write memory at %p\n", address); }
+		address += pagesize;
+		flag = 0;
+		
+	}
+	restore_handler();
+	return occurances;
+}
