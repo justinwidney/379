@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
 	FILE *fp = fopen("driver3File.txt", "w+");
 	fprintf(fp, "%s", argv[1]); // print pattern once
 	
+	FILE* fo = fopen("test_results.txt", "a");
 	void *filePointer;
 	
 	filePointer = mmap(0, length, PROT_READ, MAP_PRIVATE, fileno(fp),0);
@@ -35,16 +36,23 @@ int main(int argc, char *argv[]) {
 
 	int var = findpattern(pat, length, pattern, loclength);
 	printf("test3\n");
+	fprintf(fo,"\ntest3\n");
+	
 	printf("using mmap to change the mode of a found location\n\n");
+	fprintf(fo,"using mmap to change the mode of a found location\n\n");
 	printf("Pass 1\n");
+	fprintf(fo,"Pass 1\n");
+	fprintf(fo,"Total matches= %d\n", var);
 	printf("Total matches= %d\n", var);
 	
 	int i = 0;
 	for(i = 0; i < var; i++){
 		printf("%p\t%s\n", (void *)pattern[i].location, modes[pattern[i].mode]);
+		fprintf(fo,"%p\t%s\n", (void *)pattern[i].location, modes[pattern[i].mode]);
 		if (i == loclength-1) break;
 	}
 	printf("\n");
+	fprintf(fo,"\n");
 	
 	fp = fopen("driver3File.txt", "r");
 	
@@ -52,7 +60,9 @@ int main(int argc, char *argv[]) {
 	
 	int var2 = findpattern(pat, length, pattern2, loclength);
 	printf("Pass 2\n");
+	fprintf(fo,"Pass 2\n");
 	printf("Total matches= %d\n", var2);
+	fprintf(fo,"Total matches= %d\n", var2);
 	
 	i = 0;
 	for(i = 0; i < var2; i++){
@@ -67,11 +77,14 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		printf("%p\t", (void *)pattern2[i].location);
+		fprintf(fo,"%p\t", (void *)pattern2[i].location);
 
 		if(pattern2[i].mode == 1) {printf("MEM_RO\t%c\n", flag);} else {printf("MEM_RW\t%c\n", flag);}
+		if(pattern2[i].mode == 1) {fprintf(fo,"MEM_RO\t%c\n", flag);} else {fprintf(fo,"MEM_RW\t%c\n", flag);}
 		if (i == loclength-1) break;
 	}
 	fclose(fp);
+	fclose(fo);
 	return 0;
 	
 }

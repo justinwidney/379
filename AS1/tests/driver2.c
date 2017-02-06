@@ -34,8 +34,8 @@ int main(int argc, char *argv[]) {
 	printf("\nTest2\n");
 	fprintf(fp,"test2\n");
 
-	printf("heap for pattern, for second call add new heap pattern\n\n");
-	fprintf(fp,"heap for pattern, for second call add new heap pattern\n\n");
+	printf("adds the pattern onto the stack\n\n");
+	fprintf(fp,"adds the pattern onto the stack\n\n");
 
 	printf("Pass 1\n");
 	fprintf(fp,"Pass 1\n");
@@ -86,6 +86,7 @@ int main(int argc, char *argv[]) {
 		if(pattern2[i].mode == 1) {printf("MEM_RO\t%c\n", flag); fprintf(fp,"MEM_RO\t%c\n", flag);} else {printf("MEM_RW\t%c\n", flag); fprintf(fp,"MEM_RW\t%c\n", flag);}
 		if (i == loclength-1) break;
 	}
+	fclose(fp);
 	return 0;
 }
  
