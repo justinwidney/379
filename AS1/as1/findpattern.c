@@ -84,7 +84,6 @@ unsigned int findpattern (unsigned char *pat, unsigned int patlength, struct pat
 				if(count == patlength){
 					if(occurances <= loclength){
 						unsigned char* start_add = address + i - patlength;
-						//printf("%p\n", start_add);
 						locations[occurances].location = start_add;
 						locations[occurances].mode = mode;
 					}

@@ -14,14 +14,23 @@ int main(int argc, char *argv[]) {
 	int i;
 	int length;
 	char * p;
+	
+	
 
-
-	if(argc!=3){printf(" <pattern> < int loclength>\n"); return 0;}
+	if(argc!=2){printf(" <pattern> \n"); return 0;}
 
 	length = strlen(argv[1]);
 	struct patmatch *pattern = malloc(10 * sizeof(struct patmatch));
 	
-	
+	char *end;
+	char buf[LINE_MAX];
+	printf("Enter how many entries to record");
+	do {
+	if(!fgets(buf, sizeof buf, stdin)) break;
+	buf[strlen(buf) -1] = 0;
+	int loclength = strol(buf, &end, 10);
+	} while(end!= buf +strlen(buf));		
+
 	// put pattern on heap
 	unsigned char *firstloc = (char *) malloc(length*sizeof(char));
 	unsigned char *secloc = (char*) malloc(length*sizeof(char));
@@ -29,7 +38,6 @@ int main(int argc, char *argv[]) {
 	
 	
 	unsigned char* pat = argv[1];
-	unsigned int loclength = strtol(argv[2], &p, 10);	
 
 	int var = findpattern(pat, length, pattern, loclength);
 	

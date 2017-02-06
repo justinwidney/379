@@ -6,8 +6,19 @@
 int main(int argc, char *argv[]) {
 	const char *modes[2] = {"MEM_RW", "MEM_RO"};
 	/********************/
-	if(argc!=3){printf("Please include a pattern,loclength in the command line argument\n"); return 0;}
-	unsigned int loclength = strtol(argv[2], &p, 10);
+	if(argc!=2){printf("Please include a pattern in the command line argument\n"); return 0;}
+
+
+	char *end;
+	char buf[LINE_MAX];
+	printf("Enter how many entries to record");
+	do {
+	if(!fgets(buf, sizeof buf, stdin)) break;
+	buf[strlen(buf) -1] = 0;
+	int loclength = strol(buf, &end, 10);
+	} while(end!= buf +strlen(buf));
+
+	
 	int length = strlen(argv[1]);
 	unsigned char *pat = argv[1];
 	struct patmatch *pass1 = malloc(10 * sizeof(struct patmatch));
