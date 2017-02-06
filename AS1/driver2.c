@@ -47,13 +47,8 @@ int main(int argc, char *argv[]) {
 	pat = argv[1];
 	length = strlen(argv[1]);
 	
-	//free(test);
-	//memset(test,0,loclength*sizeof(char));
 
 	struct patmatch *pattern2 = malloc(10 * sizeof(struct patmatch));
-
-	
-	
 	char* patternloc;
 	patternloc = alloca(sizeof(char) * length);
 	patternloc = argv[1];
