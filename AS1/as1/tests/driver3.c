@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 		if (i == 10) break;
 	}
 
-	
+	return 0;
 	
 	
 	

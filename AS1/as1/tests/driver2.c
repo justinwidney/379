@@ -76,6 +76,6 @@ int main(int argc, char *argv[]) {
 	if(pattern2[i].mode = 1) {printf("MEM_RO\n");} else {printf("MEM_RW\n");}
 	if (i == loclength-1) break;
 	}
-	
+	return 0;
 }
  

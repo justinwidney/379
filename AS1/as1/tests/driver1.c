@@ -32,9 +32,9 @@ int main(int argc, char *argv[]) {
 	} while(end!= buf +strlen(buf));		
 
 	// put pattern on heap
-	unsigned char *firstloc = (char *) malloc(length*sizeof(char));
+	//unsigned char *firstloc = (char *) malloc(length*sizeof(char));
 	unsigned char *secloc = (char*) malloc(length*sizeof(char));
-	strcpy(firstloc, argv[1]);
+	//strcpy(firstloc, argv[1]);
 	
 	
 	unsigned char* pat = argv[1];
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 	int var = findpattern(pat, length, pattern, loclength);
 	
 	printf("test1\n");
-	printf("heap for pattern, then free it for second call & add new heap pattern\n\n");
+	printf("heap for pattern, for second call add new heap pattern\n\n");
 	printf("Pass 1\n");
 	printf("Total matches= %d\n", var);
 	
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 	struct patmatch *pattern2 = malloc(10 * sizeof(struct patmatch));
 
 	// remove one heap location and add another
-	free(firstloc);
+	//free(firstloc);
 	strcpy(secloc, argv[1]);
 	
 	char* patternloc;
@@ -81,5 +81,7 @@ int main(int argc, char *argv[]) {
 	if(pattern2[i].mode = 1) {printf("MEM_RO\n");} else {printf("MEM_RW\n");}
 	if (i == loclength-1) break;
 	}
+	free(secloc);
+	return 0;
 }
  
