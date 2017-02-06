@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 	
 	char *end;
 	char buf[10];
-	printf("Enter how many entries to record");
+	printf("Enter how many entries to record: ");
 	do {
 	if(!fgets(buf, sizeof buf, stdin)) break;
 	buf[strlen(buf) -1] = 0;
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 
 
 	int var2 = findpattern(pat, length, pattern2, loclength);
-	printf("\nPass 2");
+	printf("\nPass 2\n");
 	printf("Total matches= %d\n", var2);
 	
 	

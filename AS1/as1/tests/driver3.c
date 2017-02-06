@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
 	char *end;
 	char buf[10];
 	int loclength;
-	printf("Enter how many entries to record");
+	printf("Enter how many entries to record: ");
 	do {
 	if(!fgets(buf, sizeof buf, stdin)) break;
 	buf[strlen(buf) -1] = 0;
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 	int matches = findpattern(pat, length, pass1, loclength);
 	printf("test3\n");
 	printf("using mmap to create a MEM_RO pattern then change it to MEM_RW\n\n");
-	printf("Pass 1");
+	printf("Pass 1\n");
 	printf("Total matches= %d\n", matches);
 	
 	
