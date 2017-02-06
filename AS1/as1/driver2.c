@@ -19,24 +19,19 @@ int main(int argc, char *argv[]) {
 	length = strlen(argv[1]);
 	struct patmatch *pattern = malloc(10 * sizeof(struct patmatch));
 	
-	
-	//unsigned char* pat = (unsigned char*)tpat;
 	unsigned char* pat = argv[1];
 	unsigned int loclength = strtol(argv[2], &p, 10);
 
-	
-	//unsigned char* pat = argv[1];
 	int var = findpattern(pat, length, pattern, loclength);
 	
 	printf("test2\n");
 	printf("Create a stack variable with the pattern\n\n");
 	printf("Pass 1\n");
 	printf("Total matches= %d\n", var);
-	//printf("Address -- Mode \n");
 	
 	for(i = 0; i < var; i++){
 	int unsigned address = pattern[i].location;
-	//unsigned char* hexAddress = (unsigned char*) &address;
+	
 	printf("%p\t", pattern[i].location);
 	if(pattern[i].mode = 1) {printf("MEM_RO\n");} else {printf("MEM_RW\n");}
 	if (i == loclength-1) break;

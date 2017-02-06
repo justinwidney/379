@@ -37,8 +37,6 @@ int main(int argc, char *argv[]) {
 	
 	int i = 0;
 	for(i = 0; i < matches; i++){
-		//int unsigned address = pass1[i].location;
-		//unsigned char* hexAddress = (unsigned char*) address;
 		printf("%p, %s\n", pass1[i].location, modes[pass1[i].mode]);
 		if (i == 10) break;
 	}

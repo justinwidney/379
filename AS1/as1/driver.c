@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 	// put pattern on heap
 	unsigned char *firstloc = (char *) malloc(length*sizeof(char));
 	unsigned char *secloc = (char*) malloc(length*sizeof(char));
-	strcpy(test, argv[1]);
+	strcpy(firstloc, argv[1]);
 	
 	
 	unsigned char* pat = argv[1];
