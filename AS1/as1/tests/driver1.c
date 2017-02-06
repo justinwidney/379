@@ -9,7 +9,7 @@
 
 
 int main(int argc, char *argv[]) {	
-
+	char flag;
 	char* tpat;
 	int i;
 	int length;
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 	
 	char *end;
 	char buf[10];
-	printf("Enter how many entries to record");
+	printf("Enter how many entries to record: ");
 	do {
 	if(!fgets(buf, sizeof buf, stdin)) break;
 	buf[strlen(buf) -1] = 0;
@@ -32,9 +32,9 @@ int main(int argc, char *argv[]) {
 	} while(end!= buf +strlen(buf));		
 
 	// put pattern on heap
-	unsigned char *firstloc = (char *) malloc(length*sizeof(char));
+	//unsigned char *firstloc = (char *) malloc(length*sizeof(char));
 	unsigned char *secloc = (char*) malloc(length*sizeof(char));
-	strcpy(firstloc, argv[1]);
+	//strcpy(firstloc, argv[1]);
 	
 	
 	unsigned char* pat = argv[1];
@@ -42,14 +42,14 @@ int main(int argc, char *argv[]) {
 	int var = findpattern(pat, length, pattern, loclength);
 	
 	printf("test1\n");
-	printf("heap for pattern, then free it for second call & add new heap pattern\n\n");
+	printf("heap for pattern, for second call add new heap pattern\n\n");
 	printf("Pass 1\n");
 	printf("Total matches= %d\n", var);
 	
 	
 	for(i = 0; i < var; i++){
 	int unsigned address = pattern[i].location;
-	printf("%p\t", pattern[i].location);
+	printf("%p\t", (void *) pattern[i].location);
 	if(pattern[i].mode = 1) {printf("MEM_RO\n");} else {printf("MEM_RW\n");}
 	if (i == loclength-1) break;
 	}
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 	struct patmatch *pattern2 = malloc(10 * sizeof(struct patmatch));
 
 	// remove one heap location and add another
-	free(firstloc);
+	//free(firstloc);
 	strcpy(secloc, argv[1]);
 	
 	char* patternloc;
@@ -71,15 +71,25 @@ int main(int argc, char *argv[]) {
 
 
 	int var2 = findpattern(pat, length, pattern2, loclength);
-	printf("\nPass 2");
+	printf("\nPass 2\n");
 	printf("Total matches= %d\n", var2);
 	
-	
 	for(i = 0; i < var2; i++){
-	printf("%p\t", pattern2[i].location);
+		flag = 'N';
+		int n;
+		for(n = 0; n < var; n++) {
+			if (pattern2[i].location == pattern[n].location && pattern2[i].mode == pattern[n].mode) {
+				flag = 'U'; break;
+			}
+			else if (pattern2[i].location == pattern[n].location) {
+				flag = 'C'; break;
+			}
+		}
+		printf("%p\t", pattern2[i].location);
 
-	if(pattern2[i].mode = 1) {printf("MEM_RO\n");} else {printf("MEM_RW\n");}
-	if (i == loclength-1) break;
+		if(pattern2[i].mode == 1) {printf("MEM_RO\t%c\n", flag);} else {printf("MEM_RW\t%c\n", flag);}
+		if (i == loclength-1) break;
 	}
+	return 0;
 }
  
