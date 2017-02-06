@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 	
 	for(i = 0; i < var; i++){
 	int unsigned address = pattern[i].location;
-	printf("%p\t", pattern[i].location);
+	printf("%p\t", (void *) pattern[i].location);
 	if(pattern[i].mode = 1) {printf("MEM_RO\n");} else {printf("MEM_RW\n");}
 	if (i == loclength-1) break;
 	}
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 	
 	
 	for(i = 0; i < var2; i++){
-	printf("%p\t", pattern2[i].location);
+	printf("%p\t", (void *) pattern2[i].location);
 
 	if(pattern2[i].mode = 1) {printf("MEM_RO\n");} else {printf("MEM_RW\n");}
 	if (i == loclength-1) break;
