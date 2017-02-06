@@ -83,8 +83,8 @@ int main(int argc, char *argv[]) {
 		if(pattern2[i].mode == 1) {fprintf(fo,"MEM_RO\t%c\n", flag);} else {fprintf(fo,"MEM_RW\t%c\n", flag);}
 		if (i == loclength-1) break;
 	}
-	fclose(fp);
-	fclose(fo);
+	//fclose(fp);
+	//fclose(fo);
 	return 0;
 	
 }

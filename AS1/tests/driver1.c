@@ -63,9 +63,6 @@ int main(int argc, char *argv[]) {
 	// remove one heap location and add another
 	strcpy(secloc, argv[1]);
 	
-	char* patternloc;
-	patternloc = alloca(sizeof(char) * length);
-	patternloc = argv[1];
 
 	int var2 = findpattern(pat, length, pattern2, loclength);
 	printf("\nPass 2\n");
@@ -92,6 +89,7 @@ int main(int argc, char *argv[]) {
 		if (i == loclength-1) break;
 	}
 	fclose(fp);
+	free(secloc);
 	return 0;
 }
  
