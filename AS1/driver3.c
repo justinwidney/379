@@ -30,24 +30,26 @@ int main(int argc, char *argv[]) {
 	
 	// mode of first match will determine if we want to have file be RO or RW
 	int mode = pass1[0].mode; 
-	FILE *fp = fopen("driver3File.txt", "w");
+	FILE *fp = fopen("driver3File.txt", "w+");
 	fprintf(fp, "%s", argv[1]); // print pattern once
 
 	
 	int unsigned address = pass1[0].location;
-	unsigned char* hexAddress = (unsigned char*) address;
-	
+	void* hexAddress = (void*) address;
+	printf("%p\n", hexAddress);
 	char *filePointer;
 	if(mode == MEM_RO) {
-		filePointer = mmap(hexAddress, length, 0, MAP_PRIVATE, fileno(fp), PROT_WRITE);
+		printf("MEM_RO\n");
+		filePointer = mmap(hexAddress, length, PROT_WRITE, MAP_PRIVATE, fileno(fp), 0);
 	}
 	else {
-		filePointer = mmap(hexAddress, length, 0, MAP_PRIVATE, fileno(fp), PROT_READ);
+		printf("MEM_RW\n");
+		filePointer = mmap(hexAddress, length, PROT_READ, MAP_PRIVATE, fileno(fp), 0);
 	}
 
 	printf("%p\n", filePointer);
-	printf("Error: %s\n", strerror(errno));
-	
+	//printf("Error: %s\n", strerror(errno));
+	//exit(1);
 	matches = findpattern(pat, length, pass2, 10);
 	printf("Total matches= %d\n", matches);
 	printf("------------------------------------ \n");
@@ -64,6 +66,6 @@ int main(int argc, char *argv[]) {
 	printf("----------------------------------- \n");
 	
 	
-	fclose(fp);
+	//fclose(fp);
 	
 }
