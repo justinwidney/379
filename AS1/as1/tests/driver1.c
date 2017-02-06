@@ -1,4 +1,4 @@
-#include "findpattern.h"
+#include "../findpattern.h"
 #include <unistd.h>
 #include <string.h>
 #include <alloca.h>

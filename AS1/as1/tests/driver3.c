@@ -1,4 +1,4 @@
-#include "findpattern.h"
+#include "../findpattern.h"
 #include <errno.h>
 
 /* Using mmap(2) to change the mode of the memory that we map to*/
