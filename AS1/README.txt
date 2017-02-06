@@ -5,11 +5,11 @@
 
 Description:
 The findpattern function will scan the entire address space of the calling
-proccess and given some pattern, it will find the location and addressing
+process and given some pattern, it will find the location and addressing
 mode of each match. To run the program through some test cases, call 
 "make tests p=<pattern>", where <pattern> is some characters or letters.
 You will then be prompted to input how many matches you would like to see
-and have printed out. To test each case seperatly, call
+and have printed out. To test each case separately, call
 "make test[1-3]  p=<pattern>". Where [1-3] is the number of the case you
 would like to test i.e: "make test1 p=test". After the second call to
 findpattern, next to each match there are 1 of 3 flags.
@@ -34,4 +34,3 @@ findpattern is called to find any matches. Then the file will be mapped
 to memory with a different addressing mode at one of the previous matches.
 This should result in the program changing the mode of one of the matches
 but not the location of the match.
-
