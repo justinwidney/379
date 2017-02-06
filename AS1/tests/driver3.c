@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 	
 	int i = 0;
 	for(i = 0; i < var; i++){
-		printf("%p\t%s\n", pattern[i].location, modes[pattern[i].mode]);
+		printf("%p\t%s\n", (void *)pattern[i].location, modes[pattern[i].mode]);
 		if (i == loclength-1) break;
 	}
 	printf("\n");
@@ -53,7 +53,6 @@ int main(int argc, char *argv[]) {
 	int var2 = findpattern(pat, length, pattern2, loclength);
 	printf("Pass 2\n");
 	printf("Total matches= %d\n", var2);
-	
 	
 	i = 0;
 	for(i = 0; i < var2; i++){
@@ -67,7 +66,7 @@ int main(int argc, char *argv[]) {
 				flag = 'C'; break;
 			}
 		}
-		printf("%p\t", pattern2[i].location);
+		printf("%p\t", (void *)pattern2[i].location);
 
 		if(pattern2[i].mode == 1) {printf("MEM_RO\t%c\n", flag);} else {printf("MEM_RW\t%c\n", flag);}
 		if (i == loclength-1) break;

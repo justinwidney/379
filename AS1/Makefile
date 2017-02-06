@@ -1,14 +1,18 @@
 CC = gcc
-CFLAGS = -m32 
-OBJS = findpattern.o driver3.o
+CFLAGS = -m32
+OBJS = $(CURDIR)/findpattern.o
+export OBJS
 
-all: driver
+tests: findpattern.o test1 test2 test3
 
-driver: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o driver
+test1:
+	$(MAKE) test1 -C tests
+test2:
+	$(MAKE) test2 -C tests
+test3:
+	$(MAKE) test3 -C tests
 
 findpattern.o: findpattern.h
-driver3.o: findpattern.h
 
 clean:
-	rm -f *~ *.o driver
+	rm -f *~ *.o test

@@ -1,4 +1,4 @@
- #include "findpattern.h"
+#include "findpattern.h"
 #include <unistd.h>
 
 jmp_buf unreadable_memory;
@@ -11,8 +11,8 @@ struct sigaction seg_act, seg_act2;
    increment to next page */
 
 void seg_handler(int signo) {
-		flag= 1;
-		siglongjmp(readonly_memory,1);
+	flag= 1;
+	siglongjmp(readonly_memory,1);
 }
 
 
