@@ -11,18 +11,18 @@ int main(int argc, char *argv[]) {
 	int i;
 	int length;
 	char * p;
-
+	int loclength;
 
 	if(argc!=2){printf(" <pattern>\n"); return 0;}
 
 
 	char *end;
-	char buf[LINE_MAX];
+	char buf[10];
 	printf("Enter how many entries to record");
 	do {
 	if(!fgets(buf, sizeof buf, stdin)) break;
 	buf[strlen(buf) -1] = 0;
-	int loclength = strol(buf, &end, 10);
+	loclength = strtol(buf, &end, 10);
 	} while(end!= buf +strlen(buf));
 
 

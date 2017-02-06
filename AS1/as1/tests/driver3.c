@@ -10,12 +10,13 @@ int main(int argc, char *argv[]) {
 
 
 	char *end;
-	char buf[LINE_MAX];
+	char buf[10];
+	int loclength;
 	printf("Enter how many entries to record");
 	do {
 	if(!fgets(buf, sizeof buf, stdin)) break;
 	buf[strlen(buf) -1] = 0;
-	int loclength = strol(buf, &end, 10);
+	loclength = strtol(buf, &end, 10);
 	} while(end!= buf +strlen(buf));
 
 	
@@ -58,7 +59,7 @@ int main(int argc, char *argv[]) {
 	filePointer = mmap(filePointer, length, PROT_READ|PROT_WRITE, MAP_PRIVATE| MAP_FIXED, fileno(fp),0);
 	
 	matches = findpattern(pat, length, pass2, loclength);
-	prinft("Pass 2\n");
+	printf("Pass 2\n");
 	printf("Total matches= %d\n", matches);
 	
 	

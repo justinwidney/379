@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 	int i;
 	int length;
 	char * p;
-	
+	int loclength;
 	
 
 	if(argc!=2){printf(" <pattern> \n"); return 0;}
@@ -23,12 +23,12 @@ int main(int argc, char *argv[]) {
 	struct patmatch *pattern = malloc(10 * sizeof(struct patmatch));
 	
 	char *end;
-	char buf[LINE_MAX];
+	char buf[10];
 	printf("Enter how many entries to record");
 	do {
 	if(!fgets(buf, sizeof buf, stdin)) break;
 	buf[strlen(buf) -1] = 0;
-	int loclength = strol(buf, &end, 10);
+	loclength = strtol(buf, &end, 10);
 	} while(end!= buf +strlen(buf));		
 
 	// put pattern on heap
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 	struct patmatch *pattern2 = malloc(10 * sizeof(struct patmatch));
 
 	// remove one heap location and add another
-	firstloc(test);
+	free(firstloc);
 	strcpy(secloc, argv[1]);
 	
 	char* patternloc;
