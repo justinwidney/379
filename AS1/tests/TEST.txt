@@ -1,0 +1,18 @@
+Driver Descriptions:
+
+Driver 1: This driver will run through once finding any matches. It will
+then place a single instance of the given pattern onto the heap. It will
+run through again and should find another match in memory where the pattern
+was placed onto the heap.
+
+Driver 2: This driver will will create a local instance of the pattern on
+the stack after the first call to findpattern(). This should result in the
+function finding another instance of the pattern since it was added onto
+the stack.
+
+Driver 3: This driver will create and write the pattern to a file. Then
+findpattern is called to find any matches. Then the file will be mapped 
+to memory with a different addressing mode at one of the previous matches.
+This should result in the program changing the mode of one of the matches
+but not the location of the match.
+
