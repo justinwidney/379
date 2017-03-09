@@ -5,19 +5,22 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <strings.h>
-
+#include <pthread.h>
 #define	MY_PORT	2223
 
-
-void returnmessages(int);
+// mutex lock
+pthread_mutex_t mutex;
 
 
 int main(int argc, char *argv[])
 {
-	int	sock, snew, fromlength, number, outnum;
+	int	sock, snew, fromlength, number, outnum, a;
 
 	struct	sockaddr_in	master, from;
 
+	pthread_t thread_id;
+
+	
 
 	//if (argc< 2) {return 0;}
 	
@@ -43,16 +46,33 @@ int main(int argc, char *argv[])
 	
 
 	listen (sock, 5);
+	
+	puts();
+	a = sizeof(struct sockaddr_in);
+
+	puts();
+	a = sizeof(struct sockaddr_in);
+
+
+
 
 	while (1) {
 		fromlength = sizeof (from);
+
+		// accept the connection 
 		snew = accept (sock, (struct sockaddr*) & from, & fromlength);
+
 		if (snew < 0) {
 			perror ("Server: accept failed");
 			exit (1);
 		}
+
+		// create the thread
+		pthread_create(&thread_id, NULL, thread_connections, (void *) &snew);
+
+	
 		
-		returnmessages(snew);
+		//returnmessages(snew);
 
 		write (snew, &outnum, sizeof (outnum));
 		close (snew);
@@ -60,36 +80,72 @@ int main(int argc, char *argv[])
 	}
 }
 
-// handle the return messages
-void returnmessages( int sock)
 
-{
+// all functionability in this function
+void *thread_connections( void* acc_socket) {
 
-	int n;
-	char buffer[256];
+	int sock = *(int *)acc_socket;
+	int message_size;
 
-	bzero(buffer, 256);
-	n = read(sock, buffer, 255);
-	if (n<0) perror("Error");
+	char f_message[] = "CMPUT379 Whiteboard Server v0\n"
+	char *message, client_message[1000];
 
-	printf("%s\n",buffer);
 
-	if(buffer[0] = '?'){
-	printf("responsetest");
+	pthread_mutex_lock(&mutex);
+
+	/* 
+	** Create function to get whiteboard size
+	*/
+	
+	// first message
+	write(sock, f_message, strlen(message));
+
+	// continous loop
+	while(message_size = read(sock, client_message, sizeof(client_message)) > 0) {
+
+	message_size = read(sock, client_message, sizeof(client_message))
+
+	
+	pthread_mutex_lock(&mutex);
+
+
+	/*
+	** Update Whiteboard
+	*/
+
+	pthread_mutex_unlock(&mutex);
+
+
+	/*
+	** Respond function
+	*/
+
+
+	write(sock, client_message, strlen(client_message));
+
+	memset(client_message, 0, 2000);
+
+	}
+	
+	
+
+
+	// client disconnected
+	if(message_size == 0) {
+	
 	}
 
-	if(buffer[0] = '!'){
-	printf("responsetest2");
+	else if(message_size == -1) {
+	perror("can't recieve message");
 	}
 
-	if(buffer[0] = '@'){
-	printf("responsetes3");
-	}
+	return 0;
 
-
-
-
+	
 }
+
+
+
 
 
 
