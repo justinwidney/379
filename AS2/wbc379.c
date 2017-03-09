@@ -9,7 +9,23 @@
 #include <stdlib.h>
 #include <strings.h>
 
+#include <openssl/evp.h>
+#include <openssl/pem.h>
+
+
 #define	MY_PORT	2223
+
+
+// GLOBAL VARIABLES FOR ENCRYPTION
+EVP_CIPHER_CTX ctx;
+unsigned char key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+unsigned char iv[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+
+unsigned char outbuf[1024];
+unsigned char debuf[1024];
+
+int outlen, tmplen, delen, i;
+
 
 
 int main(int argc, char *argv[]) {
@@ -92,3 +108,72 @@ int main(int argc, char *argv[]) {
 
 
 }
+
+
+// based off of decrypt.c
+
+void encrypt(unsigned char message[]) {
+
+	
+	
+	
+	EVP_CIPHER_CTX_init(&ctx);
+	EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, key, iv);
+
+	message[strlen(message) -1] = 0;
+
+	if(!EVP_EncryptUpdate(&ctx, outbuf, &outlen, message, strlen(message)))
+    {
+        /* Error */
+        return 0;
+    }
+
+	if(!EVP_EncryptFinal_ex(&ctx, outbuf + outlen, &tmplen))
+    {
+        /* Error */
+        return 0;
+    }
+
+	outlen += tmplen;
+
+	EVP_CIPHER_CTX_cleanup(&ctx);
+
+	// buffer should contain ciphertext
+}
+
+
+void decrypt(char *encrpyted_message) {
+	int remainingBytes;
+
+	EVP_CIPHER_CTX_init(&ctx);
+	EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, key, iv);
+
+	 if(!EVP_DecryptUpdate(&ctx, debuf, &delen, base64_decoded, outlen))
+    {
+        /* Error */
+        return 0;
+    }
+
+	
+
+	if(!EVP_DecryptFinal_ex(&ctx, debuf + delen, &remainingBytes))
+    {
+        /* Error */
+        return 0;
+    }
+
+	delen+=remainingBytes; // length till last block + number of bytes that are not padded
+
+   	EVP_CIPHER_CTX_cleanup(&ctx);
+
+}
+
+
+
+
+
+
+
+
+
+

@@ -91,7 +91,6 @@ void *thread_connections( void* acc_socket) {
 	char *message, client_message[1000];
 
 
-	pthread_mutex_lock(&mutex);
 
 	/* 
 	** Create function to get whiteboard size
@@ -143,7 +142,6 @@ void *thread_connections( void* acc_socket) {
 
 	
 }
-
 
 
 
