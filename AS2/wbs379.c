@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <strings.h>
 #include <pthread.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #define	MY_PORT	2223
 
 // mutex lock
@@ -20,12 +23,71 @@ int main(int argc, char *argv[])
 
 	pthread_t thread_id;
 
-	
+	pid_t pid = 0;
+	pid_t sid = 0;
+
 
 	//if (argc< 2) {return 0;}
 	
+	/*
+   	 pid = fork();
+
+   	 if (pid < 0)
+    {
+        	printf("fork failed!\n");
+        	exit(1);
+    }
+
+    	if (pid > 0)
+    {
+    	// in the parent
+       		printf("pid of child process %d \n", pid);
+       		exit(0);
+    }
+
+   	 umask(0);
+
+	// open a log file
+    	fp = fopen ("logfile.log", "w+");
+    	if(!fp){
+    		printf("cannot open log file");
+    }
+
+    // create new process group -- don't want to look like an orphan
+    	sid = setsid();
+	if(sid < 0)
+    {
+    		fprintf(fp, "cannot create new process group");
+        	exit(1);
+    }
+
+    // Change the current working directory //
+	if ((chdir("/")) < 0) {
+		printf("Could not change working directory to /\n");
+      		exit(1);
+    }
 
 	
+
+	// close standard fds
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+
+
+	while(1) {
+
+	sleep(1);
+	}
+
+	exit(EXIT_SUCCESS);
+
+	*/ // now Daemon process
+
+
+	
+	
+
 	
 
 	sock = socket (AF_INET, SOCK_STREAM, 0);
