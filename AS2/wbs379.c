@@ -16,24 +16,42 @@
 pthread_mutex_t mutex;
 int WHITEBOARD_SIZE = 0;
 int MY_PORT = 2222;
+FILE * STATEFILE;
 
-int getEntryLimit(fp) {
+int getEntryLimit() {
 	int count = 0;	
 	char c;	
-	for (c = getc(fp); c != EOF; c = getc(fp)) {
+	for (c = getc(STATEFILE); c != EOF; c = getc(STATEFILE)) {
         if (c == '\n') {// Increment count if this character is newline
             count = count + 1;
         }
    }
+   rewind(STATEFILE);
 	return count/2; 
 }
 
 
-int makeWhiteboardFile(FILE *fp, int entries) {
+int makeWhiteboardFile(int entries) {
 	int i;
 	for(i = 1; i <= entries; i++) {	
-		fprintf(fp, "!%dp0\n\n", i);
+		fprintf(STATEFILE, "!%dp0\n\n", i);
 	}
+}
+
+
+void getNEntry(entry) {
+	rewind(STATEFILE);	
+	char buf[200];
+	char msg[20];
+	sprintf(msg, "!%d", entry);
+	printf("%c%c\n", msg[0], msg[1]);
+	while(strcmp(buf, msg) != 0) {
+		fgets(buf, 200, STATEFILE);
+		if(strcmp(buf, "test10\n") != 0) {
+			printf("%s\n", buf);
+		}}
+	fgets(buf, 200, STATEFILE); 
+	printf("%s\n", buf);
 }
 
 
@@ -95,9 +113,7 @@ int main(int argc, char *argv[])
     printf("Too few arguments! Exiting...\n");
     exit(0);
   }
-	char * fileName;
-  FILE * fp;
-  
+  char * fileName;
   
   MY_PORT = strtol(argv[1], NULL, 10);
   if(MY_PORT == 0) {
@@ -111,23 +127,22 @@ int main(int argc, char *argv[])
       printf("Invalid whiteboard size! Exiting...\n");
       exit(0);
     }
-    fp = fopen("whiteboard.all", "w");
-    if(fp == NULL) {
+    STATEFILE = fopen("whiteboard.all", "w");
+    if(STATEFILE == NULL) {
       printf("Could not create new whiteboard file! Exiting...\n");
       exit(0);
     }
     // fill whiteboard file with empty entries
-    makeWhiteboardFile(fp, WHITEBOARD_SIZE);
+    makeWhiteboardFile(WHITEBOARD_SIZE);
   }
   else if (strcmp("-f", argv[2]) == 0) {
     fileName = argv[3];
-    fp = fopen(fileName, "r+");
-    if(fp == NULL) {
+    STATEFILE = fopen(fileName, "r+");
+    if(STATEFILE == NULL) {
       printf("Could not open file %s, make sure it exists and that its readable. Exiting..\n", argv[3]);
       exit(0);
     }
-    WHITEBOARD_SIZE = getEntryLimit(fp);
-    printf("%d\n", WHITEBOARD_SIZE);
+    WHITEBOARD_SIZE = getEntryLimit();
     
   }
   else {
@@ -135,9 +150,12 @@ int main(int argc, char *argv[])
     exit(0);
   }
   
+	 getNEntry(2);
   
-  	///////////////////
-  	fclose(fp);
+  
+  
+  	/////////////////// push at end of program
+  	fclose(STATEFILE);
   
   int	sock, snew, fromlength, number, outnum, a;
 
@@ -194,16 +212,3 @@ int main(int argc, char *argv[])
 		
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
