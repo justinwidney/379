@@ -1,16 +1,16 @@
 CC = gcc
 CFLAGS = -pthread -m32
 
-all: client server
+all: wbc379 wbs379
 
-client: wbc379.c
-	$(CC) $(CFLAGS) wbc379.c -o client -lcrypto
+wbc379: wbc379.c
+	$(CC) $(CFLAGS) wbc379.c -o wbc379 -lcrypto
 
-server: wbs379.c
-	$(CC) $(CFLAGS) wbs379.c -o server -lcrypto
+wbs379: wbs379.c
+	$(CC) $(CFLAGS) wbs379.c -o wbs379 -lcrypto
 
 wbc379.o: findpattern.h
 wbs379.o: findpattern.h
 
 clean:
-	rm -f *~ *.o driver
+	rm -f *~ *.o wbs379 wbc379

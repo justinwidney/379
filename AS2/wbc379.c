@@ -14,7 +14,7 @@
 #include <openssl/pem.h>
 
 
-#define	MY_PORT	2223
+#define	MY_PORT	5000
 
 
 // GLOBAL VARIABLES FOR ENCRYPTION
@@ -26,7 +26,7 @@ unsigned char outbuf[1024];
 unsigned char debuf[1024];
 
 int outlen, tmplen, delen, i;
-
+ 
 
 
 int main(int argc, char *argv[]) {
@@ -61,8 +61,7 @@ int main(int argc, char *argv[]) {
 
 	
 		while (1) {
-
-		s = socket (AF_INET, SOCK_STREAM, 0);  		// create connection 
+      s = socket (AF_INET, SOCK_STREAM, 0);  		// create connection 
 
 		if (s < 0) {
 			perror ("Client: cannot open socket");
@@ -82,31 +81,18 @@ int main(int argc, char *argv[]) {
 		}
 
 		bzero(message, 256);
-		fgets(message, 255, stdin);	
+		//fgets(message, 255, stdin);	
 		
-		int n = read (s, message, sizeof (number));
+		int n = read (s, message, sizeof (message));
 		if(n < 0){
 			perror ("ERROR reading from socket");
 			exit(1);
 		}
-
-		close (s);
-		fprintf (stderr, "Process %d gets number %d\n", getpid (),
-			ntohl (number));
+    printf("%s\n", message);
+		fprintf (stderr, "Process %d gets number %d\n", getpid (), ntohl (number));
 		sleep (2);
 	}
 	
-
-	
-
-
-
-
-
-
-
-
-
 
 }
 

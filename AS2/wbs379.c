@@ -9,27 +9,36 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <errno.h>
 
-#define	MY_PORT	2223
 
 // mutex lock
 pthread_mutex_t mutex;
+int WHITEBOARD_SIZE = 0;
+int MY_PORT = 2222;
+
+int getEntryLimit(fp) {
+
+}
 
 // all functionability in this function
 void *thread_connections( void* acc_socket) {
-
+  printf("got here\n");
 	int sock = *(int *)acc_socket;
 	int message_size;
 
-	char f_message[] = "CMPUT379 Whiteboard Server v0\n";
+	char f_message[]= {("CMPUT379 Whiteboard Server v0\%d\n", WHITEBOARD_SIZE)};
 	char *message, client_message[1000];
-
+ 
 	/* 
 	** Create function to get whiteboard size
 	*/
 	
 	// first message
-	write(sock, f_message, strlen(message));
+	int written = write(sock, f_message, strlen(f_message));
+  if(written==-1) {
+    printf("Could not write! %s\n", strerror(errno));
+  } 
 
 	// continous loop
 	while(message_size = read(sock, client_message, sizeof(client_message)) > 0) {
@@ -62,9 +71,55 @@ void *thread_connections( void* acc_socket) {
 
 	return 0;
 }
+
+
 int main(int argc, char *argv[])
 {
-	int	sock, snew, fromlength, number, outnum, a;
+  if (argc < 4) {
+    printf("Too few arguments! Exiting...\n");
+    exit(0);
+  }
+	char * fileName;
+  FILE * fp;
+  
+  
+  MY_PORT = strtol(argv[1], NULL, 10);
+  if(MY_PORT == 0) {
+    printf("Invalid port number! Exiting...\n");
+    exit(0);
+  }
+  
+  if(strcmp("-n", argv[2]) == 0) {
+    WHITEBOARD_SIZE = strtol(argv[3], NULL, 10);
+    if(WHITEBOARD_SIZE == 0) {
+      printf("Invalid whiteboard size! Exiting...\n");
+      exit(0);
+    }
+    fileName = "whiteboard.all";
+    fp = fopen(fileName, "w");
+    if(fp == NULL) {
+      printf("Could not create new whiteboard file! Exiting...\n");
+      exit(0);
+    }
+    // fill whiteboard file with empty entries
+  }
+  else if (strcmp("-f", argv[2]) == 0) {
+    fileName = argv[3];
+    fp = fopen(fileName, "r+");
+    if(fp == NULL) {
+      printf("Could not open file %s, make sure it exists and that its readable. Exiting..\n", argv[3]);
+      exit(0);
+    }
+    WHITEBOARD_SIZE = getEntryLimit(fp);
+    
+  }
+  else {
+    printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
+    exit(0);
+  }
+  
+  
+  int	sock, snew, fromlength, number, outnum, a;
 
 	struct	sockaddr_in	master, from;
 
@@ -74,8 +129,6 @@ int main(int argc, char *argv[])
 	pid_t sid = 0;
 
 	// now Daemon process
-
-
 	sock = socket (AF_INET, SOCK_STREAM, 0);
 	if (sock < 0) {
 		perror ("Server: cannot open master socket");
@@ -116,8 +169,8 @@ int main(int argc, char *argv[])
 
 		//returnmessages(snew);
 
-		write (snew, &outnum, sizeof (outnum));
-		close (snew);
+		//write (snew, &outnum, sizeof (outnum));
+		//close (snew);
 		
 	}
 }
