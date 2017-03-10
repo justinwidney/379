@@ -1,5 +1,3 @@
-
-
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -10,17 +8,17 @@
 #include <strings.h>
 #include <string.h>
 
-#include <openssl/evp.h>
-#include <openssl/pem.h>
+//#include <openssl/evp.h>
+//#include <openssl/pem.h>
 
 
 #define	MY_PORT	5000
 
 
 // GLOBAL VARIABLES FOR ENCRYPTION
-EVP_CIPHER_CTX ctx;
-unsigned char key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-unsigned char iv[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+//EVP_CIPHER_CTX ctx;
+//unsigned char key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+//unsigned char iv[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 
 unsigned char outbuf[1024];
 unsigned char debuf[1024];
@@ -99,7 +97,7 @@ int main(int argc, char *argv[]) {
 
 // based off of decrypt.c
 
-int encrypt(unsigned char message[]) {
+/*int encrypt(unsigned char message[]) {
 
 	
 	
@@ -111,13 +109,13 @@ int encrypt(unsigned char message[]) {
 
 	if(!EVP_EncryptUpdate(&ctx, outbuf, &outlen, message, strlen(message)))
     {
-        /* Error */
+        // Error
         return 0;
     }
 
 	if(!EVP_EncryptFinal_ex(&ctx, outbuf + outlen, &tmplen))
     {
-        /* Error */
+        // Error 
         return 0;
     }
 
@@ -126,10 +124,10 @@ int encrypt(unsigned char message[]) {
 	EVP_CIPHER_CTX_cleanup(&ctx);
 
 	// buffer should contain ciphertext
-}
+}*/
 
 
-int decrypt(char *encrpyted_message) {
+/*int decrypt(char *encrpyted_message) {
 	int remainingBytes;
 
 	EVP_CIPHER_CTX_init(&ctx);
@@ -138,7 +136,7 @@ int decrypt(char *encrpyted_message) {
 	
 
 	if(!EVP_DecryptFinal_ex(&ctx, debuf + delen, &remainingBytes)) {
-        /* Error */
+        // Error
         return 0;
     }
 
@@ -146,7 +144,7 @@ int decrypt(char *encrpyted_message) {
 
    	EVP_CIPHER_CTX_cleanup(&ctx);
 
-}
+}*/
 
 
 

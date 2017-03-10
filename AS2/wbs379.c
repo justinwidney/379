@@ -18,8 +18,24 @@ int WHITEBOARD_SIZE = 0;
 int MY_PORT = 2222;
 
 int getEntryLimit(fp) {
-
+	int count = 0;	
+	char c;	
+	for (c = getc(fp); c != EOF; c = getc(fp)) {
+        if (c == '\n') {// Increment count if this character is newline
+            count = count + 1;
+        }
+   }
+	return count/2; 
 }
+
+
+int makeWhiteboardFile(FILE *fp, int entries) {
+	int i;
+	for(i = 1; i <= entries; i++) {	
+		fprintf(fp, "!%dp0\n\n", i);
+	}
+}
+
 
 // all functionability in this function
 void *thread_connections( void* acc_socket) {
@@ -95,13 +111,13 @@ int main(int argc, char *argv[])
       printf("Invalid whiteboard size! Exiting...\n");
       exit(0);
     }
-    fileName = "whiteboard.all";
-    fp = fopen(fileName, "w");
+    fp = fopen("whiteboard.all", "w");
     if(fp == NULL) {
       printf("Could not create new whiteboard file! Exiting...\n");
       exit(0);
     }
     // fill whiteboard file with empty entries
+    makeWhiteboardFile(fp, WHITEBOARD_SIZE);
   }
   else if (strcmp("-f", argv[2]) == 0) {
     fileName = argv[3];
@@ -111,6 +127,7 @@ int main(int argc, char *argv[])
       exit(0);
     }
     WHITEBOARD_SIZE = getEntryLimit(fp);
+    printf("%d\n", WHITEBOARD_SIZE);
     
   }
   else {
@@ -118,6 +135,9 @@ int main(int argc, char *argv[])
     exit(0);
   }
   
+  
+  	///////////////////
+  	fclose(fp);
   
   int	sock, snew, fromlength, number, outnum, a;
 
