@@ -13,7 +13,9 @@
 #define	MY_PORT	2223
 
 // mutex lock
-pthread_mutex_t mutex;
+pthread_mutex_t mutexg;
+pthread_mutex_t mutexr;
+int b = 0;
 
 // all functionability in this function
 void *thread_connections( void* acc_socket) {
@@ -33,24 +35,41 @@ void *thread_connections( void* acc_socket) {
 
 	// continous loop
 	while(message_size = read(sock, client_message, sizeof(client_message)) > 0) {
-    message_size = read(sock, client_message, sizeof(client_message));
-    pthread_mutex_lock(&mutex);
+
+    	message_size = read(sock, client_message, sizeof(client_message));
+
+
+   	 pthread_mutex_lock(&mutexg);
 
     /*
     ** Update Whiteboard
     */
   
-    pthread_mutex_unlock(&mutex);
+   	 pthread_mutex_unlock(&mutexg);
   
+	
+   	 pthread_mutex_lock(&mutexr);
+  	  b++;
+   	 if (b==1) {pthread_mutex_lock(&mutexg);}
+   	 pthread_mutex_unlock(&mutexr);
+
     /*
     ** Respond function
     */
   
-    write(sock, client_message, strlen(client_message));
-  
-    memset(client_message, 0, 2000);
-	}
+   	 pthread_mutex_lock(&mutexr);
+   	 b--;
+   	 if (b==0) {pthread_mutex_unlock(&mutexg);}
+   	 pthread_mutex_unlock(&mutexr);
 	
+	// reply with message
+   	 write(sock, client_message, strlen(client_message));
+  
+	// clear the buffer
+   	 memset(client_message, 0, 2000);
+
+		}
+		
 	// client disconnected
 	if(message_size == 0) {
 	
