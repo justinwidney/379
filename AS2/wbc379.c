@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <string.h>
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -112,7 +113,7 @@ int main(int argc, char *argv[]) {
 
 // based off of decrypt.c
 
-void encrypt(unsigned char message[]) {
+int encrypt(unsigned char message[]) {
 
 	
 	
@@ -142,22 +143,15 @@ void encrypt(unsigned char message[]) {
 }
 
 
-void decrypt(char *encrpyted_message) {
+int decrypt(char *encrpyted_message) {
 	int remainingBytes;
 
 	EVP_CIPHER_CTX_init(&ctx);
 	EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, key, iv);
 
-	 if(!EVP_DecryptUpdate(&ctx, debuf, &delen, base64_decoded, outlen))
-    {
-        /* Error */
-        return 0;
-    }
-
 	
 
-	if(!EVP_DecryptFinal_ex(&ctx, debuf + delen, &remainingBytes))
-    {
+	if(!EVP_DecryptFinal_ex(&ctx, debuf + delen, &remainingBytes)) {
         /* Error */
         return 0;
     }
