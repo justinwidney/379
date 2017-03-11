@@ -26,10 +26,10 @@ void *thread_connections( void* acc_socket) {
 	char f_message[] = "CMPUT379 Whiteboard Server v0\n";
 	char *message, client_message[1000];
 
-	/* 
+	/*
 	** Create function to get whiteboard size
 	*/
-	
+
 	// first message
 	write(sock, f_message, strlen(message));
 
@@ -44,10 +44,10 @@ void *thread_connections( void* acc_socket) {
     /*
     ** Update Whiteboard
     */
-  
+
    	 pthread_mutex_unlock(&mutexg);
-  
-	
+
+
    	 pthread_mutex_lock(&mutexr);
   	  b++;
    	 if (b==1) {pthread_mutex_lock(&mutexg);}
@@ -56,23 +56,23 @@ void *thread_connections( void* acc_socket) {
     /*
     ** Respond function
     */
-  
+
    	 pthread_mutex_lock(&mutexr);
    	 b--;
    	 if (b==0) {pthread_mutex_unlock(&mutexg);}
    	 pthread_mutex_unlock(&mutexr);
-	
+
 	// reply with message
    	 write(sock, client_message, strlen(client_message));
-  
+
 	// clear the buffer
    	 memset(client_message, 0, 2000);
 
 		}
-		
+
 	// client disconnected
 	if(message_size == 0) {
-	
+
 	}
 
 	else if(message_size == -1) {
@@ -81,6 +81,7 @@ void *thread_connections( void* acc_socket) {
 
 	return 0;
 }
+
 int main(int argc, char *argv[])
 {
 	int	sock, snew, fromlength, number, outnum, a;
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
 	}
 
 	listen (sock, 5);
-	
+
 	//puts();
 	a = sizeof(struct sockaddr_in);
 
@@ -137,19 +138,6 @@ int main(int argc, char *argv[])
 
 		write (snew, &outnum, sizeof (outnum));
 		close (snew);
-		
+
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
