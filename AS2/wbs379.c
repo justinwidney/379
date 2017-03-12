@@ -192,7 +192,9 @@ void *thread_connections( void* acc_socket) {
 	int message_size;
 
 	char f_message[]= {("CMPUT379 Whiteboard Server v0\%d\n", WHITEBOARD_SIZE)};
-	char *message, client_message[1000];
+	char *message, client_message[1000], server_message[1000];
+
+  char cpointer;
 
 	/*
 	** Create function to get whiteboard size
@@ -210,37 +212,46 @@ void *thread_connections( void* acc_socket) {
    printf("Closing\n");
    close (sock);
    exit(1);
-}
+  }
 
 
     	message_size = read(sock, client_message, sizeof(client_message));
 
 
-   	 pthread_mutex_lock(&mutexg);
 
-    /*
-    ** Update Whiteboard
-    */
+      if(client_message[0] == '?'){
+        pthread_mutex_lock(&mutexg);
 
-   	 pthread_mutex_unlock(&mutexg);
+        server_message = getNEntry();
+
+      	 pthread_mutex_unlock(&mutexg);
+        }
 
 
-   	 pthread_mutex_lock(&mutexr);
-  	  b++;
-   	 if (b==1) {pthread_mutex_lock(&mutexg);}
-   	 pthread_mutex_unlock(&mutexr);
 
-    /*
-    ** Respond function
-    */
+     if(client_message[0] == '@'){
+       / pthread_mutex_lock(&mutexr);
+     	  b++;
+      	 if (b==1) {pthread_mutex_lock(&mutexg);}
+      	 pthread_mutex_unlock(&mutexr);
 
-   	 pthread_mutex_lock(&mutexr);
-   	 b--;
-   	 if (b==0) {pthread_mutex_unlock(&mutexg);}
-   	 pthread_mutex_unlock(&mutexr);
+         char *updateEntry(int entry, char mode, int length, char *message);
+
+         server_message = {"!"};
+         strcat(server_message, str(entry));
+         strcat(server_message, "\n\n");
+         
+
+      	 pthread_mutex_lock(&mutexr);
+      	 b--;
+      	 if (b==0) {pthread_mutex_unlock(&mutexg);}
+      	 pthread_mutex_unlock(&mutexr);
+
+     }
+
 
 	// reply with message
-   	 write(sock, client_message, strlen(client_message));
+   	 write(sock, server_message, strlen(server_message));
 
 	// clear the buffer
    	 memset(client_message, 0, 2000);
