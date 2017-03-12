@@ -29,15 +29,59 @@ struct Entry {
 
 struct Entry *entries;
 
-void fillWhiteboardFromFile(fp) {
+void fillWhiteboardFromFile(FILE *fp) {
   // fill whiteboard struct from file
-  printf("here\n");
-  char line[256];
-  while(fgets(line, sizeof(line), STATEFILE) != NULL) {
-    printf("loop\n");
-    printf("%s", line);
+  rewind(fp);
+  char line[2000]; int entryNum = 0;
+  while(fgets(line, sizeof(line), fp) != NULL) {
+    if(line[0] == '!') {
+      // new entry
+      // get the entry number
+      int i = 1; char entryNumber[10] = ""; entryNumber[9] = '\0';
+      while(1) {
+        if(line[i] == '\n') {
+          printf("This statefile is not in proper order. At entry %d. Exiting...\n", entryNum+1);
+          exit(0);
+        }
+        if (line[i] == 'p' || line[i] == 'c') {
+          entries[entryNum].entryNumber = strtol(entryNumber, NULL, 10);;
+          break;
+        }
+        entryNumber[i-1] = line[i];
+        i++;
+      }
+      entries[entryNum].mode = line[i]; // get mode
+      // get entry length
+      i++;
+      int n = 0; char entryLength[10] = ""; entryLength[9] = '\0';
+      while(1) {
+        if(!isdigit(line[i])) { if(line[i] != '\n') {
+          printf("Non-digit found in entry length, statefile is not correct. At entry %d. Exiting...\n", entries[entryNum].entryNumber);
+          exit(0);
+        }}
+        if(line[i] == '\n') {
+          entries[entryNum].length = strtol(entryLength, NULL, 10);
+          break;
+        }
+        entryLength[n] = line[i];
+        i++; n++;
+      }
+      
+      int j; char * message = malloc(sizeof(char)*entries[entryNum].length);
+      if(message == NULL) {
+        printf("Error aquiring memory for entry %d. Exiting...\n", entries[entryNum].entryNumber);
+      }
+      for(j = 0; j < entries[entryNum].length; j++) {
+        message[j] = fgetc(fp);
+        if(message[j] < 0 || message[j] == '!') {
+          printf("Got entry shorter than it was specified. At entry %d. Exiting...\n", entries[entryNum].entryNumber);
+          exit(0);
+        }
+      }
+      entries[entryNum].entry = message;
+      entryNum++;
+    }
   }
-  printf("done\n");
 }
 
 void fillWhiteboardBlank(int numEntries) {
@@ -55,18 +99,15 @@ void fillWhiteboardBlank(int numEntries) {
   }
 } 
 
-
 int getEntryLimit() {
 	int count = 0;	
 	char c;	
 	for (c = getc(STATEFILE); c != EOF; c = getc(STATEFILE)) {
-        if (c == '\n')  {
-          // Increment count if this character is newline
+        if (c == '!')  {
             count = count + 1;
         }
    }
-   rewind(STATEFILE);
-	return count/2; 
+	return count; 
 }
 
 
@@ -174,15 +215,9 @@ int main(int argc, char *argv[])
       exit(0);
     }
     STATEFILE = fopen("whiteboard.all", "w");
-    //if(STATEFILE == NULL) {
-      //printf("Could not create new whiteboard file! Exiting...\n");
-      //exit(0);
-    //}
-    // fill whiteboard file with empty entries
-    //makeWhiteboardFile(WHITEBOARD_SIZE);
+
     entries = realloc(entries, WHITEBOARD_SIZE * sizeof(entry));
     char line[256];
-    
     
     if (entries == NULL) {
       printf("Error in whiteboard memory allocation, exiting...\n");
@@ -201,7 +236,11 @@ int main(int argc, char *argv[])
     if (entries == NULL) {
       printf("Error in whiteboard memory allocation, exiting...\n");
     }
-    //fillWhiteboard(STATEFILE);
+    fillWhiteboardFromFile(STATEFILE);
+    int i;
+    for(i = 0; i < WHITEBOARD_SIZE; i++) {
+      printf("Entry: %d, Mode: %c, Length: %d, Message: %s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
+    }
     
   }
   else {
