@@ -80,9 +80,20 @@ int main()
    unsigned char testkey[16];
    i =0;
    while((c=fgetc(fp))!=EOF){
+
+     if (c == '\n') {
+       memset(members, 0, sizeof members);
+       i=0;
+     }
+
+
          testkey[i] = c;
          i++;
+
+
+
      }
+    //printf("No possible decryption");
     for (i=0; i< 17; i++)
     printf("%c\n",testkey[i]);
 
