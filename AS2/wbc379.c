@@ -67,16 +67,21 @@ int outlen, tmplen, delen, i;
 
 int main(int argc, char *argv[]) {
 
-	int	s, number, portnumber;
+	int	s, number, portnumber, x;
 
 	char* hostname;
 
+  int keyfile_flag = 0;
+  char* keyfile_name;
 
 	struct	sockaddr_in	server;
-
 	struct	hostent		*host;
 
 	char message[256];
+
+  FILE *fp;
+
+  unsigned char testkey[16];
 
 	host = gethostbyname ("localhost");
 
@@ -86,19 +91,33 @@ int main(int argc, char *argv[]) {
 	}
 
 
+    if (argc == 4) {
+      //hostname = argv[1];
+      //portnumber = atoi(argv[2]);	// get portnumber
+      keyfile_flag = 1;
+      keyfile_name = argv[3];
+      fp = fopen(keyfile_name, "r")
+      if (fp == NULL){
+        printf("File not created\n", );
+        return 1;
+      }
+      fclose(fp);
 
-	/*if(argc != 3) { return 0;}
-	
-	hostname = argv[1];	// get hostname
+    }
 
-	portnumber = atoi(argv[2]);	// get portnumber 
-	*/
+    if(argc != 3 && keyfile_flag ==0){
+      printf("needs hostname & portnumber\n", );
+      return 0;
+    }
+
+	   hostname = argv[1];	// get hostname
+     portnumber = atoi(argv[2]);	// get portnumber
 
 
-	
+
 		while (1) {
 
-		s = socket (AF_INET, SOCK_STREAM, 0);  		// create connection 
+		s = socket (AF_INET, SOCK_STREAM, 0);  		// create connection
 
 		if (s < 0) {
 			perror ("Client: cannot open socket");
@@ -117,23 +136,100 @@ int main(int argc, char *argv[]) {
 			exit (1);
 		}
 
-		bzero(message, 256);
-		fgets(message, 255, stdin);	
-		
-		int n = read (s, message, sizeof (number));
+		unsigned char key2[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+    char buf[1024];
+    char c[1000];
+
+    char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n"
+
+    unsigned char *keyp;
+    keyp = key;
+
+
+    printf("Options: \n 1: enter string \n 2:exit \n Enter 1 or 2: ", );
+    scanf("%d", &n);
+
+    if (n == 2) {
+      close(snew);
+      printf("exiting\n");
+      return 0;
+
+    }
+
+    sprintf(buf,"Enter a string to be sent\n");
+
+    write(1,buf,strlen(buf));
+		read(0,intext,199);
+    intext[strlen(intext) - 1] = 0;
+
+    int n;
+    printf("please enter 0 for non-encrypted and 1 for encrypted: ");
+    scanf("%d", &n);
+
+    if(n == 1){
+      // call encryption
+    }
+
+
+    write (s, buf, sizeof(buf));
+
+    // recv the message
+    int n = recv(s,c,999,0);
+    int message_length;
+    char[] message_length_c;
+
+    i =0, x=0 ;
+    memset(message_length_c, 0, sizeof(message_length_c));
+
+    while(1){
+
+    // handle regular responses
+    if(c[i] == "p"){
+
+      while (1) {
+        if(c[i] == "\n"){
+          break;
+        }
+
+        strcat(message_length_c, c[i])
+        i++;
+      }
+      message_length = atoi(message_length_c);
+
+      for(x=0; x< message_length_c+1; x++){
+        printf("%c", c[i+x]); // print all values in
+      }
+      break;
+
+    }
+
+    // handle error message
+    if(c[i] == "e"){
+
+    }
+
+
+
+    if(c[i] == "c"){
+      decrypt(&c, keyfile_name)
+      break;
+    }
+
+    i++;
+
+    }
+
+
 		if(n < 0){
 			perror ("ERROR reading from socket");
 			exit(1);
 		}
 
-		close (s);
-		fprintf (stderr, "Process %d gets number %d\n", getpid (),
-			ntohl (number));
-		sleep (2);
-	}
-	
 
-	
+	}
+
+
+
 
 
 
@@ -149,11 +245,8 @@ int main(int argc, char *argv[]) {
 
 // based off of decrypt.c
 
-int encrypt(unsigned char message[]) {
+char[] encrypt(unsigned char message[]) {
 
-	
-	
-	
 	EVP_CIPHER_CTX_init(&ctx);
 	EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, key, iv);
 
@@ -178,52 +271,66 @@ int encrypt(unsigned char message[]) {
 	// buffer should contain ciphertext
 
 
-	
+
    	 unsigned char * data_to_encode;  //The string we will base-64 encode.
    	 data_to_encode = malloc(outlen); // allocate size of string
    	 memcpy(data_to_encode,outbuf,outlen); // copy string to pointer
-  	 int bytes_to_encode = outlen; //Number of bytes in string to base64 encode.
-   	 unsigned char *base64_encoded = base64encode(data_to_encode, bytes_to_encode);   //Base-64 encoding.
-
+  	//int bytes_to_encode = outlen; //Number of bytes in string to base64 encode.
+   	//unsigned char *base64_encoded = base64encode(data_to_encode, bytes_to_encode);   //Base-64 encoding.
+    return data_to_encode;
 }
 
 
-int decrypt(char *encrpyted_message) {
-	int remainingBytes;
+int decrypt(char *encrpyted_message, char* filename ) {
 
-	
-  	int bytes_to_decode = strlen(base64_encoded); 	//Number of bytes in string to base64 decode.
-  	unsigned char *base64_decoded = base64decode(base64_encoded, bytes_to_decode);   //Base-64 decoding.
 
-   	outlen = strlen(base64_decoded); // size of new base64 string
+    fp = fopen (filename,"r");
+    unsigned char testkey[16];
+    int remainingBytes;
+
+    bzero(buf,200);
+
+    while((c=fgetc(fp))!=EOF){
+         testkey[i] = c;
+         i++;
+
+
+         // try the key
+         if(c == '\n'){
+
+          int bytes_to_decode = strlen(c);
+          unsigned *base64_decoded_key = base64_decoded(c, bytes_to_decode);
+
+          EVP_CIPHER_CTX_init(&ctx);
+         	EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
+
+          if(!EVP_DecryptUpdate(&ctx, debuf, &delen, encrpyted_message, outlen))
+          {printf("Error1\n");return 0;}
+
+           if(!EVP_DecryptFinal_ex(&ctx, debuf + delen, &remainingBytes)){
+             memset(testkey, 0, sizeof(testkey);
+              continue;
+           }
+
+            delen+=remainingBytes;
+            EVP_CIPHER_CTX_cleanup(&ctx);
+
+            for (int i; i< delen; i++){
+              printf("%c", debuf[i]);
+            }
+
+            return 0;
+         }
+        // found no key that works
+        printf("no key was able to decrypt the message\n");
+       }
+
+
+
+  outlen = strlen(base64_decoded); // size of new base64 string
 	free(base64_encoded);		// clear the mem
 
 
 
-	EVP_CIPHER_CTX_init(&ctx);
-	EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, key, iv);
-
-	
-
-	if(!EVP_DecryptFinal_ex(&ctx, debuf + delen, &remainingBytes)) {
-        /* Error */
-        return 0;
-    }
-
-	delen+=remainingBytes; // length till last block + number of bytes that are not padded
-
-   	EVP_CIPHER_CTX_cleanup(&ctx);
-
-	
 
 }
-
-
-
-
-
-
-
-
-
-
