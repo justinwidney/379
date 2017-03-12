@@ -268,10 +268,7 @@ int main(int argc, char *argv[])
     printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
     exit(0);
   }
-  
-  
-    char * message = getNEntry(6);
-    printf("%s\n", message);
+
   	/////////////////// push at end of program
     free(entries);
   	//fclose(STATEFILE);
