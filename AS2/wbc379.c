@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
     scanf("%d", &n);
 
     if (n == 2) {
-      close(snew);
+      close(s);
       printf("exiting\n");
       return 0;
 
@@ -175,6 +175,12 @@ int main(int argc, char *argv[]) {
 
     // recv the message
     int n = recv(s,c,999,0);
+
+    if (strlen(c) == 0){
+      close(s);
+      printf("connect with server was terminated");
+      return 0;
+    }
     int message_length;
     char[] message_length_c;
 
