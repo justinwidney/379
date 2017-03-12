@@ -297,7 +297,7 @@ int decrypt(char *encrpyted_message, char* filename ) {
     FILE *fp;
 
     fp = fopen (filename,"r");
-    unsigned char testkey[16];
+    unsigned char testkey[20];
     int remainingBytes;
     char c;
 
@@ -307,18 +307,17 @@ int decrypt(char *encrpyted_message, char* filename ) {
     outlen = strlen(base64_decoded);
 
     //bzero(debuf,1024);
+    memset(testkey, 0, sizeof(testkey));
 
     while((c=fgetc(fp))!=EOF){
-         testkey[i] = c;
-         i++;
-
 
          // try the key
          if(c == '\n'){
 
            //Todo Needs to conver base64decode into a char array
           int key_bytes = strlen(testkey);
-          unsigned *base64_decoded_key = base64decode(testkey, key_bytes);
+          unsigned char* base64_decoded_key = base64decode(testkey, bytes_to_decode);
+          printf("decoded= %s\n", base64_decoded);
 
           EVP_CIPHER_CTX_init(&ctx);
          	EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
@@ -328,7 +327,8 @@ int decrypt(char *encrpyted_message, char* filename ) {
 
            if(!EVP_DecryptFinal_ex(&ctx, debuf + delen, &remainingBytes)){
              memset(testkey, 0, sizeof(testkey));
-              continue;
+             i=0;
+             continue;
            }
 
             delen+=remainingBytes;
@@ -340,10 +340,12 @@ int decrypt(char *encrpyted_message, char* filename ) {
 
             return 0;
          }
-        // found no key that works
-        printf("no key was able to decrypt the message\n");
-       }
+         testkey[i] = c;
+         i++;
 
+         // found no key that works
+       }
+       printf("no key was able to decrypt the message\n");
 
 
   //outlen = strlen(base64_decoded); // size of new base64 string
