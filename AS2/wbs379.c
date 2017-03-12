@@ -119,26 +119,27 @@ int makeWhiteboardFile(int numEntries) {
 }
 
 
-void getNEntry(entry) {
-	
-  
-  
-  
-  
-  
-  
-  //~ rewind(STATEFILE);	
-	//~ char buf[200];
-	//~ char msg[20];
-	//~ sprintf(msg, "!%d", entry);
-	//~ printf("%c%c\n", msg[0], msg[1]);
-	//~ while(strcmp(buf, msg) != 0) {
-		//~ fgets(buf, 200, STATEFILE);
-		//~ if(strcmp(buf, "test10\n") != 0) {
-			//~ printf("%s\n", buf);
-		//~ }}
-	//~ fgets(buf, 200, STATEFILE); 
-	//~ printf("%s\n", buf);
+char *getNEntry(entry) {
+  int i = 0;
+  while(1) {
+    if (i > WHITEBOARD_SIZE) {
+      // can't find entry
+      char * error = malloc(50); sprintf(error, "!%de14\nNo such entry!\n", entry);
+      return error;
+    }
+    if(entries[i].entryNumber == entry) {
+      char * message = malloc(sizeof(int)*2+strlen(entries[i].entry)+4);
+      if(message == NULL) {
+        printf("Failed to allocate memory when responding to query!. Reponse not possible\n");
+        // return error
+        char * error = malloc(50); sprintf(error, "!%de36\nThere are memory problems on server!\n",  entry);
+        return error;
+      }
+      sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
+      return message;
+    }
+    i++;
+  }
 }
 
 
@@ -247,6 +248,10 @@ int main(int argc, char *argv[])
     printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
     exit(0);
   }
+  
+  
+    char * message = getNEntry(6);
+    printf("%s\n", message);
   	/////////////////// push at end of program
     free(entries);
   	//fclose(STATEFILE);
