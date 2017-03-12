@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+#define encrypted c
+#define plaintext p
 
 // mutex lock
 pthread_mutex_t mutex;
@@ -18,11 +20,48 @@ int WHITEBOARD_SIZE = 0;
 int MY_PORT = 2222;
 FILE * STATEFILE;
 
+struct Entry {
+  int entryNumber;
+  char * entry;
+  char mode;
+  int length;
+} entry;
+
+struct Entry *entries;
+
+void fillWhiteboardFromFile(fp) {
+  // fill whiteboard struct from file
+  printf("here\n");
+  char line[256];
+  while(fgets(line, sizeof(line), STATEFILE) != NULL) {
+    printf("loop\n");
+    printf("%s", line);
+  }
+  printf("done\n");
+}
+
+void fillWhiteboardBlank(int numEntries) {
+  int i;
+  for(i = 1; i <= numEntries; i++) {
+    entries[i-1].entryNumber = i;
+    entries[i-1].entry = malloc(6*sizeof(char));
+    if(entries[i-1]. entry == NULL) {
+      printf("Error in entry memory allocation. Exiting...\n");
+      exit(0);
+    }
+    sprintf(entries[i-1].entry, "!%dp0\n\n", i);
+    entries[i-1].mode = 'p';
+    entries[i-1]. length = strlen(entries[i-1].entry);
+  }
+} 
+
+
 int getEntryLimit() {
 	int count = 0;	
 	char c;	
 	for (c = getc(STATEFILE); c != EOF; c = getc(STATEFILE)) {
-        if (c == '\n') {// Increment count if this character is newline
+        if (c == '\n')  {
+          // Increment count if this character is newline
             count = count + 1;
         }
    }
@@ -31,27 +70,34 @@ int getEntryLimit() {
 }
 
 
-int makeWhiteboardFile(int entries) {
+int makeWhiteboardFile(int numEntries) {
 	int i;
-	for(i = 1; i <= entries; i++) {	
+	for(i = 1; i <= numEntries; i++) {	
 		fprintf(STATEFILE, "!%dp0\n\n", i);
 	}
 }
 
 
 void getNEntry(entry) {
-	rewind(STATEFILE);	
-	char buf[200];
-	char msg[20];
-	sprintf(msg, "!%d", entry);
-	printf("%c%c\n", msg[0], msg[1]);
-	while(strcmp(buf, msg) != 0) {
-		fgets(buf, 200, STATEFILE);
-		if(strcmp(buf, "test10\n") != 0) {
-			printf("%s\n", buf);
-		}}
-	fgets(buf, 200, STATEFILE); 
-	printf("%s\n", buf);
+	
+  
+  
+  
+  
+  
+  
+  //~ rewind(STATEFILE);	
+	//~ char buf[200];
+	//~ char msg[20];
+	//~ sprintf(msg, "!%d", entry);
+	//~ printf("%c%c\n", msg[0], msg[1]);
+	//~ while(strcmp(buf, msg) != 0) {
+		//~ fgets(buf, 200, STATEFILE);
+		//~ if(strcmp(buf, "test10\n") != 0) {
+			//~ printf("%s\n", buf);
+		//~ }}
+	//~ fgets(buf, 200, STATEFILE); 
+	//~ printf("%s\n", buf);
 }
 
 
@@ -128,12 +174,20 @@ int main(int argc, char *argv[])
       exit(0);
     }
     STATEFILE = fopen("whiteboard.all", "w");
-    if(STATEFILE == NULL) {
-      printf("Could not create new whiteboard file! Exiting...\n");
-      exit(0);
-    }
+    //if(STATEFILE == NULL) {
+      //printf("Could not create new whiteboard file! Exiting...\n");
+      //exit(0);
+    //}
     // fill whiteboard file with empty entries
-    makeWhiteboardFile(WHITEBOARD_SIZE);
+    //makeWhiteboardFile(WHITEBOARD_SIZE);
+    entries = realloc(entries, WHITEBOARD_SIZE * sizeof(entry));
+    char line[256];
+    
+    
+    if (entries == NULL) {
+      printf("Error in whiteboard memory allocation, exiting...\n");
+    }
+    fillWhiteboardBlank(WHITEBOARD_SIZE);
   }
   else if (strcmp("-f", argv[2]) == 0) {
     fileName = argv[3];
@@ -143,20 +197,20 @@ int main(int argc, char *argv[])
       exit(0);
     }
     WHITEBOARD_SIZE = getEntryLimit();
+    entries = realloc(entries, WHITEBOARD_SIZE * sizeof(entry));
+    if (entries == NULL) {
+      printf("Error in whiteboard memory allocation, exiting...\n");
+    }
+    //fillWhiteboard(STATEFILE);
     
   }
   else {
     printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
     exit(0);
   }
-  
-	 getNEntry(2);
-  
-  
-  
   	/////////////////// push at end of program
-  	fclose(STATEFILE);
-  
+    free(entries);
+  	//fclose(STATEFILE);
   int	sock, snew, fromlength, number, outnum, a;
 
 	struct	sockaddr_in	master, from;
