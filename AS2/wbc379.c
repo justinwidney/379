@@ -277,13 +277,14 @@ char[] encrypt(unsigned char message[]) {
 	// buffer should contain ciphertext
 
 
-
+    // 64 bit encode it 
    	 unsigned char * data_to_encode;  //The string we will base-64 encode.
    	 data_to_encode = malloc(outlen); // allocate size of string
    	 memcpy(data_to_encode,outbuf,outlen); // copy string to pointer
-  	//int bytes_to_encode = outlen; //Number of bytes in string to base64 encode.
-   	//unsigned char *base64_encoded = base64encode(data_to_encode, bytes_to_encode);   //Base-64 encoding.
-    return data_to_encode;
+  	 int bytes_to_encode = outlen; //Number of bytes in string to base64 encode.
+   	 unsigned char *base64_encoded = base64encode(data_to_encode, bytes_to_encode);   //Base-64 encoding.
+
+    return base64_encoded;
 }
 
 
@@ -293,6 +294,11 @@ int decrypt(char *encrpyted_message, char* filename ) {
     fp = fopen (filename,"r");
     unsigned char testkey[16];
     int remainingBytes;
+
+    int bytes_to_decode = strlen(encrpyted_message); //Number of bytes in string to base64 decode.
+    unsigned char *base64_decoded = base64decode(encrpyted_message, bytes_to_decode);   //Base-64 decoding.
+
+    outlen = strlen(base64_decoded);
 
     bzero(buf,200);
 
@@ -304,13 +310,13 @@ int decrypt(char *encrpyted_message, char* filename ) {
          // try the key
          if(c == '\n'){
 
-          int bytes_to_decode = strlen(c);
-          unsigned *base64_decoded_key = base64_decoded(c, bytes_to_decode);
+          int key_bytes = strlen(c);
+          unsigned *base64_decoded_key = base64_decoded(testkey, key_bytes);
 
           EVP_CIPHER_CTX_init(&ctx);
          	EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
 
-          if(!EVP_DecryptUpdate(&ctx, debuf, &delen, encrpyted_message, outlen))
+          if(!EVP_DecryptUpdate(&ctx, debuf, &delen, base64_decoded, outlen))
           {printf("Error1\n");return 0;}
 
            if(!EVP_DecryptFinal_ex(&ctx, debuf + delen, &remainingBytes)){
