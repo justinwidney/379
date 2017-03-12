@@ -119,7 +119,7 @@ int makeWhiteboardFile(int numEntries) {
 }
 
 
-char *getNEntry(entry) {
+char *getNEntry(int entry) {
   int i = 0;
   while(1) {
     if (i > WHITEBOARD_SIZE) {
@@ -137,6 +137,26 @@ char *getNEntry(entry) {
       }
       sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
       return message;
+    }
+    i++;
+  }
+}
+
+
+char *updateEntry(int entry, char mode, int length, char *message) {
+  int i = 0;
+  while(1) {
+    if (i > WHITEBOARD_SIZE) {
+      // can't find entry
+      char * error = malloc(50); sprintf(error, "!%de17\nFailed to update!\n", entry);
+      return error;
+    }
+    if(entries[i].entryNumber == entry) {
+      entries[i].mode = mode;
+      entries[i].length = length;
+      entries[i].entry = message;
+      char * error = malloc(50); sprintf(error, "!%de0\n\n", entry);
+      return error;
     }
     i++;
   }
