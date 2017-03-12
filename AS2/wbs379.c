@@ -26,6 +26,7 @@ pthread_mutex_t mutexr;
 int b = 0;
 FILE * STATEFILE;
 int snew;
+int quit_request =0;
 
 jmp_buf readonly_memory;
 int flag = 0;
@@ -34,6 +35,7 @@ void sigint_handler(int signo) {
    if (signo == SIGINT) {
        close (snew);
        flag = 1;
+       quit_request =1;
        siglongjmp(readonly_memory,1);
        //int pthread_kill(pthread_t thread, int sig);
    }
@@ -187,6 +189,8 @@ char *updateEntry(int entry, char mode, int length, char *message) {
 
 // all functionability in this function
 void *thread_connections( void* acc_socket) {
+
+
   printf("got here\n");
 	int sock = *(int *)acc_socket;
 	int message_size;
@@ -206,13 +210,7 @@ void *thread_connections( void* acc_socket) {
 	// continous loop
 	while(1) {
 
-      sigsetjmp(readonly_memory,1);
 
-      if(flag == 1) {
-   printf("Closing\n");
-   close (sock);
-   exit(1);
-  }
 
 
     	message_size = read(sock, client_message, sizeof(client_message));
@@ -240,7 +238,7 @@ void *thread_connections( void* acc_socket) {
          server_message = {"!"};
          strcat(server_message, str(entry));
          strcat(server_message, "\n\n");
-         
+
 
       	 pthread_mutex_lock(&mutexr);
       	 b--;
@@ -272,6 +270,7 @@ void *thread_connections( void* acc_socket) {
 
 
 int main(int argc, char *argv[])
+
 {
   if (argc < 4) {
     printf("Too few arguments! Exiting...\n");
@@ -291,6 +290,58 @@ int main(int argc, char *argv[])
       printf("Invalid whiteboard size! Exiting...\n");
       exit(0);
     }
+
+    pid_t pid = 0;
+    pid_t sid = 0;
+    FILE *fp= NULL;
+
+    /* ADD DAEMON PRCOESS
+    pid = fork();
+
+    if (pid < 0)
+    {
+        printf("fork failed!\n");
+        exit(1);
+    }
+
+    if (pid > 0)
+    {
+    	// in the parent
+       printf("pid of child process %d \n", pid);
+       exit(0);
+    }
+
+    umask(0);
+
+	// open a log file
+    fp = fopen ("logfile.log", "w+");
+    if(!fp){
+    	printf("cannot open log file");
+    }
+
+    // create new process group -- don't want to look like an orphan
+    sid = setsid();
+    if(sid < 0)
+    {
+    	fprintf(fp, "cannot create new process group");
+        exit(1);
+    }
+
+    if ((chdir("/")) < 0) {
+      printf("Could not change working directory to /\n");
+      exit(1);
+    }
+
+	   // close standard fds
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+    
+    */
+
+
+
+
     STATEFILE = fopen("whiteboard.all", "w");
 
     entries = realloc(entries, WHITEBOARD_SIZE * sizeof(entry));
@@ -362,6 +413,20 @@ int main(int argc, char *argv[])
 	c = sizeof(struct sockaddr_in);
 
 	while (snew = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c))) {
+
+    sigsetjmp(readonly_memory,1);
+
+    if(flag == 1 or quit_request == 1) {
+      printf("Closing\n");
+      close (sock);
+
+      /*
+      for(i =0; i< threadcount; i++) {
+      //(void) pthread_join(thread[i], NULL);
+      }
+      */
+      exit(1);
+    }
 
 
 		// accept the connection
