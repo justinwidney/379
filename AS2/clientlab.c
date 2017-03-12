@@ -10,7 +10,7 @@
 #include <strings.h>
 #include <string.h>
 
-#define	 MY_PORT  2252
+#define	 MY_PORT  2222
 
 /* ---------------------------------------------------------------------
  This is a sample client program for the number server. The client and
@@ -68,8 +68,10 @@ int main()
 
 
 		while (1) {
+    char buf[1024];
+    
+    sprintf(buf,"Enter a string to be encrypted\n");
 
-			
 		s = socket (AF_INET, SOCK_STREAM, 0);
 
 		if (s < 0) {
@@ -96,13 +98,10 @@ int main()
 		//unsigned char intext[] = "Mark Stevens is my friend for life man.";
 		unsigned char intext[200];
 
-		char buf[1024];
+
 		char c[1024];
 
 
-
-
-		sprintf(buf,"Enter a string to be encrypted\n");
 		write(1,buf,strlen(buf));
 		read(0,intext,199);
 		intext[strlen(intext) - 1] = 0;

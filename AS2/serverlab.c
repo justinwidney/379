@@ -8,8 +8,10 @@
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <pthread.h>
+#include <signal.h>
+#include <setjmp.h>
 
-#define	MY_PORT	2252
+#define	MY_PORT	2222
 
 /* ---------------------------------------------------------------------
  This	is  a sample server which opens a stream socket and then awaits
@@ -18,13 +20,31 @@
  distinct numbers. The server and the clients may run on different ma-
  chines.
  --------------------------------------------------------------------- */
+int snew;
+pthread_t thread_id;
+jmp_buf readonly_memory;
+int flag = 0;
+
+ void sigint_handler(int signo) {
+    if (signo == SIGINT) {
+        close (snew);
+        flag = 1;
+        siglongjmp(readonly_memory,1);
+        //int pthread_kill(pthread_t thread, int sig);
+    }
+    return;
+}
+
+
  void *thread_connections( void* acc_socket) {
+
 
  	int sock = *(int *)acc_socket;
  	int message_size, i;
 
  	char *message, client_message[1000];
 	char c[1000];
+
 
  	/*
  	** Create function to get whiteboard size
@@ -34,6 +54,14 @@
  	// continous loop
  	while(1)
 	{
+    sigsetjmp(readonly_memory,1);
+
+
+    if(flag == 1) {
+      printf("Closing\n");
+      close (sock);
+      exit(1);
+    }
 
 		bzero(c,1000);
 		recv(sock,c,999,0);
@@ -55,19 +83,25 @@
  //	}
 
 
-
  	return 0;
  }
 
 
 int main()
 {
-	int	sock, snew, fromlength, number, outnum, a;
+	int	sock,  fromlength, number, outnum, a;
 
-	pthread_t thread_id[10];
+  struct sigaction seg_act;
 
 	pid_t pid = 0;
 	pid_t sid = 0;
+
+
+  seg_act.sa_handler = &sigint_handler;
+  sigemptyset(&seg_act.sa_mask);
+  sigaddset(&seg_act.sa_mask, SA_NODEFER);
+  sigaction(SIGINT, &seg_act, NULL);
+
 
 	struct	sockaddr_in	master, client;
 	unsigned char outbuf[1024];
@@ -107,14 +141,14 @@ int main()
 		//snew = accept (sock, (struct sockaddr *)&client, (socklen_t*)&c);
 
 		if (snew < 0) {
-			perror ("Server: accept failed");
+			//perror ("Server: accept failed");
 			exit (1);
 		}
 
 		printf("test 3 \n");
 		// create the thread
 		printf("Creating thread %d\n",i);
-		pthread_create(&thread_id[i], NULL, thread_connections, (void *) &snew);
+		pthread_create(&thread_id, NULL, thread_connections, (void *) &snew);
 		//outnum = htonl (number);
 		i++;
 
