@@ -10,6 +10,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <signal.h>
+#include <setjmp.h>
+
 
 #define	MY_PORT	2223
 #define encrypted c
@@ -22,6 +25,22 @@ int MY_PORT = 2222;
 pthread_mutex_t mutexr;
 int b = 0;
 FILE * STATEFILE;
+int snew;
+
+jmp_buf readonly_memory;
+int flag = 0;
+
+void sigint_handler(int signo) {
+   if (signo == SIGINT) {
+       close (snew);
+       flag = 1;
+       siglongjmp(readonly_memory,1);
+       //int pthread_kill(pthread_t thread, int sig);
+   }
+   return;
+}
+
+
 
 struct Entry {
   int entryNumber;
@@ -69,7 +88,7 @@ void fillWhiteboardFromFile(FILE *fp) {
         entryLength[n] = line[i];
         i++; n++;
       }
-      
+
       int j; char * message = malloc(sizeof(char)*entries[entryNum].length);
       if(message == NULL) {
         printf("Error aquiring memory for entry %d. Exiting...\n", entries[entryNum].entryNumber);
@@ -100,23 +119,23 @@ void fillWhiteboardBlank(int numEntries) {
     entries[i-1].mode = 'p';
     entries[i-1]. length = strlen(entries[i-1].entry);
   }
-} 
+}
 
 int getEntryLimit() {
-	int count = 0;	
-	char c;	
+	int count = 0;
+	char c;
 	for (c = getc(STATEFILE); c != EOF; c = getc(STATEFILE)) {
         if (c == '!')  {
             count = count + 1;
         }
    }
-	return count; 
+	return count;
 }
 
 
 int makeWhiteboardFile(int numEntries) {
 	int i;
-	for(i = 1; i <= numEntries; i++) {	
+	for(i = 1; i <= numEntries; i++) {
 		fprintf(STATEFILE, "!%dp0\n\n", i);
 	}
 }
@@ -174,7 +193,7 @@ void *thread_connections( void* acc_socket) {
 
 	char f_message[]= {("CMPUT379 Whiteboard Server v0\%d\n", WHITEBOARD_SIZE)};
 	char *message, client_message[1000];
- 
+
 	/*
 	** Create function to get whiteboard size
 	*/
@@ -183,7 +202,16 @@ void *thread_connections( void* acc_socket) {
 	write(sock, f_message, strlen(message));
 
 	// continous loop
-	while(message_size = read(sock, client_message, sizeof(client_message)) > 0) {
+	while(1) {
+
+      sigsetjmp(readonly_memory,1);
+
+      if(flag == 1) {
+   printf("Closing\n");
+   close (sock);
+   exit(1);
+}
+
 
     	message_size = read(sock, client_message, sizeof(client_message));
 
@@ -239,13 +267,13 @@ int main(int argc, char *argv[])
     exit(0);
   }
   char * fileName;
-  
+
   MY_PORT = strtol(argv[1], NULL, 10);
   if(MY_PORT == 0) {
     printf("Invalid port number! Exiting...\n");
     exit(0);
   }
-  
+
   if(strcmp("-n", argv[2]) == 0) {
     WHITEBOARD_SIZE = strtol(argv[3], NULL, 10);
     if(WHITEBOARD_SIZE == 0) {
@@ -256,7 +284,7 @@ int main(int argc, char *argv[])
 
     entries = realloc(entries, WHITEBOARD_SIZE * sizeof(entry));
     char line[256];
-    
+
     if (entries == NULL) {
       printf("Error in whiteboard memory allocation, exiting...\n");
     }
@@ -279,7 +307,7 @@ int main(int argc, char *argv[])
     for(i = 0; i < WHITEBOARD_SIZE; i++) {
       printf("Entry: %d, Mode: %c, Length: %d, Message: %s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
     }
-    
+
   }
   else {
     printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
@@ -289,14 +317,18 @@ int main(int argc, char *argv[])
   	/////////////////// push at end of program
     free(entries);
   	//fclose(STATEFILE);
-  int	sock, snew, fromlength, number, outnum, a;
+  int	sock, fromlength, number, outnum, a;
 
 	struct	sockaddr_in	master, from;
 
 	pthread_t thread_id;
 
-	pid_t pid = 0;
-	pid_t sid = 0;
+
+
+  seg_act.sa_handler = &sigint_handler;
+  sigemptyset(&seg_act.sa_mask);
+  sigaddset(&seg_act.sa_mask, SA_NODEFER);
+  sigaction(SIGINT, &seg_act, NULL);
 
 	// now Daemon process
 	sock = socket (AF_INET, SOCK_STREAM, 0);
@@ -316,17 +348,12 @@ int main(int argc, char *argv[])
 
 	listen (sock, 5);
 
-	//puts();
-	a = sizeof(struct sockaddr_in);
+	c = sizeof(struct sockaddr_in);
 
-	//puts();
-	a = sizeof(struct sockaddr_in);
+	while (snew = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c))) {
 
-	while (1) {
-		fromlength = sizeof (from);
 
-		// accept the connection 
-		snew = accept (sock, (struct sockaddr*) & from, & fromlength);
+		// accept the connection
 
 		if (snew < 0) {
 			perror ("Server: accept failed");
@@ -334,6 +361,7 @@ int main(int argc, char *argv[])
 		}
 
 		// create the thread
+    printf("Creating thread %d\n",i);
 		pthread_create(&thread_id, NULL, thread_connections, (void *) &snew);
 
 
