@@ -9,6 +9,7 @@
 #include <openssl/pem.h>
 #include <strings.h>
 #include <string.h>
+#include <errno.h>
 
 #define	 MY_PORT  2222
 
@@ -54,8 +55,10 @@
 int main()
 {
 	int	s, number, outnum;
-
+  int i;
 	struct	sockaddr_in	server;
+  char c;
+
 
 	struct	hostent		*host;
 
@@ -66,10 +69,30 @@ int main()
 		exit (1);
 	}
 
+  // if (argc == 3)
+
+  FILE *fp;
+  fp = fopen ("keys.txt","r");
+  if (fp == NULL) {
+     printf ("File not created okay, errno = %d\n", errno);
+     return 1;
+   }
+   unsigned char testkey[16];
+   i =0;
+   while((c=fgetc(fp))!=EOF){
+         testkey[i] = c;
+         i++;
+     }
+    for (i=0; i< 17; i++)
+    printf("%c\n",testkey[i]);
+
+    i = 0;
+
+    fclose(fp);
 
 		while (1) {
     char buf[1024];
-    
+
     sprintf(buf,"Enter a string to be encrypted\n");
 
 		s = socket (AF_INET, SOCK_STREAM, 0);
@@ -92,7 +115,11 @@ int main()
 		unsigned char outbuf[1024];
 		unsigned char debuf[1024];
 		int outlen, tmplen, delen, i;
-		unsigned char key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+		unsigned char key2[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+    unsigned char key[] = {3,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+    unsigned char *keyp;
+    keyp = key;
+
 		unsigned char iv[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 		EVP_CIPHER_CTX ctx;
 		//unsigned char intext[] = "Mark Stevens is my friend for life man.";
@@ -106,7 +133,7 @@ int main()
 		read(0,intext,199);
 		intext[strlen(intext) - 1] = 0;
 		EVP_CIPHER_CTX_init(&ctx);
-		EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, key, iv);
+		EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, key2, iv);
 		//printf("\nintext is %d bytes in length\n\n",strlen(intext));
 		if(!EVP_EncryptUpdate(&ctx, outbuf, &outlen, intext, strlen(intext)))
 		{
@@ -156,7 +183,7 @@ int main()
 		//buf[i] = c[i];
 		//}
 
-		printf("recvied from socket = %s\n",c);
+		//printf("recvied from socket = %s\n",c);
 
 
 		int bytes_to_decode = strlen(c); //Number of bytes in string to base64 decode.
@@ -171,7 +198,10 @@ int main()
     EVP_CIPHER_CTX_init(&ctx);
 		//EVP_CIPHER_CTX_set_padding(&ctx, 0);
 
-    EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, key, iv);
+    while(1) {
+    int a = EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, keyp, iv);
+    //printf("\n%d\n", a);
+
     if(!EVP_DecryptUpdate(&ctx, debuf, &delen, c, outlen))
     {
         /* Error */
@@ -188,10 +218,15 @@ int main()
         /* Error */
 				ERR_print_errors_fp(stdout);
 				printf("Error2\n");
+        keyp = key2;
+
+        continue;
         return 0;
     }
     delen+=remainingBytes;
     EVP_CIPHER_CTX_cleanup(&ctx);
+    break;
+    }
 		//printf("%s", debuf);
 
 	}
