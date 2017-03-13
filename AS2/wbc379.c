@@ -147,7 +147,11 @@ int main(int argc, char *argv[]) {
     char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
     bzero(&buf, strlen(buf));
     int len = read(s, buf, 1024);
-    printf("%s\n", buf);
+    if(firstime == 0) {
+      printf("%s\n", buf);
+      firstime = 1;
+    }
+
     if(len < 33) {
       printf("Inital handshake not complete. Exiting...\n");
       exit(0);
@@ -169,24 +173,18 @@ int main(int argc, char *argv[]) {
         break;
       }
       i++;
-    }printf("%d\n", whiteboard_size);
-    
-    /*if(firstime == 0) {
-      read(s, server_message, sizeof(server_message));
-      printf(" first message = %s\n",server_message );
-      firstime = 1;
-
-    }*/
+    }
+    //printf("%d\n", whiteboard_size);
 
 
 
-    
+
     char c[1000];
 
     //char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
     memset(buf, 0, sizeof(buf));
 
-    printf("Options: \n 1: use whiteboard \n 2:exit \n Enter 1 or 2: ");
+    printf("Options: \n 1: use whiteboard \n 2: exit \n Enter 1 or 2: ");
     scanf("%d", &n);
 
     if (n == 2) {
@@ -219,19 +217,23 @@ int main(int argc, char *argv[]) {
     }
 
     else{
+    int ENTRY_NUMBER;
 
     unsigned char tempstring[1000];
-    printf("What entry would you like to see: \n");
-    scanf("%s", entrynumber);
+    printf("What entry would you like to change: \n");
+    scanf("%d", &ENTRY_NUMBER);
 
-    sprintf(tempstring,"Enter a string to be sent\n");
+    printf("Enter a string to be sent\n");
+    scanf("%s",tempstring);
 
 
-    write(1,tempstring,strlen(tempstring));
 
-		read(0,intext,199);
-    intext[strlen(intext) - 1] = 0;
+    //write(1,tempstring,strlen(tempstring));
 
+		//read(0,intext,199);
+    //intext[strlen(intext) - 1] = 0;
+
+    //printf("sending this string = %s\n",buf);
 
     printf("please enter 0 for non-encrypted and 1 for encrypted: ");
     scanf("%d", &n);
@@ -241,12 +243,20 @@ int main(int argc, char *argv[]) {
       printf("make sure our message is encrypted = %s\n", encoded_message );
 
       //move our message into temp string
-      memset(tempstring,0,sizeof(tempstring));
-      memcpy(tempstring, encoded_message, sizeof(encoded_message));
+      //memset(tempstring,0,sizeof(tempstring));
+      //memcpy(tempstring, encoded_message, sizeof(encoded_message));
+      sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, strlen(tempstring), encoded_message);
 
     }
 
-    buf[0] = '@';
+    else{
+      sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, strlen(tempstring), tempstring);
+    }
+
+
+
+    //buf[0] = '@';
+    /*
     strcat(buf, entrynumber);
     char stringlength[0];
 
@@ -264,8 +274,11 @@ int main(int argc, char *argv[]) {
     buf[strlen(buf)] = '\n';
     strcat(buf, tempstring);
     buf[strlen(buf)] = '\n';
+*/
 
+    //printf("the message being sent is: %s\n",buf);
     write (s, buf, sizeof(buf));
+
   } // else clause
 
     printf("Starting to Recieve\n\n");
@@ -280,6 +293,7 @@ int main(int argc, char *argv[]) {
       return 0;
     }
 
+
     int message_length;
     char message_length_c[1000];
 
@@ -287,6 +301,10 @@ int main(int argc, char *argv[]) {
     memset(message_length_c, 0, sizeof(message_length_c));
 
     while(1){
+
+    if(c[i]== 'e'){
+      break;
+    }
 
     // handle regular responses
     if(c[i] == 'p'){
@@ -311,31 +329,6 @@ int main(int argc, char *argv[]) {
       break;
 
     }
-
-    // handle error message
-    if(c[i] == 'e'){
-
-      while (1) {
-        if(c[i] == '\n'){
-          break;
-        }
-
-        char cx[0];
-        cx[0] = c[i+1];
-        strcat(message_length_c, cx);
-        i++;
-      }
-
-      message_length = atoi(message_length_c);
-
-      // print thre recieved message
-      for(x=0; x< message_length + i; x++){
-        printf("%c", c[x]);
-      }
-
-      break;
-    }
-
 
 
     if(c[i] == 'c'){

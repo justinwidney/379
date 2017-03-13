@@ -204,6 +204,7 @@ void *thread_connections( void* acc_socket) {
  // f_message[strlen(f_message)] = '\n';
 
 	char *message, client_message[1000], server_message[1000];
+  char mode;
 
 	unsigned char temp[1], temp2[1], temp3[1];
   char cpointer;
@@ -223,7 +224,7 @@ void *thread_connections( void* acc_socket) {
 
     message_size = read(sock, client_message, sizeof(client_message));
 
-    printf("message recieved = %s\n", client_message);
+      //printf("message recieved = %s\n", client_message);
 
 
       if(client_message[0] == '?'){
@@ -236,7 +237,6 @@ void *thread_connections( void* acc_socket) {
       char *fishedentry = getNEntry(x);
       printf("Entry asked for = %s\n", fishedentry );
 
-      server_message[0]
 
       pthread_mutex_unlock(&mutexg);
         }
@@ -249,31 +249,32 @@ void *thread_connections( void* acc_socket) {
       	 if (b==1) {pthread_mutex_lock(&mutexg);}
       	 pthread_mutex_unlock(&mutexr);
 
-	// entry
-	temp[0] = client_message[1];
-	int x = atoi(temp);
 
-	temp2[0] = client_message[2];
+	          // entry
+	         temp[0] = client_message[1];
+	         int x = atoi(temp);
 
-	if(temp2[0] == 'p') {
-	char mode = 'p';
-	}
+	           temp2[0] = client_message[2];
 
-	if(temp2[0] == 'c') {
-	char mode = 'c';
+	            if(temp2[0] == 'p') {
+	               mode = 'p';
+	              }
 
-	}
+	            if(temp2[0] == 'c') {
+	                mode = 'c';
 
-	// length
-	temp3[0] = client_message[3];
-	int y = atoi(temp3);
+	              }
 
-         //char *updateEntry(int entry, char mode, int length, char *message);
+	               // length
+          	temp3[0] = client_message[3];
+	          int y = atoi(temp3);
 
-         server_message[0] = '!';
+         printf("entry number = %d length = %d mode = %c\n message = %s",x,y,mode,client_message);
+         updateEntry(x, mode, y, client_message);
+         memset(server_message, 0, sizeof(server_message));
 
-         //strcat(server_message, ));
-         strcat(server_message, "\n\n");
+         // replies
+         sprintf(server_message, "!%de0\n\n", x);
 
 
       	 pthread_mutex_lock(&mutexr);
@@ -284,10 +285,10 @@ void *thread_connections( void* acc_socket) {
      }
 
 
-	// reply with message
+	   // reply with message
    	 write(sock, server_message, strlen(server_message));
 
-	// clear the buffer
+	   // clear the buffer
    	 memset(client_message, 0, 2000);
 
 		}
