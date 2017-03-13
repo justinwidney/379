@@ -219,6 +219,7 @@ void *thread_connections( void* acc_socket) {
 	while(1) {
 
     	message_size = read(sock, client_message, sizeof(client_message));
+
       if(client_message[0] == '?'){
         pthread_mutex_lock(&mutexg);
         temp[0] = client_message[1];
@@ -233,15 +234,17 @@ void *thread_connections( void* acc_socket) {
         }
 
         char *fishedentry = getNEntry(entryNumber);
+        printf("fished entry = %s\n", fishedentry);
+
         int len = 0;
-        while(len < strlen(fishedentry)) {
+         /* while(len < strlen(fishedentry)) {
           len += write(sock, fishedentry, strlen(fishedentry));
-          printf("%d\n", len);
+          //printf("%d\n", len);
 
+        } */
 
-      pthread_mutex_unlock(&mutexg);
+        write(sock, fishedentry, sizeof(fishedentry));
 
-        }
         pthread_mutex_unlock(&mutexg);
       }
 
@@ -253,8 +256,9 @@ void *thread_connections( void* acc_socket) {
       	 if (b==1) {pthread_mutex_lock(&mutexg);}
       	 pthread_mutex_unlock(&mutexr);
 
-
+          printf("%s\n", client_message);
 	          // entry
+
 	         temp[0] = client_message[1];
 	         int x = atoi(temp);
 
@@ -273,7 +277,14 @@ void *thread_connections( void* acc_socket) {
           	temp3[0] = client_message[3];
 	          int y = atoi(temp3);
 
-         printf("entry number = %d length = %d mode = %c\n message = %s",x,y,mode,client_message);
+            int i;
+
+            client_message[0] ='!';
+            //client_message[strlen(client_message)] = '\n';
+
+
+         printf("entry number = %d length = %d mode = %c\n message = %s",x,y,mode, client_message);
+
          updateEntry(x, mode, y, client_message);
          memset(server_message, 0, sizeof(server_message));
 

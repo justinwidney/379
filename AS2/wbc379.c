@@ -51,7 +51,7 @@ char *base64decode (const void *b64_decode_this, int decode_this_many_bytes){
 int decrypt(char *encrpyted_message, char* filename);
 unsigned char* encrypt(unsigned char message[]);
 
-
+char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
 
 
 // GLOBAL VARIABLES FOR ENCRYPTION
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
      portnumber = atoi(argv[2]);	// get portnumber
 
 
-		while (1) {
+
 
 
 		s = socket (AF_INET, SOCK_STREAM, 0);  		// create connection
@@ -174,11 +174,14 @@ int main(int argc, char *argv[]) {
       i++;
     }
 
-  
+
     char c[1000];
 
     //char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
     memset(buf, 0, sizeof(buf));
+
+    while (1) {
+
 
     printf("Options: \n 1: use whiteboard \n 2: exit \n Enter 1 or 2: ");
     scanf("%d", &n);
@@ -199,9 +202,10 @@ int main(int argc, char *argv[]) {
 
       sprintf(buf, "?%s\n", entrynumber);
       write (s, buf, strlen(buf));
-      int len = read(s, buf, sizeof(buf));
-      int i = 0; printf("Here is the entry: ");
-      while(i < len) {
+      //int len = read(s, buf, sizeof(buf));
+      //int i = 0; printf("Here is the entry: ");
+
+      /* while(i < len) {
         //printf("%c\n", buf[i]);
         if(buf[i] == '\n') {
           i++;
@@ -215,7 +219,8 @@ int main(int argc, char *argv[]) {
         }
         i++;
       }
-      printf("\n");
+      printf("\n"); */
+
     }
 
     else{
@@ -288,6 +293,7 @@ int main(int argc, char *argv[]) {
     // recv the message
     int abc = recv(s,c,999,0);
 
+    printf("message recieved = %s\n",c);
     if (strlen(c) == 0){
       close(s);
       printf("connect with server was terminated");
@@ -310,7 +316,7 @@ int main(int argc, char *argv[]) {
     // handle regular responses
     if(c[i] == 'p'){
 
-      while (1) {
+      /* while (1) {
         if(c[i] == '\n'){
           break;
         }
@@ -325,7 +331,7 @@ int main(int argc, char *argv[]) {
 
       for(x=0; x < message_length+i; x++){
         printf("%c", c[x]); // print all values in
-      }
+      } */
 
       break;
 
@@ -374,7 +380,9 @@ unsigned char* encrypt(unsigned char message[]) {
 	EVP_CIPHER_CTX_init(&ctx);
 	EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, key, iv);
   unsigned char * encrypted_message_full;  //The string we will base-64 encode.
-  memcpy(encrypted_message_full, message, strlen(message)); // co
+  //memcpy(encrypted_message_full, message, strlen(message)); // co
+
+  memcpy(encrypted_message_full, encryption_addon, strlen(encryption_addon));
 
 
   strcat(encrypted_message_full, message);
@@ -453,6 +461,18 @@ int decrypt(char *encrpyted_message, char* filename ) {
             delen+=remainingBytes;
             EVP_CIPHER_CTX_cleanup(&ctx);
             int i;
+
+            char check[34];
+
+            for(i = 0; i < delen; i++){
+              check[i] = debuf[i];
+            }
+
+            if (check != "CMPUT379 Whiteboard Encrypted v0\n") {
+             printf("no key was able to decrypt the message\n");
+              return 0;
+           }
+
             for (i = 0; i< delen; i++){
               printf("%c", debuf[i]);
             }
