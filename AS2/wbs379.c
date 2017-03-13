@@ -163,8 +163,12 @@ char *getNEntry(int entry) {
   while(1) {
     if (entry > WHITEBOARD_SIZE) {
       // can't find entry
-      char * error = malloc(50); sprintf(error, "!%de14\nNo such entry!\n", entry);
-      return error;
+      char error[50];
+      char *pe;
+      pe = error;
+
+      sprintf(error, "!%de14\nNo,such,entry!\n", entry);
+      return pe;
     }
     if(entries[i].entryNumber == entry || entries[i].entryNumber == (char)entry) {
       char * message = malloc(sizeof(int)*2+strlen(entries[i].entry)+4);

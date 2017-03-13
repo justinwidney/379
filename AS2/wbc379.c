@@ -274,7 +274,7 @@ int main(int argc, char *argv[]) {
           }
           int i = 0; printf("Here is the entry: ");
           sscanf(buf, "%c%d%c%d%c%s%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest, c, &newlinetest2);
-
+          //printf("test = %s\n", c);
           printf("%c%d%c%d%c%s%c", ftest, entrytest, ctest, sizetest, newlinetest, c, newlinetest2);
 
           break;
