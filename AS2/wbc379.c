@@ -50,6 +50,8 @@ char *base64decode (const void *b64_decode_this, int decode_this_many_bytes){
 }
 
 int decrypt(char *encrpyted_message, char* filename);
+unsigned char* encrypt(unsigned char message[]);
+
 
 
 
@@ -71,9 +73,10 @@ int main(int argc, char *argv[]) {
   char entrynumber[1000];
 
 
+
 	char* hostname;
 
-  int keyfile_flag = 0;
+  int keyfile_flag = 0, encrypt_flag = 0;
   char* keyfile_name;
 
 	struct	sockaddr_in	server;
@@ -182,7 +185,7 @@ int main(int argc, char *argv[]) {
 
     else{
 
-    char tempstring[1000];
+    unsigned char tempstring[1000];
     printf("What entry would you like to see: \n");
     scanf("%s", entrynumber);
 
@@ -199,15 +202,30 @@ int main(int argc, char *argv[]) {
     scanf("%d", &n);
 
     if(n == 1){
-      // call encryption
+      unsigned char* encoded_message = encrypt(tempstring);
+      printf("make sure our message is encrypted = %s\n", encoded_message );
+
+      //move our message into temp string
+      memset(tempstring,0,sizeof(tempstring));
+      memcpy(tempstring, encoded_message, sizeof(encoded_message));
+
     }
 
     buf[0] = '@';
     strcat(buf, entrynumber);
     char stringlength[0];
 
-    stringlength[0] = (char)strlen(tempstring);
+    stringlength[0] = (char)(strlen(tempstring));
+
     strcat(buf, stringlength);
+
+    if(encrypt_flag==1){
+      buf[strlen(buf)] == 'c';
+    }
+    else{
+      buf[strlen(buf)] == 'p';
+    }
+
     buf[strlen(buf)] = '\n';
     strcat(buf, tempstring);
     buf[strlen(buf)] = '\n';
@@ -318,14 +336,21 @@ int main(int argc, char *argv[]) {
 
 // based off of decrypt.c
 
-char* encrypt(unsigned char message[]) {
+unsigned char* encrypt(unsigned char message[]) {
+
+  memset(outbuf, 0, sizeof(outbuf));
 
 	EVP_CIPHER_CTX_init(&ctx);
 	EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, key, iv);
+  unsigned char * encrypted_message_full;  //The string we will base-64 encode.
+  memcpy(encrypted_message_full, message, strlen(message)); // co
 
-	message[strlen(message) -1] = 0;
 
-	if(!EVP_EncryptUpdate(&ctx, outbuf, &outlen, message, strlen(message)))
+  strcat(encrypted_message_full, message);
+
+	encrypted_message_full[strlen(encrypted_message_full) -1] = 0;
+
+	if(!EVP_EncryptUpdate(&ctx, outbuf, &outlen, encrypted_message_full, strlen(encrypted_message_full)))
     {
         /* Error */
         return 0;
