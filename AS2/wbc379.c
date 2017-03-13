@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
     // recv the message
     int abc = recv(s,c,999,0);
 
-    if (strlen(abc) == 0){
+    if (strlen(c) == 0){
       close(s);
       printf("connect with server was terminated");
       return 0;
@@ -223,22 +223,41 @@ int main(int argc, char *argv[]) {
           break;
         }
 
-        char *cx = &c[i];
+        char cx[0] = c[i+1];
         strcat(message_length_c, cx);
         i++;
       }
+
       message_length = atoi(message_length_c);
 
-      for(x=0; x < strlen(message_length_c)+1; x++){
-        printf("%c", c[i+x]); // print all values in
+      for(x=0; x < message_length+i; x++){
+        printf("%c", c[x]); // print all values in
       }
+
       break;
 
     }
 
     // handle error message
     if(c[i] == 'e'){
-      printf("error mesage recieved");
+
+      while (1) {
+        if(c[i] == '\n'){
+          break;
+        }
+
+        char cx[0] = c[i+1];
+        strcat(message_length_c, cx);
+        i++;
+      }
+      
+      message_length = atoi(length);
+
+      // print thre recieved message
+      for(x=0; x< message_length + i; x++){
+        printf("%c", c[x])
+      }
+
       break;
     }
 
