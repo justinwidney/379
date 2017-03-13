@@ -182,9 +182,15 @@ int main(int argc, char *argv[]) {
 
     else{
 
-    sprintf(buf,"Enter a string to be sent\n");
+    char tempstring[1000];
+    printf("What entry would you like to see: \n");
+    scanf("%s", entrynumber);
 
-    write(1,buf,strlen(buf));
+    sprintf(tempstring,"Enter a string to be sent\n");
+
+
+    write(1,tempstring,strlen(tempstring));
+
 		read(0,intext,199);
     intext[strlen(intext) - 1] = 0;
 
@@ -195,6 +201,16 @@ int main(int argc, char *argv[]) {
     if(n == 1){
       // call encryption
     }
+
+    buf[0] = '@';
+    strcat(buf, entrynumber);
+    char stringlength[0];
+
+    stringlength[0] = char(strlen(tempstring));
+    strcat(buf, stringlength);
+    buf[strlen(buf)] = '\n';
+    strcat(buf, tempstring);
+    buf[strlen(buf)] = '\n';
 
 
     write (s, buf, sizeof(buf));
