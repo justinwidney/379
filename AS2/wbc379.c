@@ -295,7 +295,7 @@ int main(int argc, char *argv[]) {
       //move our message into temp string
       //memset(tempstring,0,sizeof(tempstring));
       //memcpy(tempstring, encoded_message, sizeof(encoded_message));
-        int xy = strlen(tempstring);
+        int xy = strlen(encoded_message);
         sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
 
     }
