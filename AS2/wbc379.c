@@ -295,14 +295,14 @@ int main(int argc, char *argv[]) {
       //move our message into temp string
       //memset(tempstring,0,sizeof(tempstring));
       //memcpy(tempstring, encoded_message, sizeof(encoded_message));
-        int xy = sizeof(tempstring);
+        int xy = strlen(tempstring);
         sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
 
     }
 
     else{
 
-      int xy = sizeof(tempstring);
+      int xy = strlen(tempstring);
 
       sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
       }
@@ -348,7 +348,7 @@ int main(int argc, char *argv[]) {
     // recv the message
     //int abc = recv(s,c,999,0);
 
-    printf("message recieved = %s\n",c);
+      //printf("message recieved = %s\n",c);
 
     if (strlen(c) == 3 && c[0]== 'p' && c[1] == '0'){
       close(s);
@@ -356,7 +356,7 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    if(c[0] != 1) {
+    if(c[0] != '!') {
       printf("\nbad protocol\n");
       return 0;
     }
@@ -417,7 +417,7 @@ int main(int argc, char *argv[]) {
     }
 
     i++;
-
+    break;
     }
 
 
