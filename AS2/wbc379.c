@@ -217,9 +217,10 @@ int main(int argc, char *argv[]) {
     while (1) {
 
 
-    printf("Options: \n 1: use whiteboard \n 2: exit \n Enter 1 or 2: ");
+
 
     while(1){
+      printf("Options: \n 1: use whiteboard \n 2: exit \n Enter 1 or 2: ");
       scanf("%d", &n);
 
       if (n == 2) {
@@ -244,43 +245,35 @@ int main(int argc, char *argv[]) {
         sprintf(buf, "?%s\n", entrynumber);
         write (s, buf, strlen(buf));
         int len = read(s, buf, sizeof(buf));
-
+        char ctest, ftest, newlinetest, newlinetest2;
+        int sizetest, entrytest;
         // decryption
         if(buf[2] == 'c'){
-          char ctest, ftest, newlinetest, newlinetest2;
-          int sizetest, entrytest;
+
           bzero(&buf, strlen(buf));
 
           if(ctest != 'c' || ftest != '!' || newlinetest != '\n'){
           printf("bad protocol\n");
           return 0;
           }
-          sscanf(c, "%c%d%c%d%c%s%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest, buf, &newlinetest2);
+          sscanf(buf, "%c%d%c%d%c%s%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest, c, &newlinetest2);
 
-          decrypt(buf, keyfile_name);
+          decrypt(c, keyfile_name);
           break;
 
         }
 
 
         int i = 0; printf("Here is the entry: ");
-        while(i < len) {
-          //printf("%c\n", buf[i]);
-          if(buf[i] == '\n') {
-          i++;
-          while(1) {
-            printf("%c", buf[i]);
-            if(i >= len || i > 10) {
-              break;
-            }
-            i++;
-            }
-          }
-          i++;
-        }
-      printf("\n");
-        break;
+        sscanf(buf, "%c%d%c%d%c%s%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest, c, &newlinetest2);
+
+        printf("%c%d%c%d%c%s%c", ftest, entrytest, ctest, sizetest, newlinetest, c, newlinetest2);
+
+
+        printf("\n");
+        continue;
       }
+        break;
 
       if(n == 2){
         int ENTRY_NUMBER;
@@ -326,7 +319,7 @@ int main(int argc, char *argv[]) {
 
       //printf("message recieved = %s\n",c);
     i++;
-    break;
+    continue;
     }
 
 

@@ -50,7 +50,7 @@ void sigint_handler(int signo) {
 
 struct Entry {
   int entryNumber;
-  char * entry;
+  char entry[128];
   char mode;
   int length;
 } entry;
@@ -106,7 +106,7 @@ void fillWhiteboardFromFile(FILE *fp) {
           exit(0);
         }
       }
-      entries[entryNum].entry = message;
+      memcpy(entries[entryNum].entry, message, strlen(message));
       entryNum++;
     }
   }
@@ -116,7 +116,7 @@ void fillWhiteboardBlank(int numEntries) {
   int i;
   for(i = 1; i <= numEntries; i++) {
     entries[i-1].entryNumber = i;
-    entries[i-1].entry = malloc(6*sizeof(char));
+    //entries[i-1].entry = malloc(6*sizeof(char));
     if(entries[i-1]. entry == NULL) {
       printf("Error in entry memory allocation. Exiting...\n");
       exit(0);
@@ -168,7 +168,7 @@ char *getNEntry(int entry) {
       char * error = malloc(50); sprintf(error, "!%de14\nNo such entry!\n", entry);
       return error;
     }
-    if(entries[i].entryNumber == entry) {
+    if(entries[i].entryNumber == entry || entries[i].entryNumber == (char)entry) {
       char * message = malloc(sizeof(int)*2+strlen(entries[i].entry)+4);
       if(message == NULL) {
         printf("Failed to allocate memory when responding to query!. Reponse not possible\n");
@@ -178,10 +178,11 @@ char *getNEntry(int entry) {
       }
       if(entries[i].length == 0){
       sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
+
     }
-    else{
-      sprintf(message, "%s", entries[i].entry);
-    }
+      sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
+      //printf("entry = %s\n",entries[i].entry);
+      printf("message = %s\n", message);
       return message;
     }
     i++;
@@ -191,6 +192,7 @@ char *getNEntry(int entry) {
 
 char *updateEntry(int entry, char mode, int length, char *message) {
   int i = 0;
+
   while(1) {
     if (i > WHITEBOARD_SIZE) {
       // can't find entry
@@ -200,7 +202,9 @@ char *updateEntry(int entry, char mode, int length, char *message) {
     if(entries[i].entryNumber == entry) {
       entries[i].mode = mode;
       entries[i].length = length;
-      entries[i].entry = message;
+      memcpy(entries[i].entry, message, strlen(message));
+
+      printf("updating with %c, %d, %s\n",mode, length, message );
       char * error = malloc(50); sprintf(error, "!%de0\n\n", entry);
       return error;
     }
@@ -220,7 +224,7 @@ void dumpToFile() {
 
 // all functionability in this function
 void *thread_connections( void* acc_socket) {
-	printf("fetch new thread: %s\n", entries[0].entry);
+	//printf("fetch new thread: %s\n", entries[0].entry);
   int sock = *(int *)acc_socket;
 	int message_size;
   char f_message[100];
@@ -251,9 +255,10 @@ void *thread_connections( void* acc_socket) {
           entryStr[i-1] = client_message[i];
           i++;
         }
+        printf("%d\n", entryNumber);
 
         char *fishedentry = getNEntry(entryNumber);
-        //rintf("fished entry = %s\n", fishedentry);
+        printf("fished entry = %s\n", fishedentry);
 
         int len = 0;
           while(len < strlen(fishedentry)) {
@@ -314,7 +319,7 @@ void *thread_connections( void* acc_socket) {
       	 if (b==0) {pthread_mutex_unlock(&mutexg);}
 
       	 pthread_mutex_unlock(&mutexr);
-         printf("fetch post update: %s\n", entries[0].entry);
+         //printf("fetch post update: %s\n", entries[0].entry);
 
       }
 
@@ -451,10 +456,10 @@ int main(int argc, char *argv[])
 		}
 
 
-    printf("fetch pre thread create: %s\n", entries[0].entry);
+    //printf("fetch pre thread create: %s\n", entries[0].entry);
 
 		pthread_create(&thread_id, NULL, thread_connections, (void *) &snew);
-    printf("fetch post thread create: %s\n", entries[0].entry);
+    //printf("fetch post thread create: %s\n", entries[0].entry);
     i++;
 	}
 
