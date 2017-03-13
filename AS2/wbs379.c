@@ -160,7 +160,12 @@ char *getNEntry(int entry) {
         char * error = malloc(50); sprintf(error, "!%de36\nThere are memory problems on server!\n",  entry);
         return error;
       }
+      if(entries[i].length == 0){
       sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
+    }
+    else{
+      sprintf(message, "%s", entries[i].entry);
+    }
       return message;
     }
     i++;
@@ -216,6 +221,7 @@ void *thread_connections( void* acc_socket) {
 
 	// continous loop
 	while(1) {
+
     	message_size = read(sock, client_message, sizeof(client_message));
       
       if(client_message[0] == '?'){
@@ -231,10 +237,13 @@ void *thread_connections( void* acc_socket) {
         }
 
         char *fishedentry = getNEntry(entryNumber);
+        printf("fished entry = %s\n", fishedentry);
+
         int len = 0;
-        while(len < strlen(fishedentry)) {
+         /* while(len < strlen(fishedentry)) {
           len += write(sock, fishedentry, strlen(fishedentry));
-        }
+          //printf("%d\n", len);
+        write(sock, fishedentry, sizeof(fishedentry));
         pthread_mutex_unlock(&mutexg);
       }
 
@@ -243,7 +252,9 @@ void *thread_connections( void* acc_socket) {
         b++;
         if (b==1) {pthread_mutex_lock(&mutexg);}
         pthread_mutex_unlock(&mutexr);
+          printf("%s\n", client_message);
         // entry
+
         temp[0] = client_message[1];
         int i = 1; char entryStr[20]; int entryNumber;
         while(1) {
@@ -351,6 +362,7 @@ int main(int argc, char *argv[])
       printf("Error in whiteboard memory allocation, exiting...\n");
     }
     fillWhiteboardFromFile(STATEFILE);
+
   }
   else {
     printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
@@ -360,6 +372,7 @@ int main(int argc, char *argv[])
   pid_t pid = 0;
   pid_t sid = 0;
   FILE *fp= NULL;
+
 
   int	sock, fromlength, number, outnum, a;
 
