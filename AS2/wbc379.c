@@ -67,7 +67,9 @@ int outlen, tmplen, delen, i;
 
 int main(int argc, char *argv[]) {
 
-	int	s, number, portnumber, x, n entrynumber;
+	int	s, number, portnumber, x, n;
+  char entrynumber[1000];
+
 
 	char* hostname;
 
@@ -223,7 +225,8 @@ int main(int argc, char *argv[]) {
           break;
         }
 
-        char cx[0] = c[i+1];
+        char cx[0];
+        cx[0] = c[i+1];
         strcat(message_length_c, cx);
         i++;
       }
@@ -246,16 +249,17 @@ int main(int argc, char *argv[]) {
           break;
         }
 
-        char cx[0] = c[i+1];
+        char cx[0];
+        cx[0] = c[i+1];
         strcat(message_length_c, cx);
         i++;
       }
-      
-      message_length = atoi(length);
+
+      message_length = atoi(message_length_c);
 
       // print thre recieved message
       for(x=0; x< message_length + i; x++){
-        printf("%c", c[x])
+        printf("%c", c[x]);
       }
 
       break;
