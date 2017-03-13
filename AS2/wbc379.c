@@ -238,6 +238,7 @@ int main(int argc, char *argv[]) {
 
     while(1){
       scanf("%d", &n);
+
       if(n == 1){
         printf("What entry would you like to see: \n");
         scanf("%s", entrynumber);
@@ -269,11 +270,8 @@ int main(int argc, char *argv[]) {
 
         printf("%c%d%c%d%c%s%c", ftest, entrytest, ctest, sizetest, newlinetest, c, newlinetest2);
 
-
-        printf("\n");
-        continue;
-      }
         break;
+      }
 
       if(n == 2){
         int ENTRY_NUMBER;
@@ -300,9 +298,9 @@ int main(int argc, char *argv[]) {
 
         else {
 
-      int xy = strlen(tempstring);
+          int xy = strlen(tempstring);
           sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
-        }
+          }
 
           write (s, buf, strlen(buf));
           bzero(buf, sizeof(buf));
@@ -311,9 +309,11 @@ int main(int argc, char *argv[]) {
 
 
           break;
-      } // else clause
+      }
+
       else {
         printf("enter a valid option\n: ");
+        break;
       }
   }
 
