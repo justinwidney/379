@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
     if(n == 1){
 
 
-      printf("What entry would you like to see: \n");
+      printf("What entry would you like to view: \n");
       scanf("%s", entrynumber);
 
       //printf("you entered %s\n",entrynumber);
@@ -194,6 +194,7 @@ int main(int argc, char *argv[]) {
       buf[strlen(buf)] = '\n';
 
       write (s, buf, sizeof(buf));
+      printf("message sent= %s", buf);
 
     }
 
@@ -247,11 +248,12 @@ int main(int argc, char *argv[]) {
     write (s, buf, sizeof(buf));
   } // else clause
 
-
+    printf("Starting to Recieve\n\n");
 
     // recv the message
     int abc = recv(s,c,999,0);
 
+    printf("\n message recieved = %s\n",c);
     if (strlen(c) == 0){
       close(s);
       printf("connect with server was terminated");
