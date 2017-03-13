@@ -128,11 +128,11 @@ int main(int argc, char *argv[]) {
 		}
 
 		bzero (&server, sizeof (server));		//all values in a buffer to zero
-		bcopy (host->h_addr, & (server.sin_addr), host->h_length); // set fields in serv+adder
+		//bcopy (host->h_addr, & (server.sin_addr), host->h_length); // set fields in serv+adder
 
 		server.sin_family = host->h_addrtype;
-		server.sin_port = htons (MY_PORT);
-		//server.sin_port = htons (portnumber);
+		server.sin_addr.s_addr = inet_addr(hostname);
+		server.sin_port = htons (portnumber);
 
 		if (connect (s, (struct sockaddr*) & server, sizeof (server))) {
 			perror ("Client: cannot connect to server");
