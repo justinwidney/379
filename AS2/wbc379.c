@@ -173,21 +173,8 @@ int main(int argc, char *argv[]) {
       }
       i++;
     }
-<<<<<<< HEAD
-    /*if(firstime == 0) {
-      read(s, server_message, sizeof(server_message));
-      printf(" first message = %s\n",server_message );
-      firstime = 1;
-=======
-    //printf("%d\n", whiteboard_size);
->>>>>>> FETCH_HEAD
 
-
-<<<<<<< HEAD
-=======
-
-
->>>>>>> FETCH_HEAD
+  
     char c[1000];
 
     //char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
@@ -212,7 +199,7 @@ int main(int argc, char *argv[]) {
 
       sprintf(buf, "?%s\n", entrynumber);
       write (s, buf, strlen(buf));
-      int len = read(s, buf, sizeof(buf)); 
+      int len = read(s, buf, sizeof(buf));
       int i = 0; printf("Here is the entry: ");
       while(i < len) {
         //printf("%c\n", buf[i]);

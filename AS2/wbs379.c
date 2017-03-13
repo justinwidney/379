@@ -217,7 +217,7 @@ void *thread_connections( void* acc_socket) {
 
 	// continous loop
 	while(1) {
-<<<<<<< HEAD
+
     	message_size = read(sock, client_message, sizeof(client_message));
       if(client_message[0] == '?'){
         pthread_mutex_lock(&mutexg);
@@ -231,34 +231,16 @@ void *thread_connections( void* acc_socket) {
           entryStr[i-1] = client_message[i];
           i++;
         }
-        
+
         char *fishedentry = getNEntry(entryNumber);
         int len = 0;
         while(len < strlen(fishedentry)) {
           len += write(sock, fishedentry, strlen(fishedentry));
           printf("%d\n", len);
-=======
-
-
-
-    message_size = read(sock, client_message, sizeof(client_message));
-
-      //printf("message recieved = %s\n", client_message);
-
-
-      if(client_message[0] == '?'){
-      pthread_mutex_lock(&mutexg);
-
-      temp[0] = client_message[1];
-	    int x = atoi(temp);
-
-
-      char *fishedentry = getNEntry(x);
-      printf("Entry asked for = %s\n", fishedentry );
 
 
       pthread_mutex_unlock(&mutexg);
->>>>>>> FETCH_HEAD
+
         }
         pthread_mutex_unlock(&mutexg);
       }
@@ -373,7 +355,7 @@ int main(int argc, char *argv[])
       printf("Error in whiteboard memory allocation, exiting...\n");
     }
     fillWhiteboardFromFile(STATEFILE);
-    
+
 
   }
   else {
@@ -430,7 +412,7 @@ int main(int argc, char *argv[])
 
 
   	/////////////////// push at end of program
-    
+
   	//fclose(STATEFILE);
   int	sock, fromlength, number, outnum, a;
 
