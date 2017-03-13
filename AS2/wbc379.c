@@ -9,16 +9,18 @@
 #include <string.h>
 #include <signal.h>
 #include <setjmp.h>
-
+#include <math.h>
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 
 
 #define	MY_PORT	2223
+#define BUFFERSIZE 100
 
 jmp_buf readonly_memory;
 int s;
+
 
 void sigint_handler(int signo) {
    if (signo == SIGINT) {
@@ -110,10 +112,10 @@ int main(int argc, char *argv[]) {
 
 
 	int number, portnumber, x, n;
-  char entrynumber[1000], server_message[100];
+  	char  server_message[100];
 
 	char* hostname;
-
+	int entrynumber;
 
   int keyfile_flag = 0, encrypt_flag = 0;
   char* keyfile_name;
@@ -242,12 +244,28 @@ int main(int argc, char *argv[]) {
 
         if(n == 1){
 
-          printf("What entry would you like to see: \n");
-          scanf("%s", entrynumber);
+          //printf("What entry would you like to see: \n");
+          //scanf("%s", entrynumber);
 
-          sprintf(buf, "?%s\n", entrynumber);
+	 char *p, t[100];
+    	
+
+    	 while (fgets(t, sizeof(t), stdin)) {
+         entrynumber = strtol(t, &p, 10);
+         if (p == t || *p != '\n') {
+            printf("Please enter an integer entry: ");
+         } else break;
+   	 }
+	
+
+
+          sprintf(buf, "?%d\n", entrynumber);
           write (s, buf, strlen(buf));
+	  memset(buf, 0, sizeof(buf));
+	
           int len = read(s, buf, sizeof(buf));
+	  //printf("our buffer is= %s,", buf);
+
           char ctest, ftest, newlinetest, newlinetest2;
           int sizetest, entrytest;
           // decryption
@@ -272,10 +290,44 @@ int main(int argc, char *argv[]) {
             decrypt(c, keyfile_name);
             break;
           }
-          int i = 0; printf("Here is the entry: ");
-          sscanf(buf, "%c%d%c%d%c%s%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest, c, &newlinetest2);
+	
+          int i = 0; //
+
+          sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
+	
+	  int premessage = strlen(&ftest) +strlen(&ctest);
+	  int nDigits1 = floor(log10(abs(entrytest))) + 1;
+          int nDigits2;
+
+	  if(sizetest != 0){
+	  nDigits2 = floor(log10(abs(sizetest))) + 1;
+	  }
+	  else{
+	  nDigits2 = 0;
+	  }
+
+	  //char *messagepointer;
+	  //messagepointer = buf;
+	  //messagepointer = messagepointer + premessage;
+	  
+	  //printf("%d, %d, %d", premessage, nDigits1, nDigits2);
+	  if(sizetest >0){
+	  sizetest--;	
+	  }
+	  premessage = premessage + nDigits1 + nDigits2 + sizetest;
+	  
+	  printf("Here is the entry: [");
+	  while(i < premessage){
+		printf("%c", buf[i]);
+		i++;
+	
+	  }
+	  printf("]\n");
+
           //printf("test = %s\n", c);
-          printf("%c%d%c%d%c%s%c", ftest, entrytest, ctest, sizetest, newlinetest, c, newlinetest2);
+          //printf("%c%d%c%d%c", ftest, entrytest, ctest, sizetest, newlinetest);
+	  //printf("our message pointer = %s", messagepointer);	
+
 
           break;
         }
@@ -283,11 +335,56 @@ int main(int argc, char *argv[]) {
           unsigned char tempstring[1000];
 
           int ENTRY_NUMBER;
-          printf("What entry would you like to change: \n");
-          scanf("%d", &ENTRY_NUMBER);
 
-          printf("Enter a string to be sent\nEnter NULL for a blank entry:\n");
-          scanf("%s",tempstring);
+        //printf("What entry would you like to change: \n");
+	  //while(1) {
+          ///scanf("%d", &ENTRY_NUMBER);
+	
+	  //}
+
+
+	char *p, t[100];
+    	
+
+    	while (fgets(t, sizeof(t), stdin)) {
+        ENTRY_NUMBER = strtol(t, &p, 10);
+        if (p == t || *p != '\n') {
+            printf("Please enter an integer entry: ");
+        } else break;
+   	}
+
+
+
+          //printf("Enter a string to be sent\nEnter NULL for a blank entry:\n");
+	
+	  char *text = calloc(1,1), buffer[BUFFERSIZE];
+          //getchar();
+
+	  printf("Enter a message: Ctrl D to exit, Last Enter is ignored:\n");
+	  while( fgets(buffer, BUFFERSIZE , stdin) ) /* break with ^D or ^Z */
+	{
+ 		text = realloc( text, strlen(text)+1+strlen(buffer) );
+ 		//if(strcmp(buffer, "quit\n") ==0) {
+		//break;			 	 
+		//}/* error handling */
+  		strcat( text, buffer ); /* note a '\n' is appended here everytime */
+  		//printf("%s", buffer);
+		
+	}
+	char* pointer;
+	pointer = text;
+	//pointer++;
+	//char deststring[100];
+	
+ 	//printf("%s", pointer);	
+
+	memcpy(tempstring, pointer, strlen(text)-1);
+
+	//printf("\ntext:%s",tempstring);
+	//printf("test2");
+		
+          //scanf("%s",tempstring);
+	  
           int flagNULL = 0;
           if(tempstring[0] == 'N' && tempstring[1] == 'U' && tempstring[2] == 'L' && tempstring[3] == 'L'){
             flagNULL = 1;
@@ -354,6 +451,7 @@ unsigned char* encrypt(unsigned char message[], char* filename) {
 
   fp = fopen (filename,"r");
   if (fp == NULL)
+	printf("can encrypt without keyfile");
         exit(EXIT_FAILURE);
 
   char testkey[128];

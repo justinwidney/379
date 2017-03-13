@@ -20,7 +20,9 @@ int dumpWhiteboardFiles();
 
 
 // mutex lock
-pthread_mutex_t mutexg, mutexr;
+pthread_mutex_t *mutexg, *mutexr;
+
+
 
 int WHITEBOARD_SIZE = 0;
 int MY_PORT = 2222;
@@ -159,6 +161,8 @@ int dumpWhiteboardFiles(){
 }
 
 char *getNEntry(int entry) {
+
+  pthread_mutex_lock(&mutexg[entry]);
   int i = 0;
   while(1) {
     if (entry > WHITEBOARD_SIZE) {
@@ -168,6 +172,7 @@ char *getNEntry(int entry) {
       pe = error;
 
       sprintf(error, "!%de14\nNo,such,entry!\n", entry);
+      pthread_mutex_unlock(&mutexg[entry]);
       return pe;
     }
     if(entries[i].entryNumber == entry || entries[i].entryNumber == (char)entry) {
@@ -176,15 +181,20 @@ char *getNEntry(int entry) {
         printf("Failed to allocate memory when responding to query!. Reponse not possible\n");
         // return error
         char * error = malloc(50); sprintf(error, "!%de36\nThere are memory problems on server!\n",  entry);
+        pthread_mutex_unlock(&mutexg[entry]);
         return error;
       }
       if(entries[i].length == 0){
-      sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
+
+      printf("Entry about to send, %s", entries[i].entry);
+
+      //sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
 
     }
       sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
       //printf("entry = %s\n",entries[i].entry);
       //printf("message = %s\n", message);
+      pthread_mutex_unlock(&mutexg[entry]);
       return message;
     }
     i++;
@@ -195,10 +205,21 @@ char *getNEntry(int entry) {
 char *updateEntry(int entry, char mode, int length, char *message) {
   int i = 0;
 
+   pthread_mutex_lock(&mutexr[entry]);
+      b++;
+      if (b==1) {pthread_mutex_lock(&mutexg[entry]);}
+      pthread_mutex_unlock(&mutexr[entry]);
+
   while(1) {
     if (i > WHITEBOARD_SIZE) {
       // can't find entry
       char * error = malloc(50); sprintf(error, "!%de17\nFailed to update!\n", entry);
+
+      pthread_mutex_lock(&mutexr[entry]);
+      b--;
+      if (b==0) {pthread_mutex_unlock(&mutexg[entry]);}
+      pthread_mutex_unlock(&mutexr[entry]);
+
       return error;
     }
     if(entries[i].entryNumber == entry) {
@@ -208,6 +229,11 @@ char *updateEntry(int entry, char mode, int length, char *message) {
       memcpy(entries[i].entry, message, strlen(message));
 
       char * error = malloc(50); sprintf(error, "!%de0\n\n", entry);
+      pthread_mutex_lock(&mutexr[entry]);
+      b--;
+      if (b==0) {pthread_mutex_unlock(&mutexg[entry]);}
+      pthread_mutex_unlock(&mutexr[entry]);
+
       return error;
     }
     i++;
@@ -245,7 +271,7 @@ void *thread_connections( void* acc_socket) {
     message_size = read(sock, client_message, sizeof(client_message));
 
     if(client_message[0] == '?'){
-      pthread_mutex_lock(&mutexg);
+      //pthread_mutex_lock(&mutexg);
       int i = 1; char entryStr[20]; int entryNumber;
       while(1) {
         if(client_message[i] == '\n') {
@@ -263,17 +289,18 @@ void *thread_connections( void* acc_socket) {
         len += write(sock, fishedentry, strlen(fishedentry));
         write(sock, fishedentry, sizeof(fishedentry));
       }
-      pthread_mutex_unlock(&mutexg);
+      //pthread_mutex_unlock(&mutexg);
     }
 
     if(client_message[0] == '@'){
-      pthread_mutex_lock(&mutexr);
+      /*pthread_mutex_lock(&mutexr);
       b++;
       if (b==1) {pthread_mutex_lock(&mutexg);}
-      pthread_mutex_unlock(&mutexr);
+      pthread_mutex_unlock(&mutexr); */
       // entry
 
       temp[0] = client_message[1];
+
       int i = 1; char entryStr[20]; int entryNumber;
       while(1) {
         if(client_message[i] == 'p' || client_message[i] == 'c') {
@@ -300,6 +327,8 @@ void *thread_connections( void* acc_socket) {
         message[j] = client_message[i];
         i++;
       }
+	printf("message recieved = %s", message);
+
       char *reply = updateEntry(entryNumber, mode, length, message);
       memset(server_message, 0, sizeof(server_message));
 
@@ -309,11 +338,12 @@ void *thread_connections( void* acc_socket) {
         len += write(sock, reply, strlen(reply));
       }
 
+    /*
       pthread_mutex_lock(&mutexr);
       b--;
       if (b==0) {pthread_mutex_unlock(&mutexg);}
-      pthread_mutex_unlock(&mutexr);
-      }
+      pthread_mutex_unlock(&mutexr); */
+      } 
 
       // client disconnected
       if(message_size == 0) {
@@ -391,6 +421,8 @@ int main(int argc, char *argv[])
   pid_t sid = 0;
   FILE *fp= NULL;
 
+  
+
   int	sock, fromlength, number, outnum, a;
 
 	struct	sockaddr_in	master, client;
@@ -398,6 +430,11 @@ int main(int argc, char *argv[])
 	pthread_t thread_id;
 
 	struct sigaction seg_act;
+
+  mutexg = (pthread_mutex_t*)malloc(WHITEBOARD_SIZE * sizeof(pthread_mutex_t));
+  mutexr = (pthread_mutex_t*)malloc(WHITEBOARD_SIZE * sizeof(pthread_mutex_t));
+
+
 
   seg_act.sa_handler = &sigint_handler;
   sigemptyset(&seg_act.sa_mask);
