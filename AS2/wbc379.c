@@ -67,7 +67,7 @@ int outlen, tmplen, delen, i;
 
 int main(int argc, char *argv[]) {
 
-	int	s, number, portnumber, x, n;
+	int	s, number, portnumber, x, n entrynumber;
 
 	char* hostname;
 
@@ -145,9 +145,9 @@ int main(int argc, char *argv[]) {
 
     unsigned char *keyp;
     keyp = key;
+    memset(buf, 0, sizeof(buf));
 
-
-    printf("Options: \n 1: enter string \n 2:exit \n Enter 1 or 2: ");
+    printf("Options: \n 1: use whiteboard \n 2:exit \n Enter 1 or 2: ");
     scanf("%d", &n);
 
     if (n == 2) {
@@ -156,6 +156,29 @@ int main(int argc, char *argv[]) {
       return 0;
 
     }
+
+    printf("Are you\n 1: viewing an entry \n 2: updating an entry ");
+    scanf("%d", &n);
+
+    if(n == 1){
+
+      printf("What entry would you like to see: \n");
+      scanf("%s", entrynumber);
+
+      //printf("you entered %s\n",entrynumber);
+      buf[0] = '?';
+
+      // add on the entry number
+      strcat(buf, entrynumber);
+      //printf("first concat = %s\n", buf );
+      buf[strlen(buf)] = '\n';
+
+      write (s, buf, sizeof(buf));
+
+
+    }
+
+    else{
 
     sprintf(buf,"Enter a string to be sent\n");
 
@@ -173,11 +196,12 @@ int main(int argc, char *argv[]) {
 
 
     write (s, buf, sizeof(buf));
+    }
 
     // recv the message
     int abc = recv(s,c,999,0);
 
-    if (strlen(c) == 0){
+    if (strlen(abc) == 0){
       close(s);
       printf("connect with server was terminated");
       return 0;
