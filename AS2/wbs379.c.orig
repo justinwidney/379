@@ -17,9 +17,6 @@
 #define encrypted c
 #define plaintext p
 
-int dumpWhiteboardFiles();
-
-
 // mutex lock
 pthread_mutex_t mutexg, mutexr;
 
@@ -146,19 +143,6 @@ int makeWhiteboardFile(int numEntries) {
 	}
 }
 
-int dumpWhiteboardFiles(){
-  int i =0;
-
-  FILE *fpx;
-  fpx = fopen("whiteboard.all", "w");
-
-  for (i= 0; i<WHITEBOARD_SIZE; i++){
-    fprintf(fpx, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
-  }
-  fclose(fpx);
-
-
-}
 
 char *getNEntry(int entry) {
   int i = 0;
@@ -237,9 +221,14 @@ void *thread_connections( void* acc_socket) {
 
 	// continous loop
 	while(1) {
+<<<<<<< HEAD
+    	message_size = read(sock, client_message, sizeof(client_message));
+      
+=======
 
     	message_size = read(sock, client_message, sizeof(client_message));
 
+>>>>>>> origin/master
       if(client_message[0] == '?'){
         pthread_mutex_lock(&mutexg);
         int i = 1; char entryStr[20]; int entryNumber;
@@ -253,26 +242,31 @@ void *thread_connections( void* acc_socket) {
         }
 
         char *fishedentry = getNEntry(entryNumber);
-        //rintf("fished entry = %s\n", fishedentry);
+        printf("fished entry = %s\n", fishedentry);
 
         int len = 0;
-          while(len < strlen(fishedentry)) {
+         /* while(len < strlen(fishedentry)) {
           len += write(sock, fishedentry, strlen(fishedentry));
+<<<<<<< HEAD
+        }
+=======
           //printf("%d\n", len);
+
+        } */
+
         write(sock, fishedentry, sizeof(fishedentry));
 
+>>>>>>> origin/master
+        pthread_mutex_unlock(&mutexg);
       }
-      pthread_mutex_unlock(&mutexg);
-    }
 
      if(client_message[0] == '@'){
+<<<<<<< HEAD
         pthread_mutex_lock(&mutexr);
         b++;
         if (b==1) {pthread_mutex_lock(&mutexg);}
         pthread_mutex_unlock(&mutexr);
-          printf("%s\n", client_message);
         // entry
-
         temp[0] = client_message[1];
         int i = 1; char entryStr[20]; int entryNumber;
         while(1) {
@@ -302,6 +296,48 @@ void *thread_connections( void* acc_socket) {
         }
         char *reply = updateEntry(entryNumber, mode, length, message);
         memset(server_message, 0, sizeof(server_message));
+=======
+       pthread_mutex_lock(&mutexr);
+     	  b++;
+      	 if (b==1) {pthread_mutex_lock(&mutexg);}
+      	 pthread_mutex_unlock(&mutexr);
+
+          printf("%s\n", client_message);
+	          // entry
+
+	         temp[0] = client_message[1];
+	         int x = atoi(temp);
+
+	           temp2[0] = client_message[2];
+
+	            if(temp2[0] == 'p') {
+	               mode = 'p';
+	              }
+
+	            if(temp2[0] == 'c') {
+	                mode = 'c';
+
+	              }
+
+	               // length
+          	temp3[0] = client_message[3];
+	          int y = atoi(temp3);
+
+            int i;
+
+            client_message[0] ='!';
+            //client_message[strlen(client_message)] = '\n';
+
+
+         printf("entry number = %d length = %d mode = %c\n message = %s",x,y,mode, client_message);
+
+         updateEntry(x, mode, y, client_message);
+
+         memset(server_message, 0, sizeof(server_message));
+
+         // replies
+         sprintf(server_message, "!%de0\n\n", x);
+>>>>>>> origin/master
 
         // replies
         int len = 0;
@@ -312,12 +348,10 @@ void *thread_connections( void* acc_socket) {
       	 pthread_mutex_lock(&mutexr);
       	 b--;
       	 if (b==0) {pthread_mutex_unlock(&mutexg);}
-
+         
       	 pthread_mutex_unlock(&mutexr);
          printf("fetch post update: %s\n", entries[0].entry);
-
       }
-
       // client disconnected
       if(message_size == 0) {
         close(sock);
@@ -327,17 +361,14 @@ void *thread_connections( void* acc_socket) {
       else if(message_size == -1) {
           perror("can't recieve message");
       }
-
-
 	   // clear the buffer
    	 memset(client_message, 0, 2000);
-   }
+		}
 
-  printf("all clients have disconnected from the socket, exiting");
+	
   close(sock);
 	return 0;
 }
-
 
 int i;
 
@@ -385,18 +416,63 @@ int main(int argc, char *argv[])
       printf("Error in whiteboard memory allocation, exiting...\n");
     }
     fillWhiteboardFromFile(STATEFILE);
+<<<<<<< HEAD
+=======
 
+
+>>>>>>> origin/master
   }
   else {
     printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
     exit(0);
   }
-
+  
   pid_t pid = 0;
   pid_t sid = 0;
   FILE *fp= NULL;
 
+<<<<<<< HEAD
+=======
+    if (pid > 0)
+    {
+    	// in the parent
+       printf("pid of child process %d \n", pid);
+       exit(0);
+    }
 
+    umask(0);
+
+	// open a log file
+    fp = fopen ("logfile.log", "w+");
+    if(!fp){
+    	printf("cannot open log file");
+    }
+
+    // create new process group -- don't want to look like an orphan
+    sid = setsid();
+    if(sid < 0)
+    {
+    	fprintf(fp, "cannot create new process group");
+        exit(1);
+    }
+
+    if ((chdir("/")) < 0) {
+      printf("Could not change working directory to /\n");
+      exit(1);
+    }
+
+	   // close standard fds
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+
+    */
+
+
+  	/////////////////// push at end of program
+
+  	//fclose(STATEFILE);
+>>>>>>> origin/master
   int	sock, fromlength, number, outnum, a;
 
 	struct	sockaddr_in	master, client;
@@ -430,12 +506,8 @@ int main(int argc, char *argv[])
 	listen (sock, 5);
 
 	int c = sizeof(struct sockaddr_in);
-
-
-	while (1) {
-    snew = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c);
-
-
+  
+	while (snew = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c)) {
     sigsetjmp(readonly_memory,1);
 
     if(flag == 1 || quit_request == 1) {
@@ -450,14 +522,11 @@ int main(int argc, char *argv[])
 			exit (1);
 		}
 
-
+		// create the thread
     printf("fetch pre thread create: %s\n", entries[0].entry);
-
 		pthread_create(&thread_id, NULL, thread_connections, (void *) &snew);
     printf("fetch post thread create: %s\n", entries[0].entry);
     i++;
 	}
-
   free(entries);
-  printf("\n all clients connections have been closed, exiting");
 }
