@@ -201,10 +201,10 @@ void *thread_connections( void* acc_socket) {
   printf("%d\n", WHITEBOARD_SIZE);
   WHITEBOARD_SIZE_CHAR[0] = WHITEBOARD_SIZE + '0';
 
-  f_message[strlen(f_message)] = '\n'
+  f_message[strlen(f_message)] = '\n';
   strcat(f_message, WHITEBOARD_SIZE_CHAR);
-  f_message[strlen(f_message)] = '\n'
-  
+  f_message[strlen(f_message)] = '\n';
+
 	char *message, client_message[1000], server_message[1000];
 
 	unsigned char temp[1], temp2[1], temp3[1];
