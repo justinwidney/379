@@ -187,6 +187,8 @@ int main(int argc, char *argv[]) {
 
 
     printf("Options: \n 1: use whiteboard \n 2: exit \n Enter 1 or 2: ");
+
+    while(1){
     scanf("%d", &n);
 
     if (n == 2) {
@@ -195,9 +197,17 @@ int main(int argc, char *argv[]) {
       return 0;
 
     }
+    if(n == 1){
+      break;
+    }
+    printf("enter a valid option\n: ");
+  }
 
     printf("Are you\n 1: viewing an entry \n 2: updating an entry\n");
+
+    while(1){
     scanf("%d", &n);
+
 
     if(n == 1){
       printf("What entry would you like to see: \n");
@@ -223,10 +233,10 @@ int main(int argc, char *argv[]) {
         i++;
       }
       printf("\n"); */
-
+      break;
     }
 
-    else{
+  if(n == 2){
     int ENTRY_NUMBER;
 
     unsigned char tempstring[1000];
@@ -291,8 +301,12 @@ int main(int argc, char *argv[]) {
 
     //printf("the message being sent is: %s\n",buf);
     write (s, buf, sizeof(buf));
-
+    break;
   } // else clause
+  else{
+    printf("enter a valid option\n: ");
+  }
+}
 
 
 
@@ -300,12 +314,14 @@ int main(int argc, char *argv[]) {
     int abc = recv(s,c,999,0);
 
     printf("message recieved = %s\n",c);
-    if (strlen(c) == 0){
+
+    if (strlen(c) == 3 && c[0]== 'p' && c[1] == '0'){
       close(s);
-      printf("connect with server was terminated");
+      printf("connect with server was terminated\m");
       return 0;
     }
 
+    printf("message recieved = %s\n",c);
 
     int message_length;
     char message_length_c[1000];
