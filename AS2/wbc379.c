@@ -18,8 +18,11 @@
 char *base64encode (const void *b64_encode_this, int encode_this_many_bytes){
     BIO *b64_bio, *mem_bio;      //Declares two OpenSSL BIOs: a base64 filter and a memory BIO.
     BUF_MEM *mem_bio_mem_ptr;    //Pointer to a "memory BIO" structure holding our base64 data.
+
+
     b64_bio = BIO_new(BIO_f_base64());                      //Initialize our base64 filter BIO.
     mem_bio = BIO_new(BIO_s_mem());                           //Initialize our memory sink BIO.
+
     BIO_push(b64_bio, mem_bio);            //Link the BIOs by creating a filter-sink BIO chain.
     BIO_set_flags(b64_bio, BIO_FLAGS_BASE64_NO_NL);  //No newlines every 64 characters or less.
     BIO_write(b64_bio, b64_encode_this, encode_this_many_bytes); //Records base64 encoded data.
@@ -58,7 +61,7 @@ char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
 EVP_CIPHER_CTX ctx;
 unsigned char key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 unsigned char iv[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-
+unsigned char *base64_encoded;
 unsigned char outbuf[1024];
 unsigned char debuf[1024];
 
@@ -247,17 +250,20 @@ int main(int argc, char *argv[]) {
 
     if(n == 1){
       unsigned char* encoded_message = encrypt(tempstring);
-      printf("make sure our message is encrypted = %s\n", encoded_message );
+      printf("final encrypted message is= %s\n", encoded_message );
 
       //move our message into temp string
       //memset(tempstring,0,sizeof(tempstring));
       //memcpy(tempstring, encoded_message, sizeof(encoded_message));
-      sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, strlen(tempstring), encoded_message);
+      int xy = strlen(tempstring);
+      sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
 
     }
 
     else{
-      sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, strlen(tempstring), tempstring);
+      int xy = strlen(tempstring);
+
+      sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
     }
 
 
@@ -384,7 +390,6 @@ unsigned char* encrypt(unsigned char message[]) {
 
   memcpy(encrypted_message_full, encryption_addon, strlen(encryption_addon));
 
-
   strcat(encrypted_message_full, message);
 
 	encrypted_message_full[strlen(encrypted_message_full) -1] = 0;
@@ -403,17 +408,17 @@ unsigned char* encrypt(unsigned char message[]) {
 
 	outlen += tmplen;
 
+
+
 	EVP_CIPHER_CTX_cleanup(&ctx);
 
 	// buffer should contain ciphertext
 
 
-    // 64 bit encode it
-   	 unsigned char * data_to_encode;  //The string we will base-64 encode.
-   	 data_to_encode = malloc(outlen); // allocate size of string
-   	 memcpy(data_to_encode,outbuf,outlen); // copy string to pointer
-  	 int bytes_to_encode = outlen; //Number of bytes in string to base64 encode.
-   	 unsigned char *base64_encoded = base64encode(data_to_encode, bytes_to_encode);   //Base-64 encoding.
+
+  	int bytes_to_encode = outlen; //Number of bytes in string to base64 encode.
+
+    base64_encoded = base64encode(outbuf, bytes_to_encode);   //Base-64 encoding.
 
     return base64_encoded;
 }

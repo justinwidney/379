@@ -158,7 +158,12 @@ char *getNEntry(int entry) {
         char * error = malloc(50); sprintf(error, "!%de36\nThere are memory problems on server!\n",  entry);
         return error;
       }
+      if(entries[i].length == 0){
       sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
+    }
+    else{
+      sprintf(message, "%s", entries[i].entry);
+    }
       return message;
     }
     i++;
@@ -286,6 +291,7 @@ void *thread_connections( void* acc_socket) {
          printf("entry number = %d length = %d mode = %c\n message = %s",x,y,mode, client_message);
 
          updateEntry(x, mode, y, client_message);
+
          memset(server_message, 0, sizeof(server_message));
 
          // replies
