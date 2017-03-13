@@ -221,17 +221,16 @@ void *thread_connections( void* acc_socket) {
 
 
 
-    	message_size = read(sock, client_message, sizeof(client_message));
+    message_size = read(sock, client_message, sizeof(client_message));
 
+    printf("message recieved = %s\n", client_message);
 
 
       if(client_message[0] == '?'){
-        pthread_mutex_lock(&mutexg);
+      pthread_mutex_lock(&mutexg);
 
-
-
-	temp[0] = client_message[1];
-	int x = atoi(temp);
+      temp[0] = client_message[1];
+	    int x = atoi(temp);
 
         char *fishedentry = getNEntry(x);
 
