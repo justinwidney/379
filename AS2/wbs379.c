@@ -18,6 +18,9 @@
 #define encrypted c
 #define plaintext p
 
+int dumpWhiteboardFiles();
+
+
 // mutex lock
 pthread_mutex_t mutexg;
 int WHITEBOARD_SIZE = 0;
@@ -36,6 +39,8 @@ void sigint_handler(int signo) {
        close (snew);
        flag = 1;
        quit_request =1;
+       dumpWhiteboardFiles();
+
        siglongjmp(readonly_memory,1);
        //int pthread_kill(pthread_t thread, int sig);
    }
@@ -141,6 +146,19 @@ int makeWhiteboardFile(int numEntries) {
 	}
 }
 
+int dumpWhiteboardFiles(){
+  int i =0;
+
+  FILE *fpx;
+  fpx = fopen("whiteboard.all", "w");
+
+  for (i= 0; i<WHITEBOARD_SIZE; i++){
+    fprintf(fpx, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
+  }
+  fclose(fpx);
+
+
+}
 
 char *getNEntry(int entry) {
   int i = 0;
@@ -322,7 +340,7 @@ void *thread_connections( void* acc_socket) {
 	else if(message_size == -1) {
     perror("can't recieve message");
 	}
-
+  printf("all clients have disconnected from the socket, exiting");
 	return 0;
 }
 
@@ -465,20 +483,18 @@ int main(int argc, char *argv[])
 
 	int c = sizeof(struct sockaddr_in);
 
-	while (snew = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c)) {
+	while (1) {
+    snew = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c);
 
     sigsetjmp(readonly_memory,1);
 
     if(flag == 1 || quit_request == 1) {
-      printf("Closing\n");
+      printf(" Closing && waiting on threads\n");
+
       close (sock);
+      void* ignore;
 
-      /*
-      for(i =0; i< threadcount; i++) {
-      //(void) pthread_join(thread[i], NULL);
-      }
-      */
-
+      //pthread_join(thread_id, &ignore);
       exit(1);
     }
 
@@ -491,7 +507,7 @@ int main(int argc, char *argv[])
 		}
 
 		// create the thread
-    printf("Creating thread %d\n", i);
+    //printf("Creating thread %d\n", i);
 		pthread_create(&thread_id, NULL, thread_connections, (void *) &snew);
     i++;
 
@@ -502,5 +518,7 @@ int main(int argc, char *argv[])
 		//close (snew);
 
 	}
+
   free(entries);
+  printf("\n all clients connections have been closed, exiting");
 }
