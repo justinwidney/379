@@ -1,4 +1,3 @@
-
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -173,21 +172,8 @@ int main(int argc, char *argv[]) {
       }
       i++;
     }
-<<<<<<< HEAD
-    /*if(firstime == 0) {
-      read(s, server_message, sizeof(server_message));
-      printf(" first message = %s\n",server_message );
-      firstime = 1;
-=======
-    //printf("%d\n", whiteboard_size);
->>>>>>> FETCH_HEAD
 
-
-<<<<<<< HEAD
-=======
-
-
->>>>>>> FETCH_HEAD
+  
     char c[1000];
 
     //char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
@@ -212,7 +198,7 @@ int main(int argc, char *argv[]) {
 
       sprintf(buf, "?%s\n", entrynumber);
       write (s, buf, strlen(buf));
-      int len = read(s, buf, sizeof(buf)); 
+      int len = read(s, buf, sizeof(buf));
       int i = 0; printf("Here is the entry: ");
       while(i < len) {
         //printf("%c\n", buf[i]);
@@ -232,42 +218,44 @@ int main(int argc, char *argv[]) {
     }
 
     else{
-    int ENTRY_NUMBER;
-
-    unsigned char tempstring[1000];
-    printf("What entry would you like to change: \n");
-    scanf("%d", &ENTRY_NUMBER);
-
-    printf("Enter a string to be sent\n");
-    scanf("%s",tempstring);
-
-
-
-    //write(1,tempstring,strlen(tempstring));
-
-		//read(0,intext,199);
-    //intext[strlen(intext) - 1] = 0;
-
-    //printf("sending this string = %s\n",buf);
-
-    printf("please enter 0 for non-encrypted and 1 for encrypted: ");
-    scanf("%d", &n);
-
-    if(n == 1){
-      unsigned char* encoded_message = encrypt(tempstring);
-      printf("make sure our message is encrypted = %s\n", encoded_message );
-
-      //move our message into temp string
-      //memset(tempstring,0,sizeof(tempstring));
-      //memcpy(tempstring, encoded_message, sizeof(encoded_message));
-      sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, strlen(tempstring), encoded_message);
-
-    }
-
-    else{
-      sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, strlen(tempstring), tempstring);
-    }
-
+      int ENTRY_NUMBER;
+  
+      unsigned char tempstring[1000];
+      printf("What entry would you like to change: \n");
+      scanf("%d", &ENTRY_NUMBER);
+  
+      printf("Enter a string to be sent\n");
+      scanf("%s",tempstring);
+  
+  
+  
+      //write(1,tempstring,strlen(tempstring));
+  
+      //read(0,intext,199);
+      //intext[strlen(intext) - 1] = 0;
+  
+      //printf("sending this string = %s\n",buf);
+  
+      printf("please enter 0 for non-encrypted and 1 for encrypted: ");
+      scanf("%d", &n);
+  
+      if(n == 1){
+        unsigned char* encoded_message = encrypt(tempstring);
+        printf("make sure our message is encrypted = %s\n", encoded_message );
+  
+        //move our message into temp string
+        //memset(tempstring,0,sizeof(tempstring));
+        //memcpy(tempstring, encoded_message, sizeof(encoded_message));
+        sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, strlen(tempstring), encoded_message);
+      }
+  
+      else { 
+        sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, strlen(tempstring), tempstring);
+      }
+      write (s, buf, strlen(buf));
+      bzero(buf, sizeof(buf));
+      read(s, buf, sizeof(buf));
+      printf("Reponse: %s", buf);
 
 
     //buf[0] = '@';
@@ -292,19 +280,19 @@ int main(int argc, char *argv[]) {
 */
 
     //printf("the message being sent is: %s\n",buf);
-    write (s, buf, sizeof(buf));
+    
 
-  } // else clause
+    } // else clause
 
 
 
     // recv the message
-    int abc = recv(s,c,999,0);
+    //int abc = recv(s,c,999,0);
 
     if (strlen(c) == 0){
       close(s);
-      printf("connect with server was terminated");
-      return 0;
+      //printf("connect with server was terminated");
+      continue;
     }
 
 
@@ -362,18 +350,6 @@ int main(int argc, char *argv[]) {
 
 
 	}
-
-
-
-
-
-
-
-
-
-
-
-
 
 }
 
