@@ -216,6 +216,7 @@ int main(int argc, char *argv[]) {
     char stringlength[0];
 
     stringlength[0] = (char)(strlen(tempstring));
+
     strcat(buf, stringlength);
 
     if(encrypt_flag==1){
@@ -420,8 +421,8 @@ int decrypt(char *encrpyted_message, char* filename ) {
 
             delen+=remainingBytes;
             EVP_CIPHER_CTX_cleanup(&ctx);
-
-            for (int i; i< delen; i++){
+            int i;
+            for (i = 0; i< delen; i++){
               printf("%c", debuf[i]);
             }
 
