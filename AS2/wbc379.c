@@ -65,16 +65,15 @@ unsigned char debuf[1024];
 
 int outlen, tmplen, delen, i;
 
-
+int firstime = 0;
 
 int main(int argc, char *argv[]) {
 
 	int	s, number, portnumber, x, n;
-  char entrynumber[1000];
-
-
+  char entrynumber[1000], server_message[100];
 
 	char* hostname;
+
 
   int keyfile_flag = 0, encrypt_flag = 0;
   char* keyfile_name;
@@ -116,12 +115,14 @@ int main(int argc, char *argv[]) {
       return 0;
     }
 
-	   hostname = argv[1];	// get hostname
+	   //hostname = argv[1];	// get hostname
      portnumber = atoi(argv[2]);	// get portnumber
 
 
-
 		while (1) {
+
+
+
 
 		s = socket (AF_INET, SOCK_STREAM, 0);  		// create connection
 
@@ -130,26 +131,39 @@ int main(int argc, char *argv[]) {
 			exit (1);
 		}
 
+
+
 		bzero (&server, sizeof (server));		//all values in a buffer to zero
 		//bcopy (host->h_addr, & (server.sin_addr), host->h_length); // set fields in serv+adder
 
+
+
 		server.sin_family = host->h_addrtype;
-		server.sin_addr.s_addr = inet_addr(hostname);
+		//server.sin_addr.s_addr = inet_addr(hostname);
 		server.sin_port = htons (portnumber);
+
+
 
 		if (connect (s, (struct sockaddr*) & server, sizeof (server))) {
 			perror ("Client: cannot connect to server");
 			exit (1);
 		}
 
-		unsigned char key2[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+
+
+    if(firstime == 0) {
+    read(s, server_message, sizeof(server_message));
+    printf(" first message = %s\n",server_message );
+    firstime = 1;
+
+    }
+
+
+
     char buf[1024];
     char c[1000];
 
     char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
-
-    unsigned char *keyp;
-    keyp = key;
     memset(buf, 0, sizeof(buf));
 
     printf("Options: \n 1: use whiteboard \n 2:exit \n Enter 1 or 2: ");
@@ -162,10 +176,11 @@ int main(int argc, char *argv[]) {
 
     }
 
-    printf("Are you\n 1: viewing an entry \n 2: updating an entry ");
+    printf("Are you\n 1: viewing an entry \n 2: updating an entry\n");
     scanf("%d", &n);
 
     if(n == 1){
+
 
       printf("What entry would you like to see: \n");
       scanf("%s", entrynumber);
@@ -179,7 +194,6 @@ int main(int argc, char *argv[]) {
       buf[strlen(buf)] = '\n';
 
       write (s, buf, sizeof(buf));
-
 
     }
 
@@ -230,9 +244,10 @@ int main(int argc, char *argv[]) {
     strcat(buf, tempstring);
     buf[strlen(buf)] = '\n';
 
-
     write (s, buf, sizeof(buf));
-    }
+  } // else clause
+
+
 
     // recv the message
     int abc = recv(s,c,999,0);

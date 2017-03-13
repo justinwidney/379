@@ -14,7 +14,6 @@
 #include <setjmp.h>
 
 
-#define	MY_PORT	2223
 #define encrypted c
 #define plaintext p
 
@@ -195,9 +194,20 @@ void *thread_connections( void* acc_socket) {
 	int sock = *(int *)acc_socket;
 	int message_size;
 
-	char f_message[]= {("CMPUT379 Whiteboard Server v0\%d\n", WHITEBOARD_SIZE)};
+	//char f_message[]= {("CMPUT379 Whiteboard Server v0\%d\n", WHITEBOARD_SIZE)};
+  unsigned char f_message[] = {"CMPUT379 Whiteboard Server v0"};
+  unsigned char WHITEBOARD_SIZE_CHAR[1];
+
+  printf("%d\n", WHITEBOARD_SIZE);
+  WHITEBOARD_SIZE_CHAR[0] = WHITEBOARD_SIZE + '0';
+
+  f_message[strlen(f_message)] = '\n'
+  strcat(f_message, WHITEBOARD_SIZE_CHAR);
+  f_message[strlen(f_message)] = '\n'
+  
 	char *message, client_message[1000], server_message[1000];
 
+	unsigned char temp[1], temp2[1], temp3[1];
   char cpointer;
 
 	/*
@@ -205,11 +215,10 @@ void *thread_connections( void* acc_socket) {
 	*/
 
 	// first message
-	write(sock, f_message, strlen(message));
+	write(sock, f_message, strlen(f_message));
 
 	// continous loop
 	while(1) {
-
 
 
 
@@ -220,7 +229,12 @@ void *thread_connections( void* acc_socket) {
       if(client_message[0] == '?'){
         pthread_mutex_lock(&mutexg);
 
-        server_message = getNEntry();
+
+
+	temp[0] = client_message[1];
+	int x = atoi(temp);
+
+        char *fishedentry = getNEntry(x);
 
       	 pthread_mutex_unlock(&mutexg);
         }
@@ -228,15 +242,35 @@ void *thread_connections( void* acc_socket) {
 
 
      if(client_message[0] == '@'){
-       / pthread_mutex_lock(&mutexr);
+       pthread_mutex_lock(&mutexr);
      	  b++;
       	 if (b==1) {pthread_mutex_lock(&mutexg);}
       	 pthread_mutex_unlock(&mutexr);
 
-         char *updateEntry(int entry, char mode, int length, char *message);
+	// entry
+	temp[0] = client_message[1];
+	int x = atoi(temp);
 
-         server_message = {"!"};
-         strcat(server_message, str(entry));
+	temp2[0] = client_message[2];
+
+	if(temp2[0] == 'p') {
+	char mode = 'p';
+	}
+
+	if(temp2[0] == 'c') {
+	char mode = 'c';
+
+	}
+
+	// length
+	temp3[0] = client_message[3];
+	int y = atoi(temp3);
+
+         //char *updateEntry(int entry, char mode, int length, char *message);
+
+         server_message[0] = '!';
+
+         //strcat(server_message, ));
          strcat(server_message, "\n\n");
 
 
@@ -268,9 +302,10 @@ void *thread_connections( void* acc_socket) {
 	return 0;
 }
 
+int i;
+
 
 int main(int argc, char *argv[])
-
 {
   if (argc < 4) {
     printf("Too few arguments! Exiting...\n");
@@ -336,7 +371,7 @@ int main(int argc, char *argv[])
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
-    
+
     */
 
 
@@ -381,10 +416,11 @@ int main(int argc, char *argv[])
   	//fclose(STATEFILE);
   int	sock, fromlength, number, outnum, a;
 
-	struct	sockaddr_in	master, from;
+	struct	sockaddr_in	master, client;
 
 	pthread_t thread_id;
 
+	struct sigaction seg_act;
 
 
   seg_act.sa_handler = &sigint_handler;
@@ -410,13 +446,13 @@ int main(int argc, char *argv[])
 
 	listen (sock, 5);
 
-	c = sizeof(struct sockaddr_in);
+	int c = sizeof(struct sockaddr_in);
 
-	while (snew = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c))) {
+	while (snew = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c)) {
 
     sigsetjmp(readonly_memory,1);
 
-    if(flag == 1 or quit_request == 1) {
+    if(flag == 1 || quit_request == 1) {
       printf("Closing\n");
       close (sock);
 
@@ -425,6 +461,7 @@ int main(int argc, char *argv[])
       //(void) pthread_join(thread[i], NULL);
       }
       */
+
       exit(1);
     }
 
@@ -437,14 +474,15 @@ int main(int argc, char *argv[])
 		}
 
 		// create the thread
-    printf("Creating thread %d\n",i);
+    printf("Creating thread %d\n", i);
 		pthread_create(&thread_id, NULL, thread_connections, (void *) &snew);
+    i++;
 
 
 		//returnmessages(snew);
 
-		write (snew, &outnum, sizeof (outnum));
-		close (snew);
+		//write (snew, &outnum, sizeof (outnum));
+		//close (snew);
 
 	}
 }
