@@ -1,4 +1,3 @@
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -116,7 +115,6 @@ void fillWhiteboardBlank(int numEntries) {
   int i;
   for(i = 1; i <= numEntries; i++) {
     entries[i-1].entryNumber = i;
-    //entries[i-1].entry = malloc(6*sizeof(char));
     if(entries[i-1]. entry == NULL) {
       printf("Error in entry memory allocation. Exiting...\n");
       exit(0);
@@ -182,7 +180,7 @@ char *getNEntry(int entry) {
     }
       sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
       //printf("entry = %s\n",entries[i].entry);
-      printf("message = %s\n", message);
+      //printf("message = %s\n", message);
       return message;
     }
     i++;
@@ -204,7 +202,6 @@ char *updateEntry(int entry, char mode, int length, char *message) {
       entries[i].length = length;
       memcpy(entries[i].entry, message, strlen(message));
 
-      printf("updating with %c, %d, %s\n",mode, length, message );
       char * error = malloc(50); sprintf(error, "!%de0\n\n", entry);
       return error;
     }
@@ -224,7 +221,6 @@ void dumpToFile() {
 
 // all functionability in this function
 void *thread_connections( void* acc_socket) {
-	//printf("fetch new thread: %s\n", entries[0].entry);
   int sock = *(int *)acc_socket;
 	int message_size;
   char f_message[100];
@@ -241,86 +237,77 @@ void *thread_connections( void* acc_socket) {
 
 	// continous loop
 	while(1) {
+    message_size = read(sock, client_message, sizeof(client_message));
 
-    	message_size = read(sock, client_message, sizeof(client_message));
-
-      if(client_message[0] == '?'){
-        pthread_mutex_lock(&mutexg);
-        int i = 1; char entryStr[20]; int entryNumber;
-        while(1) {
-          if(client_message[i] == '\n') {
-            entryNumber = strtol(entryStr, NULL, 10);
-            break;
-          }
-          entryStr[i-1] = client_message[i];
-          i++;
+    if(client_message[0] == '?'){
+      pthread_mutex_lock(&mutexg);
+      int i = 1; char entryStr[20]; int entryNumber;
+      while(1) {
+        if(client_message[i] == '\n') {
+          entryNumber = strtol(entryStr, NULL, 10);
+          break;
         }
-        printf("%d\n", entryNumber);
+        entryStr[i-1] = client_message[i];
+        i++;
+      }
 
-        char *fishedentry = getNEntry(entryNumber);
-        printf("fished entry = %s\n", fishedentry);
+      char *fishedentry = getNEntry(entryNumber);
 
-        int len = 0;
-          while(len < strlen(fishedentry)) {
-          len += write(sock, fishedentry, strlen(fishedentry));
-          //printf("%d\n", len);
+      int len = 0;
+      while(len < strlen(fishedentry)) {
+        len += write(sock, fishedentry, strlen(fishedentry));
         write(sock, fishedentry, sizeof(fishedentry));
-
       }
       pthread_mutex_unlock(&mutexg);
     }
 
-     if(client_message[0] == '@'){
-        pthread_mutex_lock(&mutexr);
-        b++;
-        if (b==1) {pthread_mutex_lock(&mutexg);}
-        pthread_mutex_unlock(&mutexr);
-          printf("%s\n", client_message);
-        // entry
+    if(client_message[0] == '@'){
+      pthread_mutex_lock(&mutexr);
+      b++;
+      if (b==1) {pthread_mutex_lock(&mutexg);}
+      pthread_mutex_unlock(&mutexr);
+      // entry
 
-        temp[0] = client_message[1];
-        int i = 1; char entryStr[20]; int entryNumber;
-        while(1) {
-          if(client_message[i] == 'p' || client_message[i] == 'c') {
-            entryNumber = strtol(entryStr, NULL, 10);
-            break;
-          }
-          entryStr[i-1] = client_message[i];
-          i++;
+      temp[0] = client_message[1];
+      int i = 1; char entryStr[20]; int entryNumber;
+      while(1) {
+        if(client_message[i] == 'p' || client_message[i] == 'c') {
+          entryNumber = strtol(entryStr, NULL, 10);
+          break;
         }
-        char mode = client_message[i];
+        entryStr[i-1] = client_message[i];
         i++;
-        int n = 0; char entryLength[10] = ""; entryLength[9] = '\0'; int length;
-        while(1) {
-          if(client_message[i] == '\n') {
-            length = strtol(entryLength, NULL, 10);
-            break;
-          }
-          entryLength[n] = client_message[i];
-          i++; n++;
+      }
+      char mode = client_message[i];
+      i++;
+      int n = 0; char entryLength[10] = ""; entryLength[9] = '\0'; int length;
+      while(1) {
+        if(client_message[i] == '\n') {
+          length = strtol(entryLength, NULL, 10);
+          break;
         }
+        entryLength[n] = client_message[i];
+        i++; n++;
+      }
+      i++;
+      int j; char message[length+1]; message[length] = '\0';
+      for(j = 0; j < length; j++) {
+        message[j] = client_message[i];
         i++;
-        int j; char message[length+1]; message[length] = '\0';
-        for(j = 0; j < length; j++) {
-          message[j] = client_message[i];
-          i++;
-        }
-        char *reply = updateEntry(entryNumber, mode, length, message);
-        memset(server_message, 0, sizeof(server_message));
+      }
+      char *reply = updateEntry(entryNumber, mode, length, message);
+      memset(server_message, 0, sizeof(server_message));
 
-        // replies
-        int len = 0;
-        while(len < strlen(reply)) {
-          len += write(sock, reply, strlen(reply));
-        }
+      // replies
+      int len = 0;
+      while(len < strlen(reply)) {
+        len += write(sock, reply, strlen(reply));
+      }
 
-      	 pthread_mutex_lock(&mutexr);
-      	 b--;
-      	 if (b==0) {pthread_mutex_unlock(&mutexg);}
-
-      	 pthread_mutex_unlock(&mutexr);
-         //printf("fetch post update: %s\n", entries[0].entry);
-
+      pthread_mutex_lock(&mutexr);
+      b--;
+      if (b==0) {pthread_mutex_unlock(&mutexg);}
+      pthread_mutex_unlock(&mutexr);
       }
 
       // client disconnected
@@ -332,7 +319,6 @@ void *thread_connections( void* acc_socket) {
       else if(message_size == -1) {
           perror("can't recieve message");
       }
-
 
 	   // clear the buffer
    	 memset(client_message, 0, 2000);
@@ -390,7 +376,6 @@ int main(int argc, char *argv[])
       printf("Error in whiteboard memory allocation, exiting...\n");
     }
     fillWhiteboardFromFile(STATEFILE);
-
   }
   else {
     printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
@@ -401,7 +386,6 @@ int main(int argc, char *argv[])
   pid_t sid = 0;
   FILE *fp= NULL;
 
-
   int	sock, fromlength, number, outnum, a;
 
 	struct	sockaddr_in	master, client;
@@ -409,7 +393,6 @@ int main(int argc, char *argv[])
 	pthread_t thread_id;
 
 	struct sigaction seg_act;
-
 
   seg_act.sa_handler = &sigint_handler;
   sigemptyset(&seg_act.sa_mask);
@@ -436,10 +419,8 @@ int main(int argc, char *argv[])
 
 	int c = sizeof(struct sockaddr_in);
 
-
 	while (1) {
     snew = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c);
-
 
     sigsetjmp(readonly_memory,1);
 
@@ -455,14 +436,9 @@ int main(int argc, char *argv[])
 			exit (1);
 		}
 
-
-    //printf("fetch pre thread create: %s\n", entries[0].entry);
-
 		pthread_create(&thread_id, NULL, thread_connections, (void *) &snew);
-    //printf("fetch post thread create: %s\n", entries[0].entry);
     i++;
 	}
-
   free(entries);
   printf("\n all clients connections have been closed, exiting");
 }
