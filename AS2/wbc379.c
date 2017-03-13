@@ -115,13 +115,11 @@ int main(int argc, char *argv[]) {
       return 0;
     }
 
-	   //hostname = argv[1];	// get hostname
+	   hostname = argv[1];	// get hostname
      portnumber = atoi(argv[2]);	// get portnumber
 
 
 		while (1) {
-
-
 
 
 		s = socket (AF_INET, SOCK_STREAM, 0);  		// create connection
@@ -136,34 +134,56 @@ int main(int argc, char *argv[]) {
 		bzero (&server, sizeof (server));		//all values in a buffer to zero
 		//bcopy (host->h_addr, & (server.sin_addr), host->h_length); // set fields in serv+adder
 
-
-
 		server.sin_family = host->h_addrtype;
-		//server.sin_addr.s_addr = inet_addr(hostname);
+		server.sin_addr.s_addr = inet_addr(hostname);
 		server.sin_port = htons (portnumber);
-
-
 
 		if (connect (s, (struct sockaddr*) & server, sizeof (server))) {
 			perror ("Client: cannot connect to server");
 			exit (1);
 		}
 
-
-
-    if(firstime == 0) {
-    read(s, server_message, sizeof(server_message));
-    printf(" first message = %s\n",server_message );
-    firstime = 1;
-
-    }
-
-
-
     char buf[1024];
+    char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
+    bzero(&buf, strlen(buf));
+    int len = read(s, buf, 1024);
+    printf("%s\n", buf);
+    if(len < 33) {
+      printf("Inital handshake not complete. Exiting...\n");
+      exit(0);
+    }
+    int i = 0; int whiteboard_size; char sizeStr[50]; sizeStr[49] = '\0';
+    while(1) {
+      if(buf[i] == '\n') {
+        i++;
+        int n = 0;
+        while(1) {
+          if(buf[i] == '\n') {
+            whiteboard_size = strtol(sizeStr, NULL, 10);
+            break;
+          }
+          sizeStr[n] = buf[i];
+          n++;
+          i++;
+        }
+        break;
+      }
+      i++;
+    }printf("%d\n", whiteboard_size);
+    
+    /*if(firstime == 0) {
+      read(s, server_message, sizeof(server_message));
+      printf(" first message = %s\n",server_message );
+      firstime = 1;
+
+    }*/
+
+
+
+    
     char c[1000];
 
-    char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
+    //char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
     memset(buf, 0, sizeof(buf));
 
     printf("Options: \n 1: use whiteboard \n 2:exit \n Enter 1 or 2: ");

@@ -188,22 +188,20 @@ char *updateEntry(int entry, char mode, int length, char *message) {
 
 // all functionability in this function
 void *thread_connections( void* acc_socket) {
-
-
-  printf("got here\n");
 	int sock = *(int *)acc_socket;
 	int message_size;
 
 	//char f_message[]= {("CMPUT379 Whiteboard Server v0\%d\n", WHITEBOARD_SIZE)};
-  unsigned char f_message[] = {"CMPUT379 Whiteboard Server v0"};
-  unsigned char WHITEBOARD_SIZE_CHAR[1];
+  char f_message[100];
+  sprintf(f_message, "CMPUT379 Whiteboard Server v0\n%d\n", WHITEBOARD_SIZE);
+  //unsigned char WHITEBOARD_SIZE_CHAR[1];
 
-  printf("%d\n", WHITEBOARD_SIZE);
-  WHITEBOARD_SIZE_CHAR[0] = WHITEBOARD_SIZE + '0';
+  //printf("%d\n", WHITEBOARD_SIZE);
+ // WHITEBOARD_SIZE_CHAR[0] = WHITEBOARD_SIZE + '0';
 
-  f_message[strlen(f_message)] = '\n';
-  strcat(f_message, WHITEBOARD_SIZE_CHAR);
-  f_message[strlen(f_message)] = '\n';
+  //f_message[strlen(f_message)] = '\n';
+  //strcat(f_message, WHITEBOARD_SIZE_CHAR);
+ // f_message[strlen(f_message)] = '\n';
 
 	char *message, client_message[1000], server_message[1000];
 
@@ -215,7 +213,8 @@ void *thread_connections( void* acc_socket) {
 	*/
 
 	// first message
-	write(sock, f_message, strlen(f_message));
+  printf("%s\n", f_message);
+	write(sock, f_message, strlen(f_message)+1);
 
 	// continous loop
 	while(1) {
