@@ -8,12 +8,33 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <string.h>
+#include <signal.h>
+#include <setjmp.h>
+
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 
 
 #define	MY_PORT	2223
+
+jmp_buf readonly_memory;
+int s;
+
+void sigint_handler(int signo) {
+   if (signo == SIGINT) {
+       printf("\nexiting\n");
+       close (s);
+       exit(1);
+       //int pthread_kill(pthread_t thread, int sig);
+   }
+}
+
+
+
+
+
+
 
 char *base64encode (const void *b64_encode_this, int encode_this_many_bytes){
     BIO *b64_bio, *mem_bio;      //Declares two OpenSSL BIOs: a base64 filter and a memory BIO.
@@ -67,11 +88,22 @@ unsigned char debuf[1024];
 
 int outlen, tmplen, delen, i;
 
+
 int firstime = 0;
 
 int main(int argc, char *argv[]) {
 
-	int	s, number, portnumber, x, n;
+
+  struct sigaction seg_act;
+
+
+  seg_act.sa_handler = &sigint_handler;
+  sigemptyset(&seg_act.sa_mask);
+  sigaddset(&seg_act.sa_mask, SA_NODEFER);
+  sigaction(SIGINT, &seg_act, NULL);
+
+
+	int number, portnumber, x, n;
   char entrynumber[1000], server_message[100];
 
 	char* hostname;
@@ -317,7 +349,7 @@ int main(int argc, char *argv[]) {
 
     if (strlen(c) == 3 && c[0]== 'p' && c[1] == '0'){
       close(s);
-      printf("connect with server was terminated\m");
+      printf("connect with server was terminated\n");
       return 0;
     }
 
