@@ -1,5 +1,4 @@
 
-
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -52,7 +51,6 @@ char *base64decode (const void *b64_decode_this, int decode_this_many_bytes){
 int decrypt(char *encrpyted_message, char* filename);
 unsigned char* encrypt(unsigned char message[]);
 
-char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
 
 
 
@@ -120,7 +118,7 @@ int main(int argc, char *argv[]) {
      portnumber = atoi(argv[2]);	// get portnumber
 
 
-
+		while (1) {
 
 
 		s = socket (AF_INET, SOCK_STREAM, 0);  		// create connection
@@ -145,7 +143,7 @@ int main(int argc, char *argv[]) {
 		}
 
     char buf[1024];
-
+    char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
     bzero(&buf, strlen(buf));
     int len = read(s, buf, 1024);
     if(firstime == 0) {
@@ -175,11 +173,21 @@ int main(int argc, char *argv[]) {
       }
       i++;
     }
+<<<<<<< HEAD
+    /*if(firstime == 0) {
+      read(s, server_message, sizeof(server_message));
+      printf(" first message = %s\n",server_message );
+      firstime = 1;
+=======
     //printf("%d\n", whiteboard_size);
+>>>>>>> FETCH_HEAD
 
 
-    while (1) {
+<<<<<<< HEAD
+=======
 
+
+>>>>>>> FETCH_HEAD
     char c[1000];
 
     //char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
@@ -199,22 +207,28 @@ int main(int argc, char *argv[]) {
     scanf("%d", &n);
 
     if(n == 1){
-
-
-      printf("What entry would you like to view: \n");
+      printf("What entry would you like to see: \n");
       scanf("%s", entrynumber);
 
-      //printf("you entered %s\n",entrynumber);
-      buf[0] = '?';
-
-      // add on the entry number
-      strcat(buf, entrynumber);
-      //printf("first concat = %s\n", buf );
-      buf[strlen(buf)] = '\n';
-
-      write (s, buf, sizeof(buf));
-      printf("message sent= %s", buf);
-
+      sprintf(buf, "?%s\n", entrynumber);
+      write (s, buf, strlen(buf));
+      int len = read(s, buf, sizeof(buf)); 
+      int i = 0; printf("Here is the entry: ");
+      while(i < len) {
+        //printf("%c\n", buf[i]);
+        if(buf[i] == '\n') {
+          i++;
+          while(1) {
+            printf("%c", buf[i]);
+            if(i >= len || i > 10) {
+              break;
+            }
+            i++;
+          }
+        }
+        i++;
+      }
+      printf("\n");
     }
 
     else{
@@ -243,7 +257,6 @@ int main(int argc, char *argv[]) {
       unsigned char* encoded_message = encrypt(tempstring);
       printf("make sure our message is encrypted = %s\n", encoded_message );
 
-      sleep(10);
       //move our message into temp string
       //memset(tempstring,0,sizeof(tempstring));
       //memcpy(tempstring, encoded_message, sizeof(encoded_message));
@@ -283,12 +296,11 @@ int main(int argc, char *argv[]) {
 
   } // else clause
 
-    printf("Starting to Recieve\n\n");
+
 
     // recv the message
     int abc = recv(s,c,999,0);
 
-    printf("\n message recieved = %s\n",c);
     if (strlen(c) == 0){
       close(s);
       printf("connect with server was terminated");
@@ -375,15 +387,10 @@ unsigned char* encrypt(unsigned char message[]) {
 	EVP_CIPHER_CTX_init(&ctx);
 	EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, key, iv);
   unsigned char * encrypted_message_full;  //The string we will base-64 encode.
-  memcpy(encrypted_message_full, encryption_addon, strlen(encryption_addon));
-
+  memcpy(encrypted_message_full, message, strlen(message)); // co
 
 
   strcat(encrypted_message_full, message);
-
-  printf("message before encrpytion = %s\n", encrypted_message_full);
-  //eturn encrypted_message_full;
-
 
 	encrypted_message_full[strlen(encrypted_message_full) -1] = 0;
 
@@ -403,27 +410,17 @@ unsigned char* encrypt(unsigned char message[]) {
 
 	EVP_CIPHER_CTX_cleanup(&ctx);
 
-  printf("encryped stirng = %s\n", outbuf);
+	// buffer should contain ciphertext
+
 
     // 64 bit encode it
-   	//unsigned char * data_to_encode;  //The string we will base-64 encode.
-    //printf("%d\n",outlen);
+   	 unsigned char * data_to_encode;  //The string we will base-64 encode.
+   	 data_to_encode = malloc(outlen); // allocate size of string
+   	 memcpy(data_to_encode,outbuf,outlen); // copy string to pointer
+  	 int bytes_to_encode = outlen; //Number of bytes in string to base64 encode.
+   	 unsigned char *base64_encoded = base64encode(data_to_encode, bytes_to_encode);   //Base-64 encoding.
 
-
-   	//data_to_encode = malloc(outlen); // allocate size of string
-
-
-   	//memcpy(data_to_encode,outbuf,outlen); // copy string to pointer
-
-  	int bytes_to_encode = outlen; //Number of bytes in string to base64 encode.
-
-    //return outbuf;
-
-   	unsigned char *base64_encoded = base64encode(outbuf, bytes_to_encode);   //Base-64 encoding.
-
-    printf("encoded string = %s\n",base64_encoded);
     return base64_encoded;
-
 }
 
 
@@ -466,24 +463,9 @@ int decrypt(char *encrpyted_message, char* filename ) {
              continue;
            }
 
-
-
             delen+=remainingBytes;
             EVP_CIPHER_CTX_cleanup(&ctx);
-
-          //   CMPUT379 Whiteboard Encrypted v0\n
-
             int i;
-            char check[34];
-            for(i = 0; i < delen; i++){
-              check[i] = debuf[i];
-            }
-
-            if (check != "CMPUT379 Whiteboard Encrypted v0\n") {
-              printf("no key was able to decrypt the message\n");
-              return 0;
-            }
-
             for (i = 0; i< delen; i++){
               printf("%c", debuf[i]);
             }

@@ -1,3 +1,4 @@
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -40,7 +41,6 @@ void sigint_handler(int signo) {
    }
    return;
 }
-
 
 
 struct Entry {
@@ -116,7 +116,7 @@ void fillWhiteboardBlank(int numEntries) {
       printf("Error in entry memory allocation. Exiting...\n");
       exit(0);
     }
-    sprintf(entries[i-1].entry, "!%dp0\n\n", i);
+    entries[i-1].entry[0] = 0;
     entries[i-1].mode = 'p';
     entries[i-1]. length = strlen(entries[i-1].entry);
   }
@@ -145,7 +145,7 @@ int makeWhiteboardFile(int numEntries) {
 char *getNEntry(int entry) {
   int i = 0;
   while(1) {
-    if (i > WHITEBOARD_SIZE) {
+    if (entry > WHITEBOARD_SIZE) {
       // can't find entry
       char * error = malloc(50); sprintf(error, "!%de14\nNo such entry!\n", entry);
       return error;
@@ -190,7 +190,6 @@ char *updateEntry(int entry, char mode, int length, char *message) {
 void *thread_connections( void* acc_socket) {
 	int sock = *(int *)acc_socket;
 	int message_size;
-
 	//char f_message[]= {("CMPUT379 Whiteboard Server v0\%d\n", WHITEBOARD_SIZE)};
   char f_message[100];
   sprintf(f_message, "CMPUT379 Whiteboard Server v0\n%d\n", WHITEBOARD_SIZE);
@@ -214,11 +213,31 @@ void *thread_connections( void* acc_socket) {
 	*/
 
 	// first message
-  printf("%s\n", f_message);
 	write(sock, f_message, strlen(f_message)+1);
 
 	// continous loop
 	while(1) {
+<<<<<<< HEAD
+    	message_size = read(sock, client_message, sizeof(client_message));
+      if(client_message[0] == '?'){
+        pthread_mutex_lock(&mutexg);
+        temp[0] = client_message[1];
+        int i = 1; char entryStr[20]; int entryNumber;
+        while(1) {
+          if(client_message[i] == '\n') {
+            entryNumber = strtol(entryStr, NULL, 10);
+            break;
+          }
+          entryStr[i-1] = client_message[i];
+          i++;
+        }
+        
+        char *fishedentry = getNEntry(entryNumber);
+        int len = 0;
+        while(len < strlen(fishedentry)) {
+          len += write(sock, fishedentry, strlen(fishedentry));
+          printf("%d\n", len);
+=======
 
 
 
@@ -239,7 +258,10 @@ void *thread_connections( void* acc_socket) {
 
 
       pthread_mutex_unlock(&mutexg);
+>>>>>>> FETCH_HEAD
         }
+        pthread_mutex_unlock(&mutexg);
+      }
 
 
 
@@ -307,7 +329,6 @@ void *thread_connections( void* acc_socket) {
 
 int i;
 
-
 int main(int argc, char *argv[])
 {
   if (argc < 4) {
@@ -329,6 +350,36 @@ int main(int argc, char *argv[])
       exit(0);
     }
 
+    STATEFILE = fopen("whiteboard.all", "w");
+
+    entries = realloc(entries, WHITEBOARD_SIZE * sizeof(entry));
+    char line[256];
+
+    if (entries == NULL) {
+      printf("Error in whiteboard memory allocation, exiting...\n");
+    }
+    fillWhiteboardBlank(WHITEBOARD_SIZE);
+  }
+  else if (strcmp("-f", argv[2]) == 0) {
+    fileName = argv[3];
+    STATEFILE = fopen(fileName, "r+");
+    if(STATEFILE == NULL) {
+      printf("Could not open file %s, make sure it exists and that its readable. Exiting..\n", argv[3]);
+      exit(0);
+    }
+    WHITEBOARD_SIZE = getEntryLimit();
+    entries = realloc(entries, WHITEBOARD_SIZE * sizeof(entry));
+    if (entries == NULL) {
+      printf("Error in whiteboard memory allocation, exiting...\n");
+    }
+    fillWhiteboardFromFile(STATEFILE);
+    
+
+  }
+  else {
+    printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
+    exit(0);
+  }
     pid_t pid = 0;
     pid_t sid = 0;
     FILE *fp= NULL;
@@ -378,44 +429,8 @@ int main(int argc, char *argv[])
     */
 
 
-
-
-    STATEFILE = fopen("whiteboard.all", "w");
-
-    entries = realloc(entries, WHITEBOARD_SIZE * sizeof(entry));
-    char line[256];
-
-    if (entries == NULL) {
-      printf("Error in whiteboard memory allocation, exiting...\n");
-    }
-    fillWhiteboardBlank(WHITEBOARD_SIZE);
-  }
-  else if (strcmp("-f", argv[2]) == 0) {
-    fileName = argv[3];
-    STATEFILE = fopen(fileName, "r+");
-    if(STATEFILE == NULL) {
-      printf("Could not open file %s, make sure it exists and that its readable. Exiting..\n", argv[3]);
-      exit(0);
-    }
-    WHITEBOARD_SIZE = getEntryLimit();
-    entries = realloc(entries, WHITEBOARD_SIZE * sizeof(entry));
-    if (entries == NULL) {
-      printf("Error in whiteboard memory allocation, exiting...\n");
-    }
-    fillWhiteboardFromFile(STATEFILE);
-    int i;
-    for(i = 0; i < WHITEBOARD_SIZE; i++) {
-      printf("Entry: %d, Mode: %c, Length: %d, Message: %s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
-    }
-
-  }
-  else {
-    printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
-    exit(0);
-  }
-
   	/////////////////// push at end of program
-    free(entries);
+    
   	//fclose(STATEFILE);
   int	sock, fromlength, number, outnum, a;
 
@@ -488,4 +503,5 @@ int main(int argc, char *argv[])
 		//close (snew);
 
 	}
+  free(entries);
 }
