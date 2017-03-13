@@ -208,11 +208,7 @@ int main(int argc, char *argv[]) {
       i++;
     }
 
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> origin/master
     char c[1000];
 
     //char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
@@ -224,44 +220,34 @@ int main(int argc, char *argv[]) {
     printf("Options: \n 1: use whiteboard \n 2: exit \n Enter 1 or 2: ");
 
     while(1){
-    scanf("%d", &n);
-
-    if (n == 2) {
-      close(s);
-      printf("exiting\n");
-      return 0;
-
+      scanf("%d", &n);
+  
+      if (n == 2) {
+        close(s);
+        printf("exiting\n");
+        return 0;
+      }
+      if(n == 1){
+        break;
+      }
+      printf("enter a valid option\n: ");
     }
-    if(n == 1){
-      break;
-    }
-    printf("enter a valid option\n: ");
-  }
 
     printf("Are you\n 1: viewing an entry \n 2: updating an entry\n");
 
     while(1){
-    scanf("%d", &n);
+      scanf("%d", &n);
+      if(n == 1){
+        printf("What entry would you like to see: \n");
+        scanf("%s", entrynumber);
 
-
-    if(n == 1){
-      printf("What entry would you like to see: \n");
-      scanf("%s", entrynumber);
-
-      sprintf(buf, "?%s\n", entrynumber);
-      write (s, buf, strlen(buf));
-<<<<<<< HEAD
-      int len = read(s, buf, sizeof(buf));
-      int i = 0; printf("Here is the entry: ");
-      while(i < len) {
-=======
-      //int len = read(s, buf, sizeof(buf));
-      //int i = 0; printf("Here is the entry: ");
-
-      /* while(i < len) {
->>>>>>> origin/master
-        //printf("%c\n", buf[i]);
-        if(buf[i] == '\n') {
+        sprintf(buf, "?%s\n", entrynumber);
+        write (s, buf, strlen(buf));
+        int len = read(s, buf, sizeof(buf));
+        int i = 0; printf("Here is the entry: ");
+        while(i < len) {
+          //printf("%c\n", buf[i]);
+          if(buf[i] == '\n') {
           i++;
           while(1) {
             printf("%c", buf[i]);
@@ -269,55 +255,43 @@ int main(int argc, char *argv[]) {
               break;
             }
             i++;
+            }
           }
+          i++;
         }
+<<<<<<< HEAD
+        printf("\n");
+        break;
+      }
+
+      if(n == 2){
+        int ENTRY_NUMBER;
+    
+        unsigned char tempstring[1000];
+        printf("What entry would you like to change: \n");
+        scanf("%d", &ENTRY_NUMBER);
+    
+        printf("Enter a string to be sent\n");
+        scanf("%s",tempstring);
+        printf("please enter 0 for non-encrypted and 1 for encrypted: ");
+        scanf("%d", &n);
+    
+        if(n == 1){
+          unsigned char* encoded_message = encrypt(tempstring);
+          printf("final encrypted message is= %s\n", encoded_message );
+    
+          //move our message into temp string
+          //memset(tempstring,0,sizeof(tempstring));
+          //memcpy(tempstring, encoded_message, sizeof(encoded_message));
+          int xy = strlen(tempstring);
+          sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
+=======
         i++;
       }
-      printf("\n"); */
+      printf("\n");
       break;
     }
 
-<<<<<<< HEAD
-    else{
-      int ENTRY_NUMBER;
-  
-      unsigned char tempstring[1000];
-      printf("What entry would you like to change: \n");
-      scanf("%d", &ENTRY_NUMBER);
-  
-      printf("Enter a string to be sent\n");
-      scanf("%s",tempstring);
-  
-  
-  
-      //write(1,tempstring,strlen(tempstring));
-  
-      //read(0,intext,199);
-      //intext[strlen(intext) - 1] = 0;
-  
-      //printf("sending this string = %s\n",buf);
-  
-      printf("please enter 0 for non-encrypted and 1 for encrypted: ");
-      scanf("%d", &n);
-  
-      if(n == 1){
-        unsigned char* encoded_message = encrypt(tempstring);
-        printf("make sure our message is encrypted = %s\n", encoded_message );
-  
-        //move our message into temp string
-        //memset(tempstring,0,sizeof(tempstring));
-        //memcpy(tempstring, encoded_message, sizeof(encoded_message));
-        sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, strlen(tempstring), encoded_message);
-      }
-  
-      else { 
-        sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, strlen(tempstring), tempstring);
-      }
-      write (s, buf, strlen(buf));
-      bzero(buf, sizeof(buf));
-      read(s, buf, sizeof(buf));
-      printf("Reponse: %s", buf);
-=======
   if(n == 2){
     int ENTRY_NUMBER;
 
@@ -347,18 +321,22 @@ int main(int argc, char *argv[]) {
       //move our message into temp string
       //memset(tempstring,0,sizeof(tempstring));
       //memcpy(tempstring, encoded_message, sizeof(encoded_message));
-      int xy = strlen(tempstring);
-      sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
+        int xy = strlen(encoded_message);
+        sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
 
     }
 
     else{
+
       int xy = strlen(tempstring);
 
       sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
-    }
+      }
 
->>>>>>> origin/master
+      write (s, buf, strlen(buf));
+      bzero(buf, sizeof(buf));
+      read(s, buf, sizeof(buf));
+      printf("Reponse: %s", buf);
 
 
     //buf[0] = '@';
@@ -383,37 +361,32 @@ int main(int argc, char *argv[]) {
 */
 
     //printf("the message being sent is: %s\n",buf);
-<<<<<<< HEAD
-    
 
-    } // else clause
-=======
-    write (s, buf, sizeof(buf));
     break;
-  } // else clause
+    } // else clause
   else{
     printf("enter a valid option\n: ");
   }
 }
->>>>>>> origin/master
 
 
 
     // recv the message
     //int abc = recv(s,c,999,0);
 
-    printf("message recieved = %s\n",c);
+      //printf("message recieved = %s\n",c);
 
     if (strlen(c) == 3 && c[0]== 'p' && c[1] == '0'){
       close(s);
-<<<<<<< HEAD
-      //printf("connect with server was terminated");
-      continue;
-=======
       printf("connect with server was terminated\n");
-      return 0;
->>>>>>> origin/master
+      continue;
     }
+
+    if(c[0] != '!') {
+      printf("\nbad protocol\n");
+      return 0;
+    }
+
 
     printf("message recieved = %s\n",c);
 
@@ -435,32 +408,36 @@ int main(int argc, char *argv[]) {
       /* while (1) {
         if(c[i] == '\n'){
           break;
+>>>>>>> origin/master
         }
-
-        char cx[0];
-        cx[0] = c[i+1];
-        strcat(message_length_c, cx);
-        i++;
+    
+        else {
+          int xy = sizeof(tempstring);
+          sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
+        }
+    
+          write (s, buf, strlen(buf));
+          bzero(buf, sizeof(buf));
+          read(s, buf, sizeof(buf));
+          printf("Reponse: %s", buf);
+    
+          break;
+      } // else clause
+      else {
+        printf("enter a valid option\n: ");
       }
+<<<<<<< HEAD
+  }
+=======
+      sscanf(c, "%c%d%c%d%c%s%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest, buf, &newlinetest2);
 
-      message_length = atoi(message_length_c);
-
-      for(x=0; x < message_length+i; x++){
-        printf("%c", c[x]); // print all values in
-      } */
-
-      break;
-
-    }
-
-
-    if(c[i] == 'c'){
-      decrypt(c, keyfile_name);
+      decrypt(buf, keyfile_name);
       break;
     }
+>>>>>>> origin/master
 
     i++;
-
+    break;
     }
 
 
@@ -469,10 +446,9 @@ int main(int argc, char *argv[]) {
 			exit(1);
 		}
 
-
 	}
 
-}
+
 
 
 // based off of decrypt.c

@@ -259,7 +259,7 @@ int main(int argc, char *argv[]) {
           }
           i++;
         }
-        printf("\n");
+      printf("\n");
         break;
       }
 
@@ -282,20 +282,22 @@ int main(int argc, char *argv[]) {
           //move our message into temp string
           //memset(tempstring,0,sizeof(tempstring));
           //memcpy(tempstring, encoded_message, sizeof(encoded_message));
-          int xy = strlen(tempstring);
-          sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
+        int xy = strlen(encoded_message);
+        sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
         }
     
         else {
-          int xy = sizeof(tempstring);
+
+      int xy = strlen(tempstring);
           sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
         }
-    
+
           write (s, buf, strlen(buf));
           bzero(buf, sizeof(buf));
           read(s, buf, sizeof(buf));
           printf("Reponse: %s", buf);
     
+
           break;
       } // else clause
       else {
@@ -303,8 +305,9 @@ int main(int argc, char *argv[]) {
       }
   }
 
+      //printf("message recieved = %s\n",c);
     i++;
-
+    break;
     }
 
 

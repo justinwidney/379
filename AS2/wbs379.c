@@ -17,6 +17,9 @@
 #define encrypted c
 #define plaintext p
 
+int dumpWhiteboardFiles();
+
+
 // mutex lock
 pthread_mutex_t mutexg, mutexr;
 
@@ -143,6 +146,19 @@ int makeWhiteboardFile(int numEntries) {
 	}
 }
 
+int dumpWhiteboardFiles(){
+  int i =0;
+
+  FILE *fpx;
+  fpx = fopen("whiteboard.all", "w");
+
+  for (i= 0; i<WHITEBOARD_SIZE; i++){
+    fprintf(fpx, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
+  }
+  fclose(fpx);
+
+
+}
 
 char *getNEntry(int entry) {
   int i = 0;
@@ -223,7 +239,7 @@ void *thread_connections( void* acc_socket) {
 	while(1) {
 
     	message_size = read(sock, client_message, sizeof(client_message));
-      
+
       if(client_message[0] == '?'){
         pthread_mutex_lock(&mutexg);
         int i = 1; char entryStr[20]; int entryNumber;
@@ -237,15 +253,17 @@ void *thread_connections( void* acc_socket) {
         }
 
         char *fishedentry = getNEntry(entryNumber);
-        printf("fished entry = %s\n", fishedentry);
+        //rintf("fished entry = %s\n", fishedentry);
 
         int len = 0;
-         /* while(len < strlen(fishedentry)) {
+          while(len < strlen(fishedentry)) {
           len += write(sock, fishedentry, strlen(fishedentry));
           //printf("%d\n", len);
         write(sock, fishedentry, sizeof(fishedentry));
-        pthread_mutex_unlock(&mutexg);
+
       }
+      pthread_mutex_unlock(&mutexg);
+    }
 
      if(client_message[0] == '@'){
         pthread_mutex_lock(&mutexr);
@@ -294,10 +312,12 @@ void *thread_connections( void* acc_socket) {
       	 pthread_mutex_lock(&mutexr);
       	 b--;
       	 if (b==0) {pthread_mutex_unlock(&mutexg);}
-         
+
       	 pthread_mutex_unlock(&mutexr);
          printf("fetch post update: %s\n", entries[0].entry);
+
       }
+
       // client disconnected
       if(message_size == 0) {
         close(sock);
@@ -307,14 +327,17 @@ void *thread_connections( void* acc_socket) {
       else if(message_size == -1) {
           perror("can't recieve message");
       }
+
+
 	   // clear the buffer
    	 memset(client_message, 0, 2000);
-		}
+   }
 
-	
+  printf("all clients have disconnected from the socket, exiting");
   close(sock);
 	return 0;
 }
+
 
 int i;
 
@@ -368,7 +391,7 @@ int main(int argc, char *argv[])
     printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
     exit(0);
   }
-  
+
   pid_t pid = 0;
   pid_t sid = 0;
   FILE *fp= NULL;
@@ -407,8 +430,12 @@ int main(int argc, char *argv[])
 	listen (sock, 5);
 
 	int c = sizeof(struct sockaddr_in);
-  
-	while (snew = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c)) {
+
+
+	while (1) {
+    snew = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c);
+
+
     sigsetjmp(readonly_memory,1);
 
     if(flag == 1 || quit_request == 1) {
@@ -423,11 +450,14 @@ int main(int argc, char *argv[])
 			exit (1);
 		}
 
-		// create the thread
+
     printf("fetch pre thread create: %s\n", entries[0].entry);
+
 		pthread_create(&thread_id, NULL, thread_connections, (void *) &snew);
     printf("fetch post thread create: %s\n", entries[0].entry);
     i++;
 	}
+
   free(entries);
+  printf("\n all clients connections have been closed, exiting");
 }
