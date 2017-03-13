@@ -221,7 +221,7 @@ int main(int argc, char *argv[]) {
 
     while(1){
       scanf("%d", &n);
-  
+
       if (n == 2) {
         close(s);
         printf("exiting\n");
@@ -244,6 +244,25 @@ int main(int argc, char *argv[]) {
         sprintf(buf, "?%s\n", entrynumber);
         write (s, buf, strlen(buf));
         int len = read(s, buf, sizeof(buf));
+
+        // decryption
+        if(s[2] == 'c'){
+          char ctest, ftest, newlinetest, newlinetest2;
+          int sizetest, entrytest;
+          bzero(&buf, strlen(buf));
+
+          if(ctest != 'c' || ftest != '!' || newlinetest != '\n'){
+          printf("bad protocol\n");
+          return 0;
+          }
+          sscanf(c, "%c%d%c%d%c%s%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest, buf, &newlinetest2);
+
+          decrypt(buf, keyfile_name);
+          break;
+
+        }
+        
+
         int i = 0; printf("Here is the entry: ");
         while(i < len) {
           //printf("%c\n", buf[i]);
@@ -265,27 +284,27 @@ int main(int argc, char *argv[]) {
 
       if(n == 2){
         int ENTRY_NUMBER;
-    
+
         unsigned char tempstring[1000];
         printf("What entry would you like to change: \n");
         scanf("%d", &ENTRY_NUMBER);
-    
+
         printf("Enter a string to be sent\n");
         scanf("%s",tempstring);
         printf("please enter 0 for non-encrypted and 1 for encrypted: ");
         scanf("%d", &n);
-    
+
         if(n == 1){
           unsigned char* encoded_message = encrypt(tempstring);
           printf("final encrypted message is= %s\n", encoded_message );
-    
+
           //move our message into temp string
           //memset(tempstring,0,sizeof(tempstring));
           //memcpy(tempstring, encoded_message, sizeof(encoded_message));
         int xy = strlen(encoded_message);
         sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
         }
-    
+
         else {
 
       int xy = strlen(tempstring);
@@ -296,7 +315,7 @@ int main(int argc, char *argv[]) {
           bzero(buf, sizeof(buf));
           read(s, buf, sizeof(buf));
           printf("Reponse: %s", buf);
-    
+
 
           break;
       } // else clause
