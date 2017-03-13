@@ -233,9 +233,13 @@ void *thread_connections( void* acc_socket) {
       temp[0] = client_message[1];
 	    int x = atoi(temp);
 
-        char *fishedentry = getNEntry(x);
 
-      	 pthread_mutex_unlock(&mutexg);
+      char *fishedentry = getNEntry(x);
+      printf("Entry asked for = %s\n", fishedentry );
+
+      server_message[0]
+
+      pthread_mutex_unlock(&mutexg);
         }
 
 
