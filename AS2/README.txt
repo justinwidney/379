@@ -26,5 +26,8 @@ the entry number and size as well as the information that is stored in the selec
 option is to update an entry which will ask you to select a entry, input some information that you
 wish to store and finally if you want to encrypt this information. In order to encrypt and decrypt,
 you must execute the client by providing a keyfile or else the client will fail to view and update
-an entry that is encrypted.
+an entry that is encrypted. The return codes for the queries are as follows:
+  -!XpY\nEntry\n = a response saying that entry X of length Y with information Entry
+  -!XeY\nError\n = a status message for entry X with length Y with error message Error.
+    (note: an error message of 0 length means success)
 
