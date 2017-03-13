@@ -286,10 +286,22 @@ int main(int argc, char *argv[]) {
           printf("What entry would you like to change: \n");
           scanf("%d", &ENTRY_NUMBER);
 
-          printf("Enter a string to be sent\n");
+          printf("Enter a string to be sent\nEnter NULL for a blank entry:\n");
           scanf("%s",tempstring);
+          int flagNULL = 0;
+          if(tempstring[0] == 'N' && tempstring[1] == 'U' && tempstring[2] == 'L' && tempstring[3] == 'L'){
+            flagNULL = 1;
+            bzero(tempstring, strlen(tempstring));
+          }
+          if(flagNULL != 1) {
           printf("please enter 0 for non-encrypted and 1 for encrypted: ");
           scanf("%d", &n);
+          }
+          else{
+            n = 0;
+            flagNULL = 0;
+          }
+
 
           if(n == 1){
             unsigned char* encoded_message = encrypt(tempstring, keyfile_name);

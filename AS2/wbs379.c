@@ -198,6 +198,7 @@ char *updateEntry(int entry, char mode, int length, char *message) {
       return error;
     }
     if(entries[i].entryNumber == entry) {
+      memset(entries[i].entry, 0, sizeof(entries[i].entry));
       entries[i].mode = mode;
       entries[i].length = length;
       memcpy(entries[i].entry, message, strlen(message));
