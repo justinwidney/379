@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
       i++;
     }
 
-  
+
     char c[1000];
 
     //char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
@@ -220,37 +220,34 @@ int main(int argc, char *argv[]) {
     printf("Options: \n 1: use whiteboard \n 2: exit \n Enter 1 or 2: ");
 
     while(1){
-    scanf("%d", &n);
-
-    if (n == 2) {
-      close(s);
-      printf("exiting\n");
-      return 0;
-
+      scanf("%d", &n);
+  
+      if (n == 2) {
+        close(s);
+        printf("exiting\n");
+        return 0;
+      }
+      if(n == 1){
+        break;
+      }
+      printf("enter a valid option\n: ");
     }
-    if(n == 1){
-      break;
-    }
-    printf("enter a valid option\n: ");
-  }
 
     printf("Are you\n 1: viewing an entry \n 2: updating an entry\n");
 
     while(1){
-    scanf("%d", &n);
+      scanf("%d", &n);
+      if(n == 1){
+        printf("What entry would you like to see: \n");
+        scanf("%s", entrynumber);
 
-
-    if(n == 1){
-      printf("What entry would you like to see: \n");
-      scanf("%s", entrynumber);
-
-      sprintf(buf, "?%s\n", entrynumber);
-      write (s, buf, strlen(buf));
-      int len = read(s, buf, sizeof(buf));
-      int i = 0; printf("Here is the entry: ");
-      while(i < len) {
-        //printf("%c\n", buf[i]);
-        if(buf[i] == '\n') {
+        sprintf(buf, "?%s\n", entrynumber);
+        write (s, buf, strlen(buf));
+        int len = read(s, buf, sizeof(buf));
+        int i = 0; printf("Here is the entry: ");
+        while(i < len) {
+          //printf("%c\n", buf[i]);
+          if(buf[i] == '\n') {
           i++;
           while(1) {
             printf("%c", buf[i]);
@@ -258,160 +255,53 @@ int main(int argc, char *argv[]) {
               break;
             }
             i++;
+            }
           }
+          i++;
         }
-        i++;
+        printf("\n");
+        break;
       }
-      printf("\n"); */
-      break;
-    }
 
-  if(n == 2){
-    int ENTRY_NUMBER;
-
-    unsigned char tempstring[1000];
-    printf("What entry would you like to change: \n");
-    scanf("%d", &ENTRY_NUMBER);
-
-    printf("Enter a string to be sent\n");
-    scanf("%s",tempstring);
-
-
-
-    //write(1,tempstring,strlen(tempstring));
-
-		//read(0,intext,199);
-    //intext[strlen(intext) - 1] = 0;
-
-    //printf("sending this string = %s\n",buf);
-
-    printf("please enter 0 for non-encrypted and 1 for encrypted: ");
-    scanf("%d", &n);
-
-    if(n == 1){
-      unsigned char* encoded_message = encrypt(tempstring);
-      printf("final encrypted message is= %s\n", encoded_message );
-
-      //move our message into temp string
-      //memset(tempstring,0,sizeof(tempstring));
-      //memcpy(tempstring, encoded_message, sizeof(encoded_message));
-        sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, strlen(tempstring), encoded_message);
-
-    }
-
-    else{
-        sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, strlen(tempstring), tempstring);
-
-      sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
-      }
-      write (s, buf, strlen(buf));
-      bzero(buf, sizeof(buf));
-      read(s, buf, sizeof(buf));
-      printf("Reponse: %s", buf);
-
-
-    //buf[0] = '@';
-    /*
-    strcat(buf, entrynumber);
-    char stringlength[0];
-
-    stringlength[0] = (char)(strlen(tempstring));
-
-    strcat(buf, stringlength);
-
-    if(encrypt_flag==1){
-      buf[strlen(buf)] == 'c';
-    }
-    else{
-      buf[strlen(buf)] == 'p';
-    }
-
-    buf[strlen(buf)] = '\n';
-    strcat(buf, tempstring);
-    buf[strlen(buf)] = '\n';
-*/
-
-    //printf("the message being sent is: %s\n",buf);
+      if(n == 2){
+        int ENTRY_NUMBER;
     
-    break;
-    } // else clause
-  else{
-    printf("enter a valid option\n: ");
-  }
-}
-
-
-
-    // recv the message
-    //int abc = recv(s,c,999,0);
-
-    printf("message recieved = %s\n",c);
-
-    if (strlen(c) == 3 && c[0]== 'p' && c[1] == '0'){
-      close(s);
-      printf("connect with server was terminated\n");
-      continue;
-    }
-
-    if(c[0] != 1) {
-      printf("\nbad protocol\n");
-      return 0;
-    }
-
-
-    printf("message recieved = %s\n",c);
-
-    int message_length;
-    char message_length_c[1000];
-
-    i =0, x=0 ;
-    memset(message_length_c, 0, sizeof(message_length_c));
-
-    while(1){
-
-    if(c[i]== 'e'){
-      break;
-    }
-
-    // handle regular responses
-    if(c[i] == 'p'){
-
-      /* while (1) {
-        if(c[i] == '\n'){
-          break;
+        unsigned char tempstring[1000];
+        printf("What entry would you like to change: \n");
+        scanf("%d", &ENTRY_NUMBER);
+    
+        printf("Enter a string to be sent\n");
+        scanf("%s",tempstring);
+        printf("please enter 0 for non-encrypted and 1 for encrypted: ");
+        scanf("%d", &n);
+    
+        if(n == 1){
+          unsigned char* encoded_message = encrypt(tempstring);
+          printf("final encrypted message is= %s\n", encoded_message );
+    
+          //move our message into temp string
+          //memset(tempstring,0,sizeof(tempstring));
+          //memcpy(tempstring, encoded_message, sizeof(encoded_message));
+          int xy = strlen(tempstring);
+          sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
         }
-
-        char cx[0];
-        cx[0] = c[i+1];
-        strcat(message_length_c, cx);
-        i++;
+    
+        else {
+          int xy = sizeof(tempstring);
+          sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
+        }
+    
+          write (s, buf, strlen(buf));
+          bzero(buf, sizeof(buf));
+          read(s, buf, sizeof(buf));
+          printf("Reponse: %s", buf);
+    
+          break;
+      } // else clause
+      else {
+        printf("enter a valid option\n: ");
       }
-
-      message_length = atoi(message_length_c);
-
-      for(x=0; x < message_length+i; x++){
-        printf("%c", c[x]); // print all values in
-      } */
-
-      break;
-
-    }
-
-
-    if(c[i] == 'c'){
-      char ctest, ftest, newlinetest, newlinetest2;
-      int sizetest, entrytest;
-      bzero(&buf, strlen(buf));
-
-      if(ctest != 'c' || ftest != '!' || newlinetest != '\n'){
-        printf("bad protocol\n");
-        return 0;
-      }
-      fscanf(c, "%c%d%c%d%c%s%c", ftest, &entrytest, ctest, &sizetest, newlinetest, buf, newlinetest2);
-
-      decrypt(buf, keyfile_name);
-      break;
-    }
+  }
 
     i++;
 
@@ -423,10 +313,9 @@ int main(int argc, char *argv[]) {
 			exit(1);
 		}
 
-
 	}
 
-}
+
 
 
 // based off of decrypt.c
