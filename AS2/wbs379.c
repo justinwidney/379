@@ -21,7 +21,7 @@ int dumpWhiteboardFiles();
 
 // mutex lock
 pthread_mutex_t *mutexg, *mutexr;
-
+FILE *fp2;
 
 
 int WHITEBOARD_SIZE = 0;
@@ -41,6 +41,7 @@ void sigint_handler(int signo) {
    if (signo == SIGINT) {
        //close (snew);
        flag = 1;
+       fclose(fp2);
        quit_request =1;
        siglongjmp(readonly_memory,1);
        //int pthread_kill(pthread_t thread, int sig);
@@ -387,6 +388,65 @@ int main(int argc, char *argv[])
       printf("Invalid whiteboard size! Exiting...\n");
       exit(0);
     }
+
+
+    /*
+
+    pid_t pid = 0;
+    pid_t sid = 0;
+    FILE *fp2= NULL;
+
+    pid = fork();
+
+    if (pid < 0)
+    {
+        printf("fork failed!\n");
+        exit(1);
+    }
+
+    if (pid > 0)
+    {
+    	// in the parent
+       printf("pid of child process %d \n", pid);
+       exit(0);
+    }
+
+    umask(0);
+
+	// open a log file
+    fp2 = fopen ("logfile.log", "w+");
+    if(!fp2){
+    	printf("cannot open log file");
+    }
+
+    // create new process group -- don't want to look like an orphan
+    sid = setsid();
+    if(sid < 0)
+    {
+    	fprintf(fp2, "cannot create new process group");
+        exit(1);
+    }
+
+
+    if ((chdir("/")) < 0) {
+      printf("Could not change working directory to /\n");
+      exit(1);
+    }
+
+	// close standard fds
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+
+    return 0;
+
+    */
+
+
+
+
+
+
 
     STATEFILE = fopen("whiteboard.all", "w");
 

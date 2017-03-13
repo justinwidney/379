@@ -69,7 +69,7 @@ char *base64decode (const void *b64_decode_this, int decode_this_many_bytes){
 }
 
 int decrypt(char *encrpyted_message, char* filename);
-unsigned char* encrypt(unsigned char message[], char* filename);
+unsigned char* encrypt(unsigned char* message, char* filename);
 
 char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
 
@@ -109,6 +109,10 @@ int main(int argc, char *argv[]) {
   sigemptyset(&seg_act.sa_mask);
   sigaddset(&seg_act.sa_mask, SA_NODEFER);
   sigaction(SIGINT, &seg_act, NULL);
+ 
+  EVP_CIPHER_CTX_init(&ctx);
+
+  EVP_CIPHER_CTX_set_padding(&ctx, 0);
 
 
 	int number, portnumber, x, n;
@@ -270,6 +274,8 @@ int main(int argc, char *argv[]) {
           int sizetest, entrytest;
           // decryption
           if(buf[2] == 'c'){
+
+	    printf("message is decrpyted\n");
             //bzero(&buf, strlen(buf));
 
             /*if(ctest != 'c' || ftest != '!' || newlinetest != '\n'){
@@ -286,7 +292,7 @@ int main(int argc, char *argv[]) {
             sscanf(buf, "%c%d%c%d%c%s%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest, c, &newlinetest2);
             //printf("our message is: %s", c);
 
-            //printf("about to decrpy: %s\n", c);
+            printf("about to decrpy: %s\n", c);
             decrypt(c, keyfile_name);
             break;
           }
@@ -333,7 +339,7 @@ int main(int argc, char *argv[]) {
         }
         if(n == 2){
           unsigned char tempstring[1000];
-
+	  memset(tempstring, 0, 1000);
           int ENTRY_NUMBER;
 
         //printf("What entry would you like to change: \n");
@@ -401,7 +407,11 @@ int main(int argc, char *argv[]) {
 
 
           if(n == 1){
-            unsigned char* encoded_message = encrypt(tempstring, keyfile_name);
+		
+            pointer = tempstring;
+
+	    printf("encrypting message %s\n", tempstring);
+            unsigned char* encoded_message = encrypt(pointer, keyfile_name);
             printf("final encrypted message is= %s\n", encoded_message );
 
             //move our message into temp string
@@ -438,25 +448,28 @@ int main(int argc, char *argv[]) {
 
 // based off of decrypt.c
 
-unsigned char* encrypt(unsigned char message[], char* filename) {
+unsigned char* encrypt(unsigned char* message, char* filename) {
 
-  memset(outbuf, 0, sizeof(outbuf));
+  memset(outbuf, 0, strlen(outbuf));
+  //memset(message, 0, sizeof(encrypted_message_full));
 
   FILE * fp;
   char * line = NULL;
   size_t len = 0;
   ssize_t read;
 
-
+  //printf("getting key");
 
   fp = fopen (filename,"r");
-  if (fp == NULL)
-	printf("can encrypt without keyfile");
+  if (fp == NULL) {
+	printf("can't encrypt without keyfile");
         exit(EXIT_FAILURE);
+  }
 
   char testkey[128];
   char c;
 
+  
 
   int i =0;
 
@@ -468,13 +481,9 @@ unsigned char* encrypt(unsigned char message[], char* filename) {
 
 
          key_bytes = strlen(testkey);
-
-
          //printf("%s\n",line);
-
-
          base64_decoded_key = base64decode(testkey, key_bytes);
-
+         printf("our key = %s\n", base64_decoded_key);
          break;
        }
        testkey[i] = c;
@@ -486,30 +495,34 @@ unsigned char* encrypt(unsigned char message[], char* filename) {
 
 
 
-	EVP_CIPHER_CTX_init(&ctx);
+	//EVP_CIPHER_CTX_init(&ctx);
 	EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
 
-  //memcpy(encrypted_message_full, message, strlen(message)); // co
+        //memcpy(encrypted_message_full, message, strlen(message)); // co
 
 
+	memset(encrypted_message_full, 0, strlen(encrypted_message_full));
 
+	//printf("adding on %s", encrypted_message_full);
 
-  memcpy(encrypted_message_full, encryption_addon, strlen(encryption_addon));
+  	memmove(encrypted_message_full, encryption_addon, strlen(encryption_addon));
 
-  strcat(encrypted_message_full, message);
+  	strcat(encrypted_message_full, message);
 
-	encrypted_message_full[strlen(encrypted_message_full) -1] = 0;
+	//encrypted_message_full[strlen(encrypted_message_full)] = 0;
 
+    	printf("new message = %s\n", encrypted_message_full);
 
-
-	if(!EVP_EncryptUpdate(&ctx, outbuf, &outlen, encrypted_message_full, sizeof(encrypted_message_full)))
+	if(!EVP_EncryptUpdate(&ctx, outbuf, &outlen, encrypted_message_full, strlen(encrypted_message_full)))
     {
         /* Error */
+	printf("Error encoding");
         return 0;
     }
 
 	if(!EVP_EncryptFinal_ex(&ctx, outbuf + outlen, &tmplen))
     {
+	printf("Error encoding");
         /* Error */
         return 0;
     }
@@ -522,11 +535,11 @@ unsigned char* encrypt(unsigned char message[], char* filename) {
 
 	// buffer should contain ciphertext
 
-
+        printf("our encrypted message = %s\n", outbuf);
 
   	int bytes_to_encode = outlen; //Number of bytes in string to base64 encode.
 
-    base64_encoded = base64encode(outbuf, bytes_to_encode);   //Base-64 encoding.
+    	base64_encoded = base64encode(outbuf, bytes_to_encode);   //Base-64 encoding.
 
     fclose(fp);
     return base64_encoded;
@@ -546,15 +559,36 @@ int decrypt(char *encrpyted_message, char* filename ) {
     //unsigned char *base64_decoded = malloc(sizeof (unsigned char));
     unsigned char *base64_decoded = base64decode(encrpyted_message, bytes_to_decode);   //Base-64 decoding.
 
-    //printf(" decoded message= %s\n",base64_decoded);
+    printf("decoded message= %s\n",base64_decoded);
 
-    outlen = strlen(base64_decoded);
+    //outlen = strlen(base64_decoded);
 
-
+	
 
 
     //bzero(debuf,1024);
     //memset(testkey, 0, sizeof(testkey));
+	
+
+ while((c=fgetc(fp))!=EOF){
+
+       // try the key
+       if(c == '\n'){
+
+
+
+         key_bytes = strlen(testkey);
+         //printf("%s\n",line);
+         base64_decoded_key = base64decode(testkey, key_bytes);
+         printf("our key = %s\n", base64_decoded_key);
+         break;
+       }
+       testkey[i] = c;
+       i++;
+
+       // found no key that works
+     }
+
 
     i =0;
     while((c=fgetc(fp))!=EOF){
@@ -566,19 +600,34 @@ int decrypt(char *encrpyted_message, char* filename ) {
 
           key_bytes = strlen(testkey);
 
-          base64_decoded_key = base64decode(testkey, bytes_to_decode);
+          //base64_decoded_key = base64decode(testkey, bytes_to_decode);
           //printf("decoded= %s\n", base64_decoded);
+	  //printf("our key = %s\n", base64_decoded_key);
 
 
-          EVP_CIPHER_CTX_init(&ctx);
-         	EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
+	  delen = 0;
+
+          memset(debuf, 0, strlen(debuf));
+
+          EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
+
+	  
+        
+          bzero (&debuf, sizeof(base64_decoded));
 
           if(!EVP_DecryptUpdate(&ctx, debuf, &delen, base64_decoded, outlen))
           {printf("Error1\n");return 0;}
 
+	  printf("first decrypt = %s", debuf);
+
+	    for (i = 0; i< 25; i++){
+              printf("%c", debuf[i]);
+            }
+
            if(!EVP_DecryptFinal_ex(&ctx, debuf + delen, &remainingBytes)){
              memset(testkey, 0, sizeof(testkey));
-             //printf("decrypt failed\n");
+             printf("decrypt failed\n");
+	     ERR_print_errors_fp(stderr);
              i=0;
              //continue;
            }
@@ -593,20 +642,22 @@ int decrypt(char *encrpyted_message, char* filename ) {
               check[i] = debuf[i];
             }
 
+	    printf("attempted decrpytion produces = ");
+
             /*if (check != "CMPUT379 Whiteboard Encrypted v0\n") {
              printf("no key was able to decrypt the message\n");
               return 0;
             }*/
 
-            for (i = 0; i< delen; i++){
+            for (i = 0; i< 25; i++){
               printf("%c", debuf[i]);
             }
 
             return 0;
          }
 
-         testkey[i] = c;
-         i++;
+         //testkey[i] = c;
+         //i++;
 
 
          // found no key that works
