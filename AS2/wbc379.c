@@ -85,7 +85,7 @@ unsigned char * encrypted_message_full;  //The string we will base-64 encode.
 unsigned char outbuf[1024];
 unsigned char debuf[1024];
 
-int outlen, tmplen, delen, i;
+int outlen, tmplen, delen, i, key_bytes;
 
 
 int firstime = 0;
@@ -328,17 +328,24 @@ unsigned char* encrypt(unsigned char message[], char* filename) {
   char testkey[128];
   char c;
 
+
+  int i =0;
+
   while((c=fgetc(fp))!=EOF){
 
        // try the key
        if(c == '\n'){
 
 
-         int key_bytes = strlen(testkey);
-         printf("%s\n",line);
-         exit(1);
-         
+
+         key_bytes = strlen(testkey);
+
+
+         //printf("%s\n",line);
+
+
          base64_decoded_key = base64decode(testkey, key_bytes);
+
          break;
        }
        testkey[i] = c;
@@ -347,7 +354,6 @@ unsigned char* encrypt(unsigned char message[], char* filename) {
        // found no key that works
      }
 
-  //fp = fopen(filename, "r");
 
 
 
@@ -357,7 +363,7 @@ unsigned char* encrypt(unsigned char message[], char* filename) {
   //memcpy(encrypted_message_full, message, strlen(message)); // co
 
 
-
+  exit(1);
 
   memcpy(encrypted_message_full, encryption_addon, strlen(encryption_addon));
 
@@ -419,7 +425,7 @@ int decrypt(char *encrpyted_message, char* filename ) {
          if(c == '\n'){
 
            //Todo Needs to conver base64decode into a char array
-          int key_bytes = strlen(testkey);
+          key_bytes = strlen(testkey);
           unsigned char* base64_decoded_key = base64decode(testkey, bytes_to_decode);
           //printf("decoded= %s\n", base64_decoded);
 
