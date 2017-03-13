@@ -353,6 +353,12 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
+    if(c[0] != 1) {
+      printf("\nbad protocol\n");
+      return 0;
+    }
+
+
     printf("message recieved = %s\n",c);
 
     int message_length;
@@ -393,7 +399,17 @@ int main(int argc, char *argv[]) {
 
 
     if(c[i] == 'c'){
-      decrypt(c, keyfile_name);
+      char ctest, ftest, newlinetest, newlinetest2;
+      int sizetest, entrytest;
+      bzero(&buf, strlen(buf));
+
+      if(ctest != 'c' || ftest != '!' || newlinetest != '\n'){
+        printf("bad protocol\n");
+        return 0;
+      }
+      fscanf(c, "%c%d%c%d%c%s%c", ftest, &entrytest, ctest, &sizetest, newlinetest, buf, newlinetest2);
+
+      decrypt(buf, keyfile_name);
       break;
     }
 
