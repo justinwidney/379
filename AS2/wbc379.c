@@ -246,7 +246,7 @@ int main(int argc, char *argv[]) {
         int len = read(s, buf, sizeof(buf));
 
         // decryption
-        if(s[2] == 'c'){
+        if(buf[2] == 'c'){
           char ctest, ftest, newlinetest, newlinetest2;
           int sizetest, entrytest;
           bzero(&buf, strlen(buf));
@@ -261,7 +261,7 @@ int main(int argc, char *argv[]) {
           break;
 
         }
-        
+
 
         int i = 0; printf("Here is the entry: ");
         while(i < len) {
