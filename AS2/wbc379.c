@@ -571,12 +571,17 @@ unsigned char* encrypt(unsigned char* message, char* filename) {
 
 int decrypt(char *encrpyted_message, char* filename ) {
 
+
+    unsigned char testkey[128];
     FILE *fp;
+    memset(testkey, 0, sizeof(testkey));
 
     fp = fopen (filename,"r");
-    unsigned char testkey[20];
+    
     int remainingBytes;
     char c;
+
+    int x;
 
     int bytes_to_decode = strlen(encrpyted_message); //Number of bytes in string to base64 decode.
     //unsigned char *base64_decoded = malloc(sizeof (unsigned char));
@@ -594,7 +599,84 @@ int decrypt(char *encrpyted_message, char* filename ) {
 	
 
 
+ while((c=fgetc(fp))!=EOF){
 
+
+       // try the key
+       if(c == '\n'){
+
+         key_bytes = strlen(testkey);
+         //printf("%s\n",line);
+         base64_decoded_key = base64decode(testkey, key_bytes);
+         printf("test key: = %s, our key = %s\n", testkey, base64_decoded_key);
+
+	  delen = 0;
+
+          memset(debuf, 0, strlen(debuf));
+
+          EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
+
+	  
+        
+          bzero (&debuf, sizeof(base64_decoded));
+
+          if(!EVP_DecryptUpdate(&ctx, debuf, &delen, base64_decoded, outlen))
+          {printf("Error1\n");return 0;}
+
+	  printf("first decrypt = %s", debuf);
+
+	    for (x = 0; i< 25; i++){
+              printf("%c", debuf[i]);
+            }
+
+           if(!EVP_DecryptFinal_ex(&ctx, debuf + delen, &remainingBytes)){
+             memset(testkey, 0, sizeof(testkey));
+             printf("decrypt failed\n");
+	     ERR_print_errors_fp(stderr);
+             
+             //continue;
+           }
+
+            delen+=remainingBytes;
+            EVP_CIPHER_CTX_cleanup(&ctx);
+            
+
+            char check[34];
+
+            for(x = 0; i < delen; i++){
+              check[i] = debuf[i];
+            }
+
+	    printf("attempted decrpytion produces = ");
+
+            /*if (check != "CMPUT379 Whiteboard Encrypted v0\n") {
+             printf("no key was able to decrypt the message\n");
+              return 0;
+            }*/
+
+            for (x = 0; i< 25; i++){
+              printf("%c", debuf[i]);
+            }
+
+	    memset(testkey, 0, strlen(testkey));
+            i=0;	
+           continue;
+       }
+       else 
+	{
+	 testkey[i] = c;
+         testkey[i+1] = '\0';
+       }
+	i++;
+
+       // found no key that works
+
+     }
+     
+	      fclose(fp);
+       printf("no key was able to decrypt the message\n");
+
+    /*
     i =0;
     int x;
     char t;
@@ -655,10 +737,10 @@ int decrypt(char *encrpyted_message, char* filename ) {
 
 	    printf("attempted decrpytion produces = ");
 
-            /*if (check != "CMPUT379 Whiteboard Encrypted v0\n") {
+            if (check != "CMPUT379 Whiteboard Encrypted v0\n") {
              printf("no key was able to decrypt the message\n");
               return 0;
-            }*/
+            }
 
             for (x = 0; i< 25; i++){
               printf("%c", debuf[i]);
@@ -677,5 +759,6 @@ int decrypt(char *encrpyted_message, char* filename ) {
        }
       fclose(fp);
        printf("no key was able to decrypt the message\n");
+	*/
 
 }
