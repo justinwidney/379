@@ -120,9 +120,10 @@ int main(int argc, char *argv[]) {
 
 	char* hostname;
 	int entrynumber;
-
-  int keyfile_flag = 0, encrypt_flag = 0;
-  char* keyfile_name;
+	char ctest, ftest, newlinetest, newlinetest2;
+        int sizetest, entrytest;
+  	int keyfile_flag = 0, encrypt_flag = 0;
+  	char* keyfile_name;
 
 	struct	sockaddr_in	server;
 	struct	hostent		*host;
@@ -270,8 +271,30 @@ int main(int argc, char *argv[]) {
           int len = read(s, buf, sizeof(buf));
 	  //printf("our buffer is= %s,", buf);
 
-          char ctest, ftest, newlinetest, newlinetest2;
-          int sizetest, entrytest;
+	  /* error handling */
+		
+	  sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
+
+	  if (ftest != '!' || entrytest < 0 || newlinetest != '\n' || sizetest < 0) {
+	  printf("Improper server message, exiting");
+	  }  
+
+
+	  if(ctest != 'c') 
+	     if(ctest != 'e')
+		if(ctest != 'p'){
+			 printf("Improper server message2, exiting");
+		}	
+		
+	 
+
+	
+	
+		
+	  /* done */
+
+
+         
           // decryption
           if(buf[2] == 'c'){
 
@@ -570,40 +593,28 @@ int decrypt(char *encrpyted_message, char* filename ) {
     //memset(testkey, 0, sizeof(testkey));
 	
 
- while((c=fgetc(fp))!=EOF){
-
-       // try the key
-       if(c == '\n'){
-
-
-
-         key_bytes = strlen(testkey);
-         //printf("%s\n",line);
-         base64_decoded_key = base64decode(testkey, key_bytes);
-         printf("our key = %s\n", base64_decoded_key);
-         break;
-       }
-       testkey[i] = c;
-       i++;
-
-       // found no key that works
-     }
 
 
     i =0;
+    int x;
+    char t;
+    memset(testkey, 0, sizeof(testkey));
+
     while((c=fgetc(fp))!=EOF){
+	 
+	  
 
          // try the key
          if(c == '\n'){
-
+	
            //Todo Needs to conver base64decode into a char array
 
           key_bytes = strlen(testkey);
 
-          //base64_decoded_key = base64decode(testkey, bytes_to_decode);
+          base64_decoded_key = base64decode(testkey, key_bytes);
           //printf("decoded= %s\n", base64_decoded);
 	  //printf("our key = %s\n", base64_decoded_key);
-
+	  printf("our key = %s\n", base64_decoded_key);
 
 	  delen = 0;
 
@@ -620,7 +631,7 @@ int decrypt(char *encrpyted_message, char* filename ) {
 
 	  printf("first decrypt = %s", debuf);
 
-	    for (i = 0; i< 25; i++){
+	    for (x = 0; i< 25; i++){
               printf("%c", debuf[i]);
             }
 
@@ -628,17 +639,17 @@ int decrypt(char *encrpyted_message, char* filename ) {
              memset(testkey, 0, sizeof(testkey));
              printf("decrypt failed\n");
 	     ERR_print_errors_fp(stderr);
-             i=0;
+             
              //continue;
            }
 
             delen+=remainingBytes;
             EVP_CIPHER_CTX_cleanup(&ctx);
-            int i;
+            
 
             char check[34];
 
-            for(i = 0; i < delen; i++){
+            for(x = 0; i < delen; i++){
               check[i] = debuf[i];
             }
 
@@ -649,15 +660,17 @@ int decrypt(char *encrpyted_message, char* filename ) {
               return 0;
             }*/
 
-            for (i = 0; i< 25; i++){
+            for (x = 0; i< 25; i++){
               printf("%c", debuf[i]);
             }
-
-            return 0;
+	    memset(testkey, 0, strlen(testkey));
+            i=0;
+            continue;
          }
-
-         //testkey[i] = c;
-         //i++;
+         //printf("key value = %c, %d ", c, i);
+         testkey[i] = c;
+         //printf("testkey %s ", testkey);
+         i++;
 
 
          // found no key that works

@@ -163,7 +163,7 @@ int dumpWhiteboardFiles(){
 
 char *getNEntry(int entry) {
 
-  pthread_mutex_lock(&mutexg[entry]);
+  
   int i = 0;
   while(1) {
     if (entry > WHITEBOARD_SIZE) {
@@ -171,11 +171,12 @@ char *getNEntry(int entry) {
       char error[50];
       char *pe;
       pe = error;
-
-      sprintf(error, "!%de14\nNo,such,entry!\n", entry);
+      sprintf(error, "!%de14\nNo such entry!\n", entry);
       pthread_mutex_unlock(&mutexg[entry]);
       return pe;
     }
+    pthread_mutex_lock(&mutexg[entry]);
+
     if(entries[i].entryNumber == entry || entries[i].entryNumber == (char)entry) {
       char * message = malloc(sizeof(int)*2+strlen(entries[i].entry)+4);
       if(message == NULL) {
@@ -206,30 +207,31 @@ char *getNEntry(int entry) {
 char *updateEntry(int entry, char mode, int length, char *message) {
   int i = 0;
 
-   pthread_mutex_lock(&mutexr[entry]);
-      b++;
-      if (b==1) {pthread_mutex_lock(&mutexg[entry]);}
-      pthread_mutex_unlock(&mutexr[entry]);
+   
 
   while(1) {
     if (i > WHITEBOARD_SIZE) {
       // can't find entry
       char * error = malloc(50); sprintf(error, "!%de17\nFailed to update!\n", entry);
 
-      pthread_mutex_lock(&mutexr[entry]);
-      b--;
-      if (b==0) {pthread_mutex_unlock(&mutexg[entry]);}
-      pthread_mutex_unlock(&mutexr[entry]);
-
       return error;
     }
+ 
     if(entries[i].entryNumber == entry) {
+
+	pthread_mutex_lock(&mutexr[entry]);
+      b++;
+      if (b==1) {pthread_mutex_lock(&mutexg[entry]);}
+      pthread_mutex_unlock(&mutexr[entry]);
+
+
       memset(entries[i].entry, 0, sizeof(entries[i].entry));
       entries[i].mode = mode;
       entries[i].length = length;
       memcpy(entries[i].entry, message, strlen(message));
 
       char * error = malloc(50); sprintf(error, "!%de0\n\n", entry);
+
       pthread_mutex_lock(&mutexr[entry]);
       b--;
       if (b==0) {pthread_mutex_unlock(&mutexg[entry]);}
