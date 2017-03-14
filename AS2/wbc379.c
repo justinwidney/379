@@ -551,7 +551,7 @@ int decrypt(char *encrpyted_message, char* filename ) {
     FILE *fp;
 
     fp = fopen (filename,"r");
-    unsigned char testkey[20];
+    unsigned char testkey[50];
     int remainingBytes;
     char c;
 
@@ -571,7 +571,6 @@ int decrypt(char *encrpyted_message, char* filename ) {
 	
 
  while((c=fgetc(fp))!=EOF){
-
        // try the key
        if(c == '\n'){
 
@@ -580,11 +579,12 @@ int decrypt(char *encrpyted_message, char* filename ) {
          key_bytes = strlen(testkey);
          //printf("%s\n",line);
          base64_decoded_key = base64decode(testkey, key_bytes);
-         printf("our key = %s\n", base64_decoded_key);
+         printf("test key: = %s, our key = %s\n", testkey, base64_decoded_key);
          break;
        }
-       testkey[i] = c;
-       i++;
+       else {testkey[i] = c;
+         testkey[i+1] = '\0';
+       }i++;
 
        // found no key that works
      }
