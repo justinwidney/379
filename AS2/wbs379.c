@@ -197,8 +197,6 @@ char *getNEntry(int entry) {
 
     }
       sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
-      //printf("entry = %s\n",entries[i].entry);
-      //printf("message = %s\n", message);
       pthread_mutex_unlock(&mutexg[entry]);
       return message;
     }
@@ -217,7 +215,6 @@ char *updateEntry(int entry, char mode, int length, char *message) {
     }
  
     if(entries[i].entryNumber == entry) {
-      printf("%s\n", entries[i].entry);
       pthread_mutex_lock(&mutexr[entry]);
       b++;
       if (b==1) {pthread_mutex_lock(&mutexg[entry]);}
@@ -227,9 +224,9 @@ char *updateEntry(int entry, char mode, int length, char *message) {
       //memset(entries[i].entry, 0, sizeof(entries[i].entry));
       entries[i].mode = mode;
       entries[i].length = length;
-      entries[i].entry = message;
-      printf("%s\n", entries[i].entry);
-      //memcpy(entries[i].entry, message, strlen(message));
+      //entries[i].entry = message;
+      //printf("after update: %s\n", entries[i].entry);
+      memcpy(entries[i].entry, message, strlen(message));
 
       char * error = malloc(50); sprintf(error, "!%de0\n\n", entry);
 
@@ -237,7 +234,6 @@ char *updateEntry(int entry, char mode, int length, char *message) {
       b--;
       if (b==0) {pthread_mutex_unlock(&mutexg[entry]);}
       pthread_mutex_unlock(&mutexr[entry]);
-
       return error;
     }
     i++;
@@ -276,15 +272,12 @@ void *thread_connections( void* acc_socket) {
     memset(lengthStr, '\0', sizeof(lengthStr));
     // get entry query (without entry)
     while(1) {
-          read(sock, c, 1);
-          if(c[0] == '\n') {lengthStr[i] = c[0]; break;}
-          lengthStr[i] = c[0]; i++;
-          printf("query: %s\n", lengthStr);
+      read(sock, c, 1) ;
+      if(c[0] == '\n') {lengthStr[i] = c[0]; break;}
+      lengthStr[i] = c[0]; i++;
     }
-    
-    
     // get entry number and mode (if updating)
-    i = 1; char entryStr[20]; int entryNumber; char mode;
+    i = 1; char entryStr[20]; int entryNumber = 0; char mode = '\0';
     memset(entryStr, '\0', sizeof(entryStr));
     while(1) {
       if(lengthStr[i] == '\n') {
@@ -300,9 +293,8 @@ void *thread_connections( void* acc_socket) {
       entryStr[i-1] = lengthStr[i];
       i++;
     }
-    
     // if we're updating get size of entry
-    int n = 0; char entryLength[20]; int length; i++;
+    int n = 0; char entryLength[20]; int length = 0; i++;
     memset(entryLength, '\0', sizeof(entryLength));
     if(mode != 'q') {
       while(1) {
@@ -316,12 +308,11 @@ void *thread_connections( void* acc_socket) {
     }
     
     
-    
     if(lengthStr[0] == '?'){
+      message_size = 1;
       //pthread_mutex_lock(&mutexg);
       char *fishedentry = getNEntry(entryNumber);
       int len = 0;
-      printf("response: %s\n", fishedentry);
       while(len < strlen(fishedentry)) {
         len += write(sock, fishedentry, strlen(fishedentry));
         write(sock, fishedentry, sizeof(fishedentry));
@@ -331,6 +322,7 @@ void *thread_connections( void* acc_socket) {
 
     if(lengthStr[0] == '@'){
       client_message = malloc(sizeof(char)*length+10);
+      message_size = 1;
       if(client_message == NULL) {
         // failed to get enough memory for servers entry
         char response[64]; char error[] = "Could not allocate that much memory for entry!";
@@ -339,14 +331,14 @@ void *thread_connections( void* acc_socket) {
       }
       else {
         client_message[length] = '\0';
-        int message_length = read(sock, client_message, length);
+        message_size = read(sock, client_message, length+1);
         char *reply = updateEntry(entryNumber, mode, length, client_message);
         // replies
         int len = 0;
         while(len < strlen(reply)) {
           len += write(sock, reply, strlen(reply));
         }
-        free(client_message);
+        if(client_message != NULL) {free(client_message);}
       }
 
     /*
@@ -354,21 +346,19 @@ void *thread_connections( void* acc_socket) {
       b--;
       if (b==0) {pthread_mutex_unlock(&mutexg);}
       pthread_mutex_unlock(&mutexr); */
-      } 
+    } 
 
-      // client disconnected
-      if(message_size == 0) {
-        close(sock);
-        return 0;
-      }
+    // client disconnected
+    if(message_size == 0) {
+      printf("closing socket...\n");
+      close(sock);
+      return 0;
+    }
 
-      else if(message_size == -1) {
+    else if(message_size == -1) {
           perror("can't recieve message");
-      }
-
-	   // clear the buffer
-   	 memset(client_message, 0, 2000);
-   }
+    }
+  }
 
   printf("all clients have disconnected from the socket, exiting");
   close(sock);
