@@ -209,19 +209,15 @@ char *getNEntry(int entry) {
 
 char *updateEntry(int entry, char mode, int length, char *message) {
   int i = 0;
-
-   
-
   while(1) {
     if (i > WHITEBOARD_SIZE) {
       // can't find entry
       char * error = malloc(50); sprintf(error, "!%de17\nFailed to update!\n", entry);
-
       return error;
     }
  
     if(entries[i].entryNumber == entry) {
-
+      printf("%s\n", entries[i].entry);
       pthread_mutex_lock(&mutexr[entry]);
       b++;
       if (b==1) {pthread_mutex_lock(&mutexg[entry]);}
@@ -232,6 +228,7 @@ char *updateEntry(int entry, char mode, int length, char *message) {
       entries[i].mode = mode;
       entries[i].length = length;
       entries[i].entry = message;
+      printf("%s\n", entries[i].entry);
       //memcpy(entries[i].entry, message, strlen(message));
 
       char * error = malloc(50); sprintf(error, "!%de0\n\n", entry);
@@ -276,15 +273,19 @@ void *thread_connections( void* acc_socket) {
 	// continous loop
 	while(1) {
     char lengthStr[20]; char c[1]; int i = 0;
+    memset(lengthStr, '\0', sizeof(lengthStr));
     // get entry query (without entry)
     while(1) {
           read(sock, c, 1);
           if(c[0] == '\n') {lengthStr[i] = c[0]; break;}
-          lengthStr[i] = c[0]; lengthStr[i+1] = '\0'; i++;
+          lengthStr[i] = c[0]; i++;
+          printf("query: %s\n", lengthStr);
     }
-
+    
+    
     // get entry number and mode (if updating)
     i = 1; char entryStr[20]; int entryNumber; char mode;
+    memset(entryStr, '\0', sizeof(entryStr));
     while(1) {
       if(lengthStr[i] == '\n') {
         entryNumber = strtol(entryStr, NULL, 10);
@@ -301,22 +302,26 @@ void *thread_connections( void* acc_socket) {
     }
     
     // if we're updating get size of entry
-    int n = 0; char entryLength[20]; entryLength[19] = '\0'; int length; i++;
+    int n = 0; char entryLength[20]; int length; i++;
+    memset(entryLength, '\0', sizeof(entryLength));
     if(mode != 'q') {
       while(1) {
         if(lengthStr[i] == '\n') {
           length = strtol(entryLength, NULL, 10);
           break;
         }
-        entryLength[n] = lengthStr[i];
+        entryLength[n] = lengthStr[i]; 
         i++; n++;
       }
     }
+    
+    
     
     if(lengthStr[0] == '?'){
       //pthread_mutex_lock(&mutexg);
       char *fishedentry = getNEntry(entryNumber);
       int len = 0;
+      printf("response: %s\n", fishedentry);
       while(len < strlen(fishedentry)) {
         len += write(sock, fishedentry, strlen(fishedentry));
         write(sock, fishedentry, sizeof(fishedentry));
@@ -325,11 +330,6 @@ void *thread_connections( void* acc_socket) {
     }
 
     if(lengthStr[0] == '@'){
-      /*pthread_mutex_lock(&mutexr);
-      b++;
-      if (b==1) {pthread_mutex_lock(&mutexg);}
-      pthread_mutex_unlock(&mutexr); */
-      // entry
       client_message = malloc(sizeof(char)*length+10);
       if(client_message == NULL) {
         // failed to get enough memory for servers entry
@@ -346,6 +346,7 @@ void *thread_connections( void* acc_socket) {
         while(len < strlen(reply)) {
           len += write(sock, reply, strlen(reply));
         }
+        free(client_message);
       }
 
     /*
