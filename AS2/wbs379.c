@@ -165,8 +165,6 @@ int dumpWhiteboardFiles(){
 }
 
 char *getNEntry(int entry) {
-
-  
   int i = 0;
   while(1) {
     if (entry > WHITEBOARD_SIZE) {
@@ -191,11 +189,11 @@ char *getNEntry(int entry) {
       }
       if(entries[i].length == 0){
 
-      printf("Entry about to send, %s", entries[i].entry);
+        printf("Entry about to send, %s", entries[i].entry);
 
-      //sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
+        //sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
 
-    }
+      }
       sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
       pthread_mutex_unlock(&mutexg[entry]);
       return message;
@@ -221,7 +219,7 @@ char *updateEntry(int entry, char mode, int length, char *message) {
       pthread_mutex_unlock(&mutexr[entry]);
 
 
-      //memset(entries[i].entry, 0, sizeof(entries[i].entry));
+      memset(entries[i].entry, 0, strlen(entries[i].entry));
       entries[i].mode = mode;
       entries[i].length = length;
       //entries[i].entry = message;
@@ -272,7 +270,7 @@ void *thread_connections( void* acc_socket) {
     memset(lengthStr, '\0', sizeof(lengthStr));
     // get entry query (without entry)
     while(1) {
-      read(sock, c, 1) ;
+      read(sock, c, 1);
       if(c[0] == '\n') {lengthStr[i] = c[0]; break;}
       lengthStr[i] = c[0]; i++;
     }
@@ -312,10 +310,11 @@ void *thread_connections( void* acc_socket) {
       message_size = 1;
       //pthread_mutex_lock(&mutexg);
       char *fishedentry = getNEntry(entryNumber);
+      printf("seding: %s\n", fishedentry);
       int len = 0;
       while(len < strlen(fishedentry)) {
         len += write(sock, fishedentry, strlen(fishedentry));
-        write(sock, fishedentry, sizeof(fishedentry));
+        write(sock, fishedentry, strlen(fishedentry));
       }
       //pthread_mutex_unlock(&mutexg);
     }
@@ -332,7 +331,9 @@ void *thread_connections( void* acc_socket) {
       else {
         client_message[length] = '\0';
         message_size = read(sock, client_message, length+1);
+        printf("message: %s\n", client_message);
         char *reply = updateEntry(entryNumber, mode, length, client_message);
+        printf("reply: %s\n", reply);
         // replies
         int len = 0;
         while(len < strlen(reply)) {

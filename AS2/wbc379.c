@@ -253,11 +253,13 @@ int main(int argc, char *argv[]) {
           
           char lengthStr[20]; char c[1]; int j = 0;
           memset(lengthStr, '\0', sizeof(lengthStr));
+          
           while(1) {
-            read(s, c, 1) ;
-            if(c[0] == '\n') {lengthStr[j] = c[0]; break;}
+            read(s, c, 1);
+            if(c[0] == '\n' && strlen(lengthStr) > 3) {lengthStr[j] = c[0]; break;}
             lengthStr[j] = c[0]; j++;
           }
+          printf("lengthStr: %s\n", lengthStr);
           // get entry number and mode
           j = 1; char entryStr[20]; int entryNumber = 0; char mode = '\0';
           memset(entryStr, '\0', sizeof(entryStr));
@@ -270,6 +272,7 @@ int main(int argc, char *argv[]) {
             entryStr[j-1] = lengthStr[j];
             j++;
           }
+          
           // if we're updating get size of entry
           int n = 0; char entryLength[20]; int length = 0; j++;
           memset(entryLength, '\0', sizeof(entryLength));
@@ -282,18 +285,17 @@ int main(int argc, char *argv[]) {
             j++; n++;
           }
           //int len = read(s, buf, sizeof(buf));
-          int len = 1;
-          printf("lengthStr: %s, entry: %d, mode: %c, len: %d\n", lengthStr, entryNumber, mode, length);
+          
           char * message = malloc(sizeof(char)*length+10);
+          memset(message, '\0', sizeof(message));
           if(message == NULL) {
             // failed to get enough memory for servers entry
             printf("Server sent too much to allocate to memory!\n");
             continue;
           }
           else {
-            message[length] = '\0';
             int message_size = read(s, message, length+1);
-            printf("entry: %s\n", message);
+            printf("entry: %s length: %d, lengthStr: %s\n", message, length, lengthStr);
           }
         // decryption
         if(mode == 'c'){
@@ -339,7 +341,7 @@ int main(int argc, char *argv[]) {
             //}/* error handling */
             strcat( text, buffer ); /* note a '\n' is appended here everytime */
             //printf("%s", buffer);
-        }
+          }
         char* pointer;
         pointer = text;
         //pointer++;
@@ -365,6 +367,7 @@ int main(int argc, char *argv[]) {
           n = 0;
           flagNULL = 0;
         }
+        char *updateQuery;
         if(n == 1){
           pointer = tempstring;
           printf("encrypting message %s\n", tempstring);
@@ -379,13 +382,18 @@ int main(int argc, char *argv[]) {
         }
         else {
           int xy = strlen(tempstring);
-          sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
+          updateQuery = malloc(xy+20);
+          if(updateQuery == NULL) {
+            printf("Could not alocate enough memory for an entry of that size!\n");
+          }
+          memset(updateQuery, 0, xy+20);
+          sprintf(updateQuery, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
         }
-        write (s, buf, strlen(buf));
-        printf("sending: %s\n", buf);
-        bzero(buf, sizeof(buf));
+        write (s, updateQuery, strlen(updateQuery));
+        printf("sending: %s\n", updateQuery);
+        memset(message, 0, sizeof(buf));
         read(s, buf, sizeof(buf));
-        printf("Reponse: %s", buf);
+        printf("Reponse: %s\n", buf);
         break;
         }
 
