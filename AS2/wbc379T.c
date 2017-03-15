@@ -251,7 +251,7 @@ int main(int argc, char *argv[]) {
           //printf("What entry would you like to see: \n");
           //scanf("%s", entrynumber);
 
-	 char *p, t[100];
+	     char *p, t[100];
     	 memset(t, 0, strlen(t));
 
     	 while (fgets(t, sizeof(t), stdin)) {
@@ -265,7 +265,7 @@ int main(int argc, char *argv[]) {
 
           sprintf(buf, "?%d\n", entrynumber);
           write (s, buf, strlen(buf));
-	  memset(buf, 0, sizeof(buf));
+	        memset(buf, 0, sizeof(buf));
 
           int len = read(s, buf, sizeof(buf));
 	  //printf("our buffer is= %s,", buf);

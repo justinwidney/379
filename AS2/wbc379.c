@@ -21,6 +21,7 @@
 jmp_buf readonly_memory;
 int s;
 int nextoutlen;
+char* decpoint;
 
 void sigint_handler(int signo) {
    if (signo == SIGINT) {
@@ -90,6 +91,7 @@ unsigned char * encrypted_message_full;
 
 unsigned char outbuf[1024];
 unsigned char debuf[1024];
+unsigned char buf2[1024];
 
 int outlen, tmplen, delen, i, key_bytes;
 
@@ -98,9 +100,9 @@ int firstime = 0;
 
 int main(int argc, char *argv[]) {
 
-  base64_encoded = malloc(sizeof (unsigned char));
-  base64_decoded_key = malloc(sizeof *base64_decoded_key);
-  encrypted_message_full=  malloc(sizeof *encrypted_message_full);
+  //base64_encoded = malloc(sizeof (unsigned char));
+  //base64_decoded_key = malloc(sizeof *base64_decoded_key);
+  //encrypted_message_full=  malloc(sizeof *encrypted_message_full);
 
 
   struct sigaction seg_act;
@@ -215,7 +217,6 @@ int main(int argc, char *argv[]) {
       i++;
     }
 
-    char c[1000];
 
     memset(buf, 0, sizeof(buf));
 
@@ -249,56 +250,32 @@ int main(int argc, char *argv[]) {
           sprintf(buf, "?%d\n", entrynumber);
           printf("sending: %s\n", buf);
           write (s, buf, strlen(buf));
-          memset(buf, 0, sizeof(buf));
+          memset(&buf, 0, strlen(buf));
 
-          char lengthStr[20]; char c[1]; int j = 0;
-          memset(lengthStr, '\0', sizeof(lengthStr));
+          int len = read(s, buf, sizeof(buf));
+          	  //printf("our buffer is= %s,", buf);
 
-          while(1) {
-            read(s, c, 1);
-            if(c[0] == '\n' && strlen(lengthStr) > 3) {lengthStr[j] = c[0]; break;}
-            lengthStr[j] = c[0]; j++;
-          }
-          printf("lengthStr: %s\n", lengthStr);
-          // get entry number and mode
-          j = 1; char entryStr[20]; int entryNumber = 0; char mode = '\0';
-          memset(entryStr, '\0', sizeof(entryStr));
-          while(1) {
-            if(lengthStr[j] == 'p' || lengthStr[j] == 'c') {
-              entryNumber = strtol(entryStr, NULL, 10);
-              mode = lengthStr[j];
-              break;
-            }
-            entryStr[j-1] = lengthStr[j];
-            j++;
-          }
+          	  /* error handling */
 
-          // if we're updating get size of entry
-          int n = 0; char entryLength[20]; int length = 0; j++;
-          memset(entryLength, '\0', sizeof(entryLength));
-          while(1) {
-            if(lengthStr[j] == '\n') {
-              length = strtol(entryLength, NULL, 10);
-              break;
-            }
-            entryLength[n] = lengthStr[j];
-            j++; n++;
-          }
-          //int len = read(s, buf, sizeof(buf));
+          	  sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
 
-          char * message = malloc(sizeof(char)*length+10);
-          memset(message, '\0', sizeof(message));
-          if(message == NULL) {
-            // failed to get enough memory for servers entry
-            printf("Server sent too much to allocate to memory!\n");
-            continue;
-          }
-          else {
-            int message_size = read(s, message, length+1);
-            printf("entry: %s length: %d, lengthStr: %s\n", message, length, lengthStr);
-          }
+          	  if (ftest != '!' || entrytest < 0 || newlinetest != '\n' || sizetest < 0) {
+          	  printf("Improper server message, exiting");
+          	  }
+
+
+          	  if(ctest != 'c')
+          	     if(ctest != 'e')
+          		if(ctest != 'p'){
+          			 printf("Improper server message2, exiting");
+          		}
+
+
+
+
+                    // decryption
         // decryption
-        if(mode == 'c'){
+        if(buf[2] == 'c'){
           printf("message is decrpyted\n");
           if(argc != 4){
             printf("no keyfile to decode message\n");
@@ -306,13 +283,14 @@ int main(int argc, char *argv[]) {
           }
 
           int i = 0; //
+          char* a, b;
 
-          sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
-	         printf("size = %d\n", sizetest);
- 	         char buf2[1000];
+          sscanf(buf, "%c%d%c%d%c", a, &entrytest, b, &sizetest, &newlinetest);
+	        printf("size = %d\n", sizetest);
+ 	        //char buf2[1000];
           int premessage2;
-  	       int premessage = strlen(&ftest) +strlen(&ctest);
-	       int nDigits1 = floor(log10(abs(entrytest))) + 1;
+  	      int premessage = 2;
+	        int nDigits1 = floor(log10(abs(entrytest))) + 1;
           int nDigits2 = floor(log10(abs(sizetest))) + 1;
 
           if(sizetest != 0){
@@ -328,23 +306,63 @@ int main(int argc, char *argv[]) {
          }
 
 
+         //char *buf2 = malloc(sizetest * sizeof *buf2 + 10);
+
+
          premessage2 = premessage + nDigits1 + nDigits2 + sizetest;
                 printf("%d %d %d", nDigits1, nDigits2, premessage);
          i=0;
-         while(i < premessage2){
-         buf2[i] = buf[i + premessage + nDigits1 + nDigits2-5];
-         //buf2[i] = buf[i];
-         i++;
-         }
+         i = premessage + nDigits1 +nDigits2;
 
-                  printf("about to decrpy: %s\n", buf2);
-           char* decpoint;
-           decpoint = buf2;
-                  decrypt(decpoint, keyfile_name);
+           printf("about to decrpy: %s\n,", buf);
+           //char* decpoint = malloc(sizeof(char*));
+           decpoint= buf;
+           decpoint += i;
+
+            decpoint[nDigits2+nDigits1+sizetest-1] = '\0';
+            printf("pointer to %s?\n", decpoint);
+
+          decrypt(decpoint, keyfile_name);
           break;
         }
-        printf("Here is the entry: %s\n", message);
-        break;
+
+        // MAY NEED CHANING PAST THIS line
+        // this handles the message and prints it
+        // problem may be if message is bigger than buf[]
+        int i = 0; //
+
+        sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
+       int premessage = 0;
+       printf("ftest = %c, ctest = %c", ftest, ctest);
+       premessage = sizeof(ftest) + sizeof(ctest)+3;
+       int nDigits1 = floor(log10(abs(entrytest))) + 1;
+       int nDigits2;
+
+  if(sizetest != 0){
+  nDigits2 = floor(log10(abs(sizetest))) + 1;
+  }
+  else{
+  nDigits2 = 0;
+  }
+
+  //char *messagepointer;
+  //messagepointer = buf;
+  //messagepointer = messagepointer + premessage;
+
+  //printf("%d, %d, %d", premessage, nDigits1, nDigits2);
+  if(sizetest >0){
+  sizetest--;
+  }
+  printf("premessage = %d %d %d %d %d %d", premessage, nDigits1, nDigits2, sizetest, ftest, ctest);
+  premessage = premessage + nDigits1 + nDigits2 + sizetest;
+  printf("premessage = %d %d %d %d", premessage, nDigits1, nDigits2, sizetest);
+  printf("Here is the entry: [");
+  while(i < premessage){
+  printf("%c", buf[i]);
+  i++;
+
+  }
+  printf("]\n");
       }
         if(n == 2){
           unsigned char tempstring[1000];
@@ -442,6 +460,7 @@ int main(int argc, char *argv[]) {
         memset(message, 0, sizeof(buf));
         read(s, buf, sizeof(buf));
         printf("Reponse: %s\n", buf);
+        free(updateQuery);
         break;
         }
 
@@ -486,7 +505,7 @@ unsigned char* encrypt(unsigned char* message, char* filename) {
 
 
   int i =0;
-
+ base64_decoded_key = malloc(128);
   while((c=fgetc(fp))!=EOF){
 
        // try the key
@@ -495,7 +514,8 @@ unsigned char* encrypt(unsigned char* message, char* filename) {
 
 
          key_bytes = strlen(testkey);
-         //printf("%s\n",line);
+         //printf("%s\n",line);//
+
          base64_decoded_key = base64decode(testkey, key_bytes);
          printf("our key = %s\n", base64_decoded_key);
          break;
@@ -516,7 +536,7 @@ unsigned char* encrypt(unsigned char* message, char* filename) {
 	EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
 
         //memcpy(encrypted_message_full, message, strlen(message)); // co
-
+  encrypted_message_full=  malloc(strlen(message)+strlen(encryption_addon));
 
 	memset(encrypted_message_full, 0, strlen(encrypted_message_full));
 
@@ -555,11 +575,13 @@ unsigned char* encrypt(unsigned char* message, char* filename) {
         printf("our encrypted message = %s\n", outbuf);
 
   	int bytes_to_encode = outlen; //Number of bytes in string to base64 encode.
-
+      base64_encoded = malloc(bytes_to_encode*16);
     	base64_encoded = base64encode(outbuf, bytes_to_encode);   //Base-64 encoding.
 
     fclose(fp);
     return base64_encoded;
+    free(base64_encoded);
+    free(base64_decoded_key);
 }
 
 
@@ -645,7 +667,7 @@ int decrypt(char *encrpyted_message, char* filename ) {
               check[i] = debuf[i];
             }
 
-	    printf("attempted decrpytion produces = ");
+	    //printf("attempted decrpytion produces = ");
 
             /*if (check != "CMPUT379 Whiteboard Encrypted v0\n") {
              printf("no key was able to decrypt the message\n");

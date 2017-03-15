@@ -205,6 +205,7 @@ char *getNEntry(int entry) {
       //sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
 
     }
+      message = malloc(sizeof(entries[i]));
       sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
       //printf("entry = %s\n",entries[i].entry);
       //printf("message = %s\n", message);
@@ -243,6 +244,7 @@ char *updateEntry(int entry, char mode, int length, char *message) {
       entries[i].length = length;
       //entries[i].entry = message;
       //printf("after update: %s\n", entries[i].entry);
+      entries[i].entry = malloc(strlen(message));
       memcpy(entries[i].entry, message, strlen(message));
 
       char * error = malloc(50); sprintf(error, "!%de0\n\n", entry);
