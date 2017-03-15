@@ -121,6 +121,7 @@ void fillWhiteboardBlank(int numEntries) {
   int i;
   for(i = 1; i <= numEntries; i++) {
     entries[i-1].entryNumber = i;
+    entries[i-1].entry = malloc(1);
     if(entries[i-1]. entry == NULL) {
       printf("Error in entry memory allocation. Exiting...\n");
       exit(0);
