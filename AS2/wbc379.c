@@ -215,7 +215,6 @@ int main(int argc, char *argv[]) {
       i++;
     }
 
-
     char c[1000];
 
     memset(buf, 0, sizeof(buf));
@@ -224,7 +223,6 @@ int main(int argc, char *argv[]) {
       while(1){
         printf("Options: \n 1: use whiteboard \n 2: exit \n Enter 1 or 2: ");
         scanf("%d", &n);
-
         if (n == 2) {
           close(s);
           printf("exiting\n");
@@ -236,7 +234,8 @@ int main(int argc, char *argv[]) {
         printf("enter a valid option\n: ");
       }
       printf("Are you\n 1: viewing an entry \n 2: updating an entry\n");
-
+      
+      
       while(1){
         scanf("%d", &n);
         if(n == 1){
@@ -245,71 +244,71 @@ int main(int argc, char *argv[]) {
             entrynumber = strtol(t, &p, 10);
             if (p == t || *p != '\n') {
               printf("Please enter an integer entry: ");
-            } else {break};
+            } else {break;}
           }
-        sprintf(buf, "?%d\n", entrynumber);
-        write (s, buf, strlen(buf));
-        memset(buf, 0, sizeof(buf));
-	
-        int len = read(s, buf, sizeof(buf));
-        /* error handling */
-		
-        sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
-
-        if (ftest != '!' || entrytest < 0 || newlinetest != '\n' || sizetest < 0) {
-          printf("Improper server message, exiting");
-        }  
-        if(ctest != 'c' || ctest != 'e'|| ctest != 'p'){
-          printf("Improper server message2, exiting");
-        }	
+          sprintf(buf, "?%d\n", entrynumber);
+          printf("sending: %s\n", buf);
+          write (s, buf, strlen(buf));
+          memset(buf, 0, sizeof(buf));
+          
+          char lengthStr[20]; char c[1]; int j = 0;
+          memset(lengthStr, '\0', sizeof(lengthStr));
+          
+          while(1) {
+            read(s, c, 1);
+            if(c[0] == '\n' && strlen(lengthStr) > 3) {lengthStr[j] = c[0]; break;}
+            lengthStr[j] = c[0]; j++;
+          }
+          printf("lengthStr: %s\n", lengthStr);
+          // get entry number and mode
+          j = 1; char entryStr[20]; int entryNumber = 0; char mode = '\0';
+          memset(entryStr, '\0', sizeof(entryStr));
+          while(1) {
+            if(lengthStr[j] == 'p' || lengthStr[j] == 'c') {
+              entryNumber = strtol(entryStr, NULL, 10);
+              mode = lengthStr[j];
+              break;
+            }
+            entryStr[j-1] = lengthStr[j];
+            j++;
+          }
+          
+          // if we're updating get size of entry
+          int n = 0; char entryLength[20]; int length = 0; j++;
+          memset(entryLength, '\0', sizeof(entryLength));
+          while(1) {
+            if(lengthStr[j] == '\n') {
+              length = strtol(entryLength, NULL, 10);
+              break;
+            }
+            entryLength[n] = lengthStr[j]; 
+            j++; n++;
+          }
+          //int len = read(s, buf, sizeof(buf));
+          
+          char * message = malloc(sizeof(char)*length+10);
+          memset(message, '\0', sizeof(message));
+          if(message == NULL) {
+            // failed to get enough memory for servers entry
+            printf("Server sent too much to allocate to memory!\n");
+            continue;
+          }
+          else {
+            int message_size = read(s, message, length+1);
+            printf("entry: %s length: %d, lengthStr: %s\n", message, length, lengthStr);
+          }
         // decryption
-        if(buf[2] == 'c'){
+        if(mode == 'c'){
           printf("message is decrpyted\n");
-          //bzero(&buf, strlen(buf));
-          /*if(ctest != 'c' || ftest != '!' || newlinetest != '\n'){
-          printf("bad protocol\n");
-          return 0;
-          } */
           if(argc != 4){
             printf("no keyfile to decode message\n");
             break;
           }
-          sscanf(buf, "%c%d%c%d%c%s%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest, c, &newlinetest2);
-          //printf("our message is: %s", c);
-          printf("about to decrpy: %s\n", c);
-          decrypt(c, keyfile_name);
+          printf("about to decrpy: %s\n", message);
+          decrypt(message, keyfile_name);
           break;
         }
-        int i = 0; //
-        sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
-	
-        int premessage = strlen(&ftest) +strlen(&ctest);
-        int nDigits1 = floor(log10(abs(entrytest))) + 1;
-        int nDigits2;
-
-        if(sizetest != 0){
-          nDigits2 = floor(log10(abs(sizetest))) + 1;
-        }
-        else{
-          nDigits2 = 0;
-        }
-
-        //char *messagepointer;
-        //messagepointer = buf;
-        //messagepointer = messagepointer + premessage;
-        
-        //printf("%d, %d, %d", premessage, nDigits1, nDigits2);
-        if(sizetest >0){
-          sizetest--;	
-        }
-        premessage = premessage + nDigits1 + nDigits2 + sizetest;
-	  
-        printf("Here is the entry: [");
-        while(i < premessage){
-          printf("%c", buf[i]);
-          i++;
-        }
-        printf("]\n");
+        printf("Here is the entry: %s\n", message);
         break;
       }
         if(n == 2){
@@ -328,7 +327,7 @@ int main(int argc, char *argv[]) {
             ENTRY_NUMBER = strtol(t, &p, 10);
             if (p == t || *p != '\n') {
               printf("Please enter an integer entry: ");
-            } else {break};
+            } else {break;}
           }
           //printf("Enter a string to be sent\nEnter NULL for a blank entry:\n");
           char *text = calloc(1,1), buffer[BUFFERSIZE];
@@ -342,7 +341,7 @@ int main(int argc, char *argv[]) {
             //}/* error handling */
             strcat( text, buffer ); /* note a '\n' is appended here everytime */
             //printf("%s", buffer);
-        }
+          }
         char* pointer;
         pointer = text;
         //pointer++;
@@ -368,6 +367,7 @@ int main(int argc, char *argv[]) {
           n = 0;
           flagNULL = 0;
         }
+        char *updateQuery;
         if(n == 1){
           pointer = tempstring;
           printf("encrypting message %s\n", tempstring);
@@ -382,12 +382,18 @@ int main(int argc, char *argv[]) {
         }
         else {
           int xy = strlen(tempstring);
-          sprintf(buf, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
+          updateQuery = malloc(xy+20);
+          if(updateQuery == NULL) {
+            printf("Could not alocate enough memory for an entry of that size!\n");
+          }
+          memset(updateQuery, 0, xy+20);
+          sprintf(updateQuery, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
         }
-        write (s, buf, strlen(buf));
-        bzero(buf, sizeof(buf));
+        write (s, updateQuery, strlen(updateQuery));
+        printf("sending: %s\n", updateQuery);
+        memset(message, 0, sizeof(buf));
         read(s, buf, sizeof(buf));
-        printf("Reponse: %s", buf);
+        printf("Reponse: %s\n", buf);
         break;
         }
 
