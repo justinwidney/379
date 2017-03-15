@@ -46,6 +46,13 @@ void sigint_handler(int signo) {
        siglongjmp(readonly_memory,1);
        //int pthread_kill(pthread_t thread, int sig);
    }
+
+   if( signo == SIGTERM){
+     flag = 1;
+     //fclose(fp2);
+     quit_request =1;
+     siglongjmp(readonly_memory,1);
+   }
    return;
 }
 
@@ -163,7 +170,7 @@ int dumpWhiteboardFiles(){
 
 char *getNEntry(int entry) {
 
-  
+
   int i = 0;
  if (entry > WHITEBOARD_SIZE) {
       // can't find entry
@@ -183,15 +190,15 @@ char *getNEntry(int entry) {
 
   while(1) {
 
-   
-      
+
+
     if(entries[i].entryNumber == entry || entries[i].entryNumber == (char)entry) {
       char * message = malloc(sizeof(int)*2+strlen(entries[i].entry)+4);
       if(message == NULL) {
         printf("Failed to allocate memory when responding to query!. Reponse not possible\n");
         // return error
         char * error = malloc(50); sprintf(error, "!%de36\nThere are memory problems on server!\n",  entry);
-        
+
         return error;
       }
       if(entries[i].length == 0){
@@ -206,12 +213,12 @@ char *getNEntry(int entry) {
       //printf("message = %s\n", message);
      	//pthread_mutex_unlock(&mutexr[entry]);
 
-      
+
       pthread_mutex_lock(&mutexr[entry]);
       b--;
       if (b==0) {pthread_mutex_unlock(&mutexg[entry]);}
       pthread_mutex_unlock(&mutexr[entry]);
-      
+
 
       return message;
     }
@@ -223,7 +230,7 @@ char *getNEntry(int entry) {
 char *updateEntry(int entry, char mode, int length, char *message) {
   int i = 0;
 
-   
+
 pthread_mutex_lock(&mutexg[entry]);
   while(1) {
     if (i > WHITEBOARD_SIZE) {
@@ -232,7 +239,7 @@ pthread_mutex_lock(&mutexg[entry]);
 
       return error;
     }
- 
+
     if(entries[i].entryNumber == entry) {
 	//pthread_mutex_lock(&mutexg[entry]);
 
@@ -246,7 +253,7 @@ pthread_mutex_lock(&mutexg[entry]);
 
       char * error = malloc(50); sprintf(error, "!%de0\n\n", entry);
 
-     
+
       pthread_mutex_unlock(&mutexg[entry]);
 
       return error;
@@ -267,7 +274,7 @@ void dumpToFile() {
 
 // all functionability in this function
 void *thread_connections( void* acc_socket) {
-	
+
   	int sock = *(int *)acc_socket;
 	int message_size;
   	char f_message[100];
@@ -278,14 +285,14 @@ void *thread_connections( void* acc_socket) {
 
 	unsigned char temp[1], temp2[1], temp3[1];
   	char cpointer;
-	
+
 	// first message
 	write(sock, f_message, strlen(f_message)+1);
-	
-	
+
+
 	// continous loop
 	while(1) {
-    
+
     message_size = read(sock, client_message, sizeof(client_message));
 
     if(client_message[0] == '?'){
@@ -310,7 +317,7 @@ void *thread_connections( void* acc_socket) {
         write(sock, fishedentry, sizeof(fishedentry));
       } */
 	write(sock, fishedentry, strlen(fishedentry));
-       
+
       //pthread_mutex_unlock(&mutexg);
     }
 
@@ -356,9 +363,9 @@ void *thread_connections( void* acc_socket) {
         len += write(sock, reply, strlen(reply));
       }
 
-  
-      
-      } 
+
+
+      }
 
       // client disconnected
       if(message_size == 0) {
@@ -402,16 +409,16 @@ int main(int argc, char *argv[])
       printf("Invalid whiteboard size! Exiting...\n");
       exit(0);
     }
-   
+
  	FILE *fp2= NULL;
 
    STATEFILE = fopen("whiteboard.all", "w");
-    
+
     /*
 
     pid_t pid = 0;
     pid_t sid = 0;
-   
+
 
     pid = fork();
 
@@ -458,9 +465,9 @@ int main(int argc, char *argv[])
     return 0;
 
     */
-    
 
-    
+
+
 
     entries = realloc(entries, WHITEBOARD_SIZE * sizeof(entry));
     char line[256];
@@ -494,7 +501,7 @@ int main(int argc, char *argv[])
   pid_t sid = 0;
   FILE *fp= NULL;
 
-  
+
 
   	int	sock, fromlength, number, outnum, a;
 
@@ -532,7 +539,7 @@ int main(int argc, char *argv[])
 	listen (sock, 5);
 
 	int c = sizeof(struct sockaddr_in);
-	
+
 	while (1) {
     snew = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c);
 
@@ -552,7 +559,7 @@ int main(int argc, char *argv[])
 
 		pthread_create(&thread_id, NULL, thread_connections, (void *) &snew);
 		printf("created thread");
-		
+
     		i++;
 		}
   free(entries);

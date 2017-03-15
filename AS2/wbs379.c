@@ -165,18 +165,28 @@ int dumpWhiteboardFiles(){
 }
 
 char *getNEntry(int entry) {
+
+
   int i = 0;
-  while(1) {
-    if (entry > WHITEBOARD_SIZE) {
+ if (entry > WHITEBOARD_SIZE) {
       // can't find entry
       char error[50];
+      printf("entry asked for %d", entry);
       char *pe;
       pe = error;
       sprintf(error, "!%de14\nNo such entry!\n", entry);
-      pthread_mutex_unlock(&mutexg[entry]);
+      //pthread_mutex_unlock(&mutexg[entry]);
       return pe;
     }
-    pthread_mutex_lock(&mutexg[entry]);
+
+      pthread_mutex_lock(&mutexr[entry]);
+      b++;
+      if (b==1) {pthread_mutex_lock(&mutexg[entry]);}
+      pthread_mutex_unlock(&mutexr[entry]);
+
+  while(1) {
+
+
 
     if(entries[i].entryNumber == entry || entries[i].entryNumber == (char)entry) {
       char * message = malloc(sizeof(int)*2+strlen(entries[i].entry)+4);
@@ -184,18 +194,28 @@ char *getNEntry(int entry) {
         printf("Failed to allocate memory when responding to query!. Reponse not possible\n");
         // return error
         char * error = malloc(50); sprintf(error, "!%de36\nThere are memory problems on server!\n",  entry);
-        pthread_mutex_unlock(&mutexg[entry]);
+
         return error;
       }
       if(entries[i].length == 0){
 
-        printf("Entry about to send, %s", entries[i].entry);
+      printf("Entry about to send, %s", entries[i].entry);
 
-        //sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
+      //sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
 
-      }
+    }
       sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
-      pthread_mutex_unlock(&mutexg[entry]);
+      //printf("entry = %s\n",entries[i].entry);
+      //printf("message = %s\n", message);
+     	//pthread_mutex_unlock(&mutexr[entry]);
+
+
+      pthread_mutex_lock(&mutexr[entry]);
+      b--;
+      if (b==0) {pthread_mutex_unlock(&mutexg[entry]);}
+      pthread_mutex_unlock(&mutexr[entry]);
+
+
       return message;
     }
     i++;
@@ -203,20 +223,18 @@ char *getNEntry(int entry) {
 }
 
 
+
 char *updateEntry(int entry, char mode, int length, char *message) {
   int i = 0;
+  pthread_mutex_lock(&mutexg[entry]);
   while(1) {
     if (i > WHITEBOARD_SIZE) {
       // can't find entry
       char * error = malloc(50); sprintf(error, "!%de17\nFailed to update!\n", entry);
       return error;
     }
- 
+
     if(entries[i].entryNumber == entry) {
-      pthread_mutex_lock(&mutexr[entry]);
-      b++;
-      if (b==1) {pthread_mutex_lock(&mutexg[entry]);}
-      pthread_mutex_unlock(&mutexr[entry]);
 
 
       memset(entries[i].entry, 0, strlen(entries[i].entry));
@@ -228,10 +246,7 @@ char *updateEntry(int entry, char mode, int length, char *message) {
 
       char * error = malloc(50); sprintf(error, "!%de0\n\n", entry);
 
-      pthread_mutex_lock(&mutexr[entry]);
-      b--;
-      if (b==0) {pthread_mutex_unlock(&mutexg[entry]);}
-      pthread_mutex_unlock(&mutexr[entry]);
+      pthread_mutex_unlock(&mutexg[entry]);
       return error;
     }
     i++;
@@ -300,12 +315,12 @@ void *thread_connections( void* acc_socket) {
           length = strtol(entryLength, NULL, 10);
           break;
         }
-        entryLength[n] = lengthStr[i]; 
+        entryLength[n] = lengthStr[i];
         i++; n++;
       }
     }
-    
-    
+
+
     if(lengthStr[0] == '?'){
       message_size = 1;
       //pthread_mutex_lock(&mutexg);
@@ -347,7 +362,7 @@ void *thread_connections( void* acc_socket) {
       b--;
       if (b==0) {pthread_mutex_unlock(&mutexg);}
       pthread_mutex_unlock(&mutexr); */
-    } 
+    }
 
     // client disconnected
     if(message_size == 0) {
@@ -371,6 +386,9 @@ int i;
 
 int main(int argc, char *argv[])
 {
+
+  FILE *fp2= NULL;
+
   if (argc < 4) {
     printf("Too few arguments! Exiting...\n");
     exit(0);
@@ -390,7 +408,7 @@ int main(int argc, char *argv[])
       exit(0);
     }
 
-
+  STATEFILE = fopen("whiteboard.all", "w");
     /*
 
     pid_t pid = 0;
@@ -449,7 +467,7 @@ int main(int argc, char *argv[])
 
 
 
-    STATEFILE = fopen("whiteboard.all", "w");
+
 
     entries = realloc(entries, WHITEBOARD_SIZE * sizeof(entry));
     char line[256];
@@ -482,7 +500,7 @@ int main(int argc, char *argv[])
   pid_t sid = 0;
   FILE *fp= NULL;
 
-  
+
 
   int	sock, fromlength, number, outnum, a;
 

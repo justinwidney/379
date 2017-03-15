@@ -20,7 +20,7 @@
 
 jmp_buf readonly_memory;
 int s;
-
+int nextoutlen;
 
 void sigint_handler(int signo) {
    if (signo == SIGINT) {
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
   sigemptyset(&seg_act.sa_mask);
   sigaddset(&seg_act.sa_mask, SA_NODEFER);
   sigaction(SIGINT, &seg_act, NULL);
- 
+
   EVP_CIPHER_CTX_init(&ctx);
 
   EVP_CIPHER_CTX_set_padding(&ctx, 0);
@@ -234,8 +234,8 @@ int main(int argc, char *argv[]) {
         printf("enter a valid option\n: ");
       }
       printf("Are you\n 1: viewing an entry \n 2: updating an entry\n");
-      
-      
+
+
       while(1){
         scanf("%d", &n);
         if(n == 1){
@@ -250,10 +250,10 @@ int main(int argc, char *argv[]) {
           printf("sending: %s\n", buf);
           write (s, buf, strlen(buf));
           memset(buf, 0, sizeof(buf));
-          
+
           char lengthStr[20]; char c[1]; int j = 0;
           memset(lengthStr, '\0', sizeof(lengthStr));
-          
+
           while(1) {
             read(s, c, 1);
             if(c[0] == '\n' && strlen(lengthStr) > 3) {lengthStr[j] = c[0]; break;}
@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
             entryStr[j-1] = lengthStr[j];
             j++;
           }
-          
+
           // if we're updating get size of entry
           int n = 0; char entryLength[20]; int length = 0; j++;
           memset(entryLength, '\0', sizeof(entryLength));
@@ -281,11 +281,11 @@ int main(int argc, char *argv[]) {
               length = strtol(entryLength, NULL, 10);
               break;
             }
-            entryLength[n] = lengthStr[j]; 
+            entryLength[n] = lengthStr[j];
             j++; n++;
           }
           //int len = read(s, buf, sizeof(buf));
-          
+
           char * message = malloc(sizeof(char)*length+10);
           memset(message, '\0', sizeof(message));
           if(message == NULL) {
@@ -304,8 +304,43 @@ int main(int argc, char *argv[]) {
             printf("no keyfile to decode message\n");
             break;
           }
-          printf("about to decrpy: %s\n", message);
-          decrypt(message, keyfile_name);
+
+          int i = 0; //
+
+          sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
+	         printf("size = %d\n", sizetest);
+ 	         char buf2[1000];
+          int premessage2;
+  	       int premessage = strlen(&ftest) +strlen(&ctest);
+	       int nDigits1 = floor(log10(abs(entrytest))) + 1;
+          int nDigits2 = floor(log10(abs(sizetest))) + 1;
+
+          if(sizetest != 0){
+         nDigits2 = floor(log10(abs(sizetest))) + 1;
+         }
+
+         else{
+         nDigits2 = 0;
+         }
+
+         if(sizetest >0){
+         sizetest--;
+         }
+
+
+         premessage2 = premessage + nDigits1 + nDigits2 + sizetest;
+                printf("%d %d %d", nDigits1, nDigits2, premessage);
+         i=0;
+         while(i < premessage2){
+         buf2[i] = buf[i + premessage + nDigits1 + nDigits2-5];
+         //buf2[i] = buf[i];
+         i++;
+         }
+
+                  printf("about to decrpy: %s\n", buf2);
+           char* decpoint;
+           decpoint = buf2;
+                  decrypt(decpoint, keyfile_name);
           break;
         }
         printf("Here is the entry: %s\n", message);
@@ -321,7 +356,7 @@ int main(int argc, char *argv[]) {
           ///scanf("%d", &ENTRY_NUMBER);
           //}
           char *p, t[100];
-    	
+
 
           while (fgets(t, sizeof(t), stdin)) {
             ENTRY_NUMBER = strtol(t, &p, 10);
@@ -332,12 +367,12 @@ int main(int argc, char *argv[]) {
           //printf("Enter a string to be sent\nEnter NULL for a blank entry:\n");
           char *text = calloc(1,1), buffer[BUFFERSIZE];
           //getchar();
-    
+
           printf("Enter a message: Ctrl D to exit, Last Enter is ignored:\n");
           while( fgets(buffer, BUFFERSIZE , stdin) ) /* break with ^D or ^Z */ {
             text = realloc( text, strlen(text)+1+strlen(buffer) );
             //if(strcmp(buffer, "quit\n") ==0) {
-            //break;			 	 
+            //break;
             //}/* error handling */
             strcat( text, buffer ); /* note a '\n' is appended here everytime */
             //printf("%s", buffer);
@@ -346,14 +381,14 @@ int main(int argc, char *argv[]) {
         pointer = text;
         //pointer++;
         //char deststring[100];
-        //printf("%s", pointer);	
+        //printf("%s", pointer);
 
         memcpy(tempstring, pointer, strlen(text)-1);
 
         //printf("\ntext:%s",tempstring);
         //printf("test2");
         //scanf("%s",tempstring);
-	  
+
         int flagNULL = 0;
         if(tempstring[0] == 'N' && tempstring[1] == 'U' && tempstring[2] == 'L' && tempstring[3] == 'L'){
           flagNULL = 1;
@@ -435,7 +470,7 @@ unsigned char* encrypt(unsigned char* message, char* filename) {
   char testkey[128];
   char c;
 
-  
+
 
   int i =0;
 
@@ -460,6 +495,9 @@ unsigned char* encrypt(unsigned char* message, char* filename) {
 
 
 
+     // DELETE AFTER
+        unsigned char key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+    //
 
 	//EVP_CIPHER_CTX_init(&ctx);
 	EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
@@ -520,7 +558,7 @@ int decrypt(char *encrpyted_message, char* filename ) {
     memset(testkey, 0, sizeof(testkey));
 
     fp = fopen (filename,"r");
-    
+
     int remainingBytes;
     char c;
 
@@ -534,12 +572,12 @@ int decrypt(char *encrpyted_message, char* filename ) {
 
     //outlen = strlen(base64_decoded);
 
-	
+
 
 
     //bzero(debuf,1024);
     //memset(testkey, 0, sizeof(testkey));
-	
+
 
 
  while((c=fgetc(fp))!=EOF){
@@ -557,10 +595,14 @@ int decrypt(char *encrpyted_message, char* filename ) {
 
           memset(debuf, 0, strlen(debuf));
 
+          // DELETE AFTER
+                  unsigned char key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+        	//
+
           EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
 
-	  
-        
+
+
           bzero (&debuf, sizeof(base64_decoded));
 
           if(!EVP_DecryptUpdate(&ctx, debuf, &delen, base64_decoded, outlen))
@@ -576,13 +618,13 @@ int decrypt(char *encrpyted_message, char* filename ) {
              memset(testkey, 0, sizeof(testkey));
              printf("decrypt failed\n");
 	     ERR_print_errors_fp(stderr);
-             
+
              //continue;
            }
 
             delen+=remainingBytes;
             EVP_CIPHER_CTX_cleanup(&ctx);
-            
+
 
             char check[34];
 
@@ -602,10 +644,10 @@ int decrypt(char *encrpyted_message, char* filename ) {
             }
 
 	    memset(testkey, 0, strlen(testkey));
-            i=0;	
+            i=0;
            continue;
        }
-       else 
+       else
 	{
 	 testkey[i] = c;
          testkey[i+1] = '\0';
@@ -615,7 +657,7 @@ int decrypt(char *encrpyted_message, char* filename ) {
        // found no key that works
 
      }
-     
+
 	      fclose(fp);
        printf("no key was able to decrypt the message\n");
 
@@ -626,12 +668,12 @@ int decrypt(char *encrpyted_message, char* filename ) {
     memset(testkey, 0, sizeof(testkey));
 
     while((c=fgetc(fp))!=EOF){
-	 
-	  
+
+
 
          // try the key
          if(c == '\n'){
-	
+
            //Todo Needs to conver base64decode into a char array
 
           key_bytes = strlen(testkey);
@@ -647,8 +689,8 @@ int decrypt(char *encrpyted_message, char* filename ) {
 
           EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
 
-	  
-        
+
+
           bzero (&debuf, sizeof(base64_decoded));
 
           if(!EVP_DecryptUpdate(&ctx, debuf, &delen, base64_decoded, outlen))
@@ -664,13 +706,13 @@ int decrypt(char *encrpyted_message, char* filename ) {
              memset(testkey, 0, sizeof(testkey));
              printf("decrypt failed\n");
 	     ERR_print_errors_fp(stderr);
-             
+
              //continue;
            }
 
             delen+=remainingBytes;
             EVP_CIPHER_CTX_cleanup(&ctx);
-            
+
 
             char check[34];
 
