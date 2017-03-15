@@ -406,14 +406,27 @@ int main(int argc, char *argv[]) {
         if(n == 1){
           pointer = tempstring;
           printf("encrypting message %s\n", tempstring);
-          unsigned char* encoded_message = encrypt(pointer, keyfile_name);
+          unsigned char* encoded_message= encrypt(pointer, keyfile_name);
           printf("final encrypted message is= %s\n", encoded_message );
 
           //move our message into temp string
           //memset(tempstring,0,sizeof(tempstring));
           //memcpy(tempstring, encoded_message, sizeof(encoded_message));
           int xy = strlen(encoded_message);
-          sprintf(buf, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
+
+          updateQuery = malloc(xy+20);
+          if(updateQuery == NULL) {
+            printf("Could not alocate enough memory for an entry of that size!\n");
+          }
+
+          memset(updateQuery, 0, xy+20);
+          sprintf(updateQuery, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
+          write (s, updateQuery, strlen(updateQuery));
+          printf("sending: %s\n", updateQuery);
+          memset(message, 0, sizeof(buf));
+          read(s, buf, sizeof(buf));
+          printf("Reponse: %s\n", buf);
+          break;
         }
         else {
           int xy = strlen(tempstring);
