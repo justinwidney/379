@@ -18,6 +18,8 @@
 
 int dumpWhiteboardFiles();
 void sigint_handler(int signo);
+struct sigaction seg_act;
+sigset_t newSigSet;
 
 // mutex lock
 pthread_mutex_t *mutexg, *mutexr;
@@ -62,10 +64,10 @@ void sigint_handler(int signo) {
          fclose(fp2);
        }
        quit_request =1;
-       printf("Closing\n");
+       //printf("Closing\n");
       dumpToFile();
-      exit(1);
-       siglongjmp(readonly_memory,1);
+      //exit(1);
+      siglongjmp(readonly_memory,1);
        //pthread_kill(pthread_t thread, int sig);
 }
 
@@ -361,14 +363,10 @@ void *thread_connections( void* acc_socket) {
 int i;
 
 int main(int argc, char *argv[]) {
+  signal(SIGTERM,&sigint_handler);
   
   
   
-  if(quit_request == 1) {
-      printf("Closing\n");
-      dumpToFile();
-      exit(1);
-  }
   FILE *fp2= NULL;
 
   if (argc < 4) {
@@ -396,9 +394,7 @@ int main(int argc, char *argv[]) {
   
   
 
-  else if (entries == NULL) {
-    printf("Error in whiteboard memory allocation, exiting...\n");
-  }
+  
 
   else if (strcmp("-f", argv[2]) == 0) {
     fileName = argv[3];
@@ -414,6 +410,11 @@ int main(int argc, char *argv[]) {
     }
     fillWhiteboardFromFile(STATEFILE);
   }
+  else if (entries == NULL) {
+    printf("Error in whiteboard memory allocation, exiting...\n");
+    exit(0);
+  }
+  
   else {
     printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
     exit(0);
@@ -434,13 +435,18 @@ int main(int argc, char *argv[]) {
     printf("pid of child process %d \n", pid);
     exit(0);
   }
-  struct sigaction seg_act;
-  sigset_t newSigSet;
+  
   seg_act.sa_handler = sigint_handler;
   sigemptyset(&seg_act.sa_mask);
   sigaction(SIGINT, &seg_act, NULL);
   sigaction(SIGTERM, &seg_act, NULL);
   sigsetjmp(readonly_memory,1);
+  if(quit_request == 1) {
+      printf("Closing\n");
+      dumpToFile();
+      exit(1);
+  }
+  
   umask(0);
   
 	// open a log file
@@ -502,7 +508,7 @@ int main(int argc, char *argv[]) {
     sigsetjmp(readonly_memory,1);
 
     if(flag == 1 || quit_request == 1) {
-      printf("Closing\n");
+      //printf("Closing\n");
       close(sock);
       dumpToFile();
       exit(1);

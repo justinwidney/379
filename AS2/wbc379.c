@@ -171,10 +171,10 @@ int main(int argc, char *argv[]) {
 			exit (1);
 		}
 
-    char buf[1024];
+    char buf[2000];
     char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
     bzero(&buf, strlen(buf));
-    int len = read(s, buf, 1024);
+    int len = read(s, buf, 2000);
     if(firstime == 0) {
       printf("%s\n", buf);
       firstime = 1;
@@ -242,13 +242,6 @@ int main(int argc, char *argv[]) {
         /* error handling */
 
         sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
-
-        if (ftest != '!' || entrytest < 0 || newlinetest != '\n' || sizetest < 0) {
-          printf("Improper server message, exiting");
-        }
-        if(ctest != 'c' || ctest != 'e' || ctest != 'p'){
-          printf("Improper server message2, exiting");
-        }
         // decryption
         if(buf[2] == 'c'){
           printf("message is decrpyted\n");
@@ -283,15 +276,10 @@ int main(int argc, char *argv[]) {
           decrypt(decpoint, keyfile_name);
           break;
         }
-
-        // MAY NEED CHANING PAST THIS line
-        // this handles the message and prints it
-        // problem may be if message is bigger than buf[]
         int i = 0; //
 
         sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
         int premessage = 0;
-        printf("ftest = %c, ctest = %c", ftest, ctest);
         premessage = sizeof(ftest) + sizeof(ctest)+3;
         int nDigits1 = floor(log10(abs(entrytest))) + 1;
         int nDigits2;
@@ -307,12 +295,11 @@ int main(int argc, char *argv[]) {
           sizetest--;
         }
         premessage = premessage + nDigits1 + nDigits2 + sizetest;
-        printf("Here is the entry: [");
+        printf("Here is the entry: ");
         while(i < premessage){
           printf("%c", buf[i]);
           i++;
         }
-        printf("]\n");
       }
       if(n == 2){
         unsigned char tempstring[1000];
