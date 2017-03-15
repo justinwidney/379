@@ -17,7 +17,7 @@
 #define plaintext p
 
 int dumpWhiteboardFiles();
-
+void sigint_handler(int signo);
 
 // mutex lock
 pthread_mutex_t *mutexg, *mutexr;
@@ -37,20 +37,6 @@ int quit_request =0;
 jmp_buf readonly_memory;
 int flag = 0;
 
-void sigint_handler(int signo) {
-   if (signo == SIGINT) {
-       //close (snew);
-       flag = 1;
-       if (fp2 != NULL) {
-         fclose(fp2);
-       }
-       quit_request =1;
-       siglongjmp(readonly_memory,1);
-       //int pthread_kill(pthread_t thread, int sig);
-   }
-   return;
-}
-
 
 struct Entry {
   int entryNumber;
@@ -60,6 +46,28 @@ struct Entry {
 } entry;
 
 struct Entry *entries;
+
+void dumpToFile() {
+  FILE * fp = fopen("whiteboard.all", "w");
+  int i;
+  for(i = 0; i < WHITEBOARD_SIZE; i++) {
+    fprintf(fp, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
+  }
+}
+
+void sigint_handler(int signo) {
+       printf("caugjt\n");
+       flag = 1;
+       if (fp2 != NULL) {
+         fclose(fp2);
+       }
+       quit_request =1;
+       printf("Closing\n");
+      dumpToFile();
+      exit(1);
+       siglongjmp(readonly_memory,1);
+       //pthread_kill(pthread_t thread, int sig);
+}
 
 void fillWhiteboardFromFile(FILE *fp) {
   // fill whiteboard struct from file
@@ -110,7 +118,6 @@ void fillWhiteboardFromFile(FILE *fp) {
           exit(0);
         }
       }
-      //memcpy(entries[entryNum].entry, message, strlen(message));
       entries[entryNum].entry = message;
       entryNum++;
     }
@@ -122,10 +129,12 @@ void fillWhiteboardBlank(int numEntries) {
   for(i = 1; i <= numEntries; i++) {
     entries[i-1].entryNumber = i;
     entries[i-1].entry = malloc(1);
+    
     if(entries[i-1]. entry == NULL) {
       printf("Error in entry memory allocation. Exiting...\n");
       exit(0);
     }
+    
     entries[i-1].entry[0] = 0;
     entries[i-1].mode = 'p';
     entries[i-1]. length = strlen(entries[i-1].entry);
@@ -161,18 +170,14 @@ int dumpWhiteboardFiles(){
     fprintf(fpx, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
   }
   fclose(fpx);
-
-
 }
 
 char *getNEntry(int entry) {
-
-
   int i = 0;
- if (entry > WHITEBOARD_SIZE) {
+  if (entry > WHITEBOARD_SIZE) {
       // can't find entry
       char error[50];
-      printf("entry asked for %d", entry);
+      //printf("entry asked for %d", entry);
       char *pe;
       pe = error;
       sprintf(error, "!%de14\nNo such entry!\n", entry);
@@ -187,37 +192,24 @@ char *getNEntry(int entry) {
 
   while(1) {
 
-
-
     if(entries[i].entryNumber == entry || entries[i].entryNumber == (char)entry) {
       char * message = malloc(sizeof(int)*2+strlen(entries[i].entry)+4);
       if(message == NULL) {
-        printf("Failed to allocate memory when responding to query!. Reponse not possible\n");
+        //printf("Failed to allocate memory when responding to query!. Reponse not possible\n");
         // return error
         char * error = malloc(50); sprintf(error, "!%de36\nThere are memory problems on server!\n",  entry);
 
         return error;
       }
       if(entries[i].length == 0){
-
-      printf("Entry about to send, %s", entries[i].entry);
-
-      //sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
-
-    }
+        //printf("Entry about to send, %s", entries[i].entry);
+      }
       message = malloc(sizeof(entries[i]));
       sprintf(message, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
-      //printf("entry = %s\n",entries[i].entry);
-      //printf("message = %s\n", message);
-     	//pthread_mutex_unlock(&mutexr[entry]);
-
-
       pthread_mutex_lock(&mutexr[entry]);
       b--;
       if (b==0) {pthread_mutex_unlock(&mutexg[entry]);}
       pthread_mutex_unlock(&mutexr[entry]);
-
-
       return message;
     }
     i++;
@@ -233,18 +225,15 @@ char *updateEntry(int entry, char mode, int length, char *message) {
     if (i > WHITEBOARD_SIZE) {
       // can't find entry
       char * error = malloc(50); sprintf(error, "!%de17\nFailed to update!\n", entry);
+      pthread_mutex_unlock(&mutexg[entry]);
       return error;
     }
 
     if(entries[i].entryNumber == entry) {
-
-
       memset(entries[i].entry, 0, strlen(entries[i].entry));
       entries[i].mode = mode;
       entries[i].length = length;
-      //entries[i].entry = message;
-      //printf("after update: %s\n", entries[i].entry);
-      entries[i].entry = malloc(strlen(message));
+      entries[i].entry = malloc(strlen(message)+1);
       memcpy(entries[i].entry, message, strlen(message));
 
       char * error = malloc(50); sprintf(error, "!%de0\n\n", entry);
@@ -257,13 +246,7 @@ char *updateEntry(int entry, char mode, int length, char *message) {
 }
 
 
-void dumpToFile() {
-  FILE * fp = fopen("whiteboard.all", "w");
-  int i;
-  for(i = 0; i < WHITEBOARD_SIZE; i++) {
-    fprintf(fp, "!%d%c%d\n%s\n", entries[i].entryNumber, entries[i].mode, entries[i].length, entries[i].entry);
-  }
-}
+
 
 
 // all functionability in this function
@@ -323,22 +306,18 @@ void *thread_connections( void* acc_socket) {
       }
     }
 
-
     if(lengthStr[0] == '?'){
       message_size = 1;
-      //pthread_mutex_lock(&mutexg);
       char *fishedentry = getNEntry(entryNumber);
-      printf("seding: %s\n", fishedentry);
+      //printf("sending: %s\n", fishedentry);
       int len = 0;
       while(len < strlen(fishedentry)) {
         len += write(sock, fishedentry, strlen(fishedentry));
         write(sock, fishedentry, strlen(fishedentry));
       }
-      //pthread_mutex_unlock(&mutexg);
     }
-
     if(lengthStr[0] == '@'){
-      client_message = malloc(sizeof(char)*length+10);
+      client_message = malloc(length+25);
       message_size = 1;
       if(client_message == NULL) {
         // failed to get enough memory for servers entry
@@ -349,9 +328,9 @@ void *thread_connections( void* acc_socket) {
       else {
         client_message[length] = '\0';
         message_size = read(sock, client_message, length+1);
-        printf("message: %s\n", client_message);
+        //printf("message: %s\n", client_message);
         char *reply = updateEntry(entryNumber, mode, length, client_message);
-        printf("reply: %s\n", reply);
+        //printf("reply: %s\n", reply);
         // replies
         int len = 0;
         while(len < strlen(reply)) {
@@ -359,17 +338,11 @@ void *thread_connections( void* acc_socket) {
         }
         if(client_message != NULL) {free(client_message);}
       }
-
-    /*
-      pthread_mutex_lock(&mutexr);
-      b--;
-      if (b==0) {pthread_mutex_unlock(&mutexg);}
-      pthread_mutex_unlock(&mutexr); */
     }
 
     // client disconnected
     if(message_size == 0) {
-      printf("closing socket...\n");
+      //printf("closing socket...\n");
       close(sock);
       return 0;
     }
@@ -379,7 +352,7 @@ void *thread_connections( void* acc_socket) {
     }
   }
 
-  printf("all clients have disconnected from the socket, exiting");
+  //printf("all clients have disconnected from the socket, exiting");
   close(sock);
 	return 0;
 }
@@ -387,9 +360,15 @@ void *thread_connections( void* acc_socket) {
 
 int i;
 
-int main(int argc, char *argv[])
-{
-
+int main(int argc, char *argv[]) {
+  
+  
+  
+  if(quit_request == 1) {
+      printf("Closing\n");
+      dumpToFile();
+      exit(1);
+  }
   FILE *fp2= NULL;
 
   if (argc < 4) {
@@ -397,7 +376,8 @@ int main(int argc, char *argv[])
     exit(0);
   }
   char * fileName;
-
+  STATEFILE = fopen("whiteboard.all", "w");
+  char line[256];
   MY_PORT = strtol(argv[1], NULL, 10);
   if(MY_PORT == 0) {
     printf("Invalid port number! Exiting...\n");
@@ -410,76 +390,16 @@ int main(int argc, char *argv[])
       printf("Invalid whiteboard size! Exiting...\n");
       exit(0);
     }
-
-  STATEFILE = fopen("whiteboard.all", "w");
-    /*
-
-    pid_t pid = 0;
-    pid_t sid = 0;
-    FILE *fp2= NULL;
-
-    pid = fork();
-
-    if (pid < 0)
-    {
-        printf("fork failed!\n");
-        exit(1);
-    }
-
-    if (pid > 0)
-    {
-    	// in the parent
-       printf("pid of child process %d \n", pid);
-       exit(0);
-    }
-
-    umask(0);
-
-	// open a log file
-    fp2 = fopen ("logfile.log", "w+");
-    if(!fp2){
-    	printf("cannot open log file");
-    }
-
-    // create new process group -- don't want to look like an orphan
-    sid = setsid();
-    if(sid < 0)
-    {
-    	fprintf(fp2, "cannot create new process group");
-        exit(1);
-    }
-
-
-    if ((chdir("/")) < 0) {
-      printf("Could not change working directory to /\n");
-      exit(1);
-    }
-
-	// close standard fds
-    close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
-
-    return 0;
-
-    */
-
-
-
-
-
-
-
-
-
     entries = realloc(entries, WHITEBOARD_SIZE * sizeof(entry));
-    char line[256];
-
-    if (entries == NULL) {
-      printf("Error in whiteboard memory allocation, exiting...\n");
-    }
     fillWhiteboardBlank(WHITEBOARD_SIZE);
   }
+  
+  
+
+  else if (entries == NULL) {
+    printf("Error in whiteboard memory allocation, exiting...\n");
+  }
+
   else if (strcmp("-f", argv[2]) == 0) {
     fileName = argv[3];
     STATEFILE = fopen(fileName, "r+");
@@ -498,30 +418,63 @@ int main(int argc, char *argv[])
     printf("Invalid argument format! Only './wbs379 \"portnumber\" {-f \"statefile\" | -n \"entries\"}' is accepted.\n");
     exit(0);
   }
-
+  
   pid_t pid = 0;
   pid_t sid = 0;
-  FILE *fp= NULL;
 
+  pid = fork();
 
+  if (pid < 0) {
+      printf("fork failed!\n");
+      exit(1);
+  }
 
+  if (pid > 0) {
+    // in the parent
+    printf("pid of child process %d \n", pid);
+    exit(0);
+  }
+  struct sigaction seg_act;
+  sigset_t newSigSet;
+  seg_act.sa_handler = sigint_handler;
+  sigemptyset(&seg_act.sa_mask);
+  sigaction(SIGINT, &seg_act, NULL);
+  sigaction(SIGTERM, &seg_act, NULL);
+  sigsetjmp(readonly_memory,1);
+  umask(0);
+  
+	// open a log file
+  fp2 = fopen ("logfile.log", "w+");
+  if(!fp2){
+    printf("cannot open log file");
+  }
+
+  // create new process group -- don't want to look like an orphan
+  sid = setsid();
+  if(sid < 0) {
+    fprintf(fp2, "cannot create new process group");
+    exit(1);
+  }
+
+  if ((chdir("/")) < 0) {
+    printf("Could not change working directory to /\n");
+    exit(1);
+  }
+
+  // close standard fds
+  close(STDIN_FILENO);
+  close(STDOUT_FILENO);
+  close(STDERR_FILENO);
+  
   int	sock, fromlength, number, outnum, a;
 
 	struct	sockaddr_in	master, client;
 
 	pthread_t thread_id;
 
-	struct sigaction seg_act;
 
-  mutexg = (pthread_mutex_t*)malloc(WHITEBOARD_SIZE * sizeof(pthread_mutex_t));
-  mutexr = (pthread_mutex_t*)malloc(WHITEBOARD_SIZE * sizeof(pthread_mutex_t));
-
-
-
-  seg_act.sa_handler = &sigint_handler;
-  sigemptyset(&seg_act.sa_mask);
-  sigaddset(&seg_act.sa_mask, SA_NODEFER);
-  sigaction(SIGINT, &seg_act, NULL);
+  mutexg = (pthread_mutex_t*)malloc((WHITEBOARD_SIZE+1) * sizeof(pthread_mutex_t));
+  mutexr = (pthread_mutex_t*)malloc((WHITEBOARD_SIZE+1) * sizeof(pthread_mutex_t));
 
 	// now Daemon process
 	sock = socket (AF_INET, SOCK_STREAM, 0);

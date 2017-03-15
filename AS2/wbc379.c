@@ -32,7 +32,6 @@ void sigint_handler(int signo) {
    }
 }
 
-
 char *base64encode (const void *b64_encode_this, int encode_this_many_bytes){
     BIO *b64_bio, *mem_bio;      //Declares two OpenSSL BIOs: a base64 filter and a memory BIO.
     BUF_MEM *mem_bio_mem_ptr;    //Pointer to a "memory BIO" structure holding our base64 data.
@@ -77,12 +76,9 @@ char encryption_addon[] = "CMPUT379 Whiteboard Encrypted v0\n";
 
 // GLOBAL VARIABLES FOR ENCRYPTION
 EVP_CIPHER_CTX ctx;
-//unsigned char key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+
 
 unsigned char iv[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-//unsigned char *base64_encoded;
-//unsigned char* base64_decoded_key ;
-//unsigned char * encrypted_message_full;  //The string we will base-64 encode.
 unsigned char *base64_encoded ;
 unsigned char* base64_decoded_key ;
 unsigned char * encrypted_message_full;
@@ -99,12 +95,6 @@ int outlen, tmplen, delen, i, key_bytes;
 int firstime = 0;
 
 int main(int argc, char *argv[]) {
-
-  //base64_encoded = malloc(sizeof (unsigned char));
-  //base64_decoded_key = malloc(sizeof *base64_decoded_key);
-  //encrypted_message_full=  malloc(sizeof *encrypted_message_full);
-
-
   struct sigaction seg_act;
 
   seg_act.sa_handler = &sigint_handler;
@@ -115,7 +105,6 @@ int main(int argc, char *argv[]) {
   EVP_CIPHER_CTX_init(&ctx);
 
   EVP_CIPHER_CTX_set_padding(&ctx, 0);
-
 
 	int number, portnumber, x, n;
   	char  server_message[100];
@@ -146,8 +135,6 @@ int main(int argc, char *argv[]) {
 
 
     if (argc == 4) {
-      //hostname = argv[1];
-      //portnumber = atoi(argv[2]);	// get portnumber
       keyfile_flag = 1;
       keyfile_name = argv[3];
       fp = fopen(keyfile_name, "r");
@@ -174,7 +161,6 @@ int main(int argc, char *argv[]) {
 		}
 
 		bzero (&server, sizeof (server));		//all values in a buffer to zero
-		//bcopy (host->h_addr, & (server.sin_addr), host->h_length); // set fields in serv+adder
 
 		server.sin_family = host->h_addrtype;
 		server.sin_addr.s_addr = inet_addr(hostname);
@@ -217,7 +203,6 @@ int main(int argc, char *argv[]) {
       i++;
     }
 
-
     memset(buf, 0, sizeof(buf));
 
     while (1) {
@@ -240,40 +225,30 @@ int main(int argc, char *argv[]) {
       while(1){
         scanf("%d", &n);
         if(n == 1){
-          char *p, t[100];
-          while (fgets(t, sizeof(t), stdin)) {
-            entrynumber = strtol(t, &p, 10);
-            if (p == t || *p != '\n') {
-              printf("Please enter an integer entry: ");
-            } else {break;}
-          }
-          sprintf(buf, "?%d\n", entrynumber);
-          printf("sending: %s\n", buf);
-          write (s, buf, strlen(buf));
-          memset(&buf, 0, strlen(buf));
+        char *p, t[100];
+        while (fgets(t, sizeof(t), stdin)) {
+          entrynumber = strtol(t, &p, 10);
+          if (p == t || *p != '\n') {
+            printf("Please enter an integer entry: ");
+          } else {break;}
+        }
+        sprintf(buf, "?%d\n", entrynumber);
+        printf("sending: %s\n", buf);
+        write (s, buf, strlen(buf));
+        memset(&buf, 0, strlen(buf));
 
-          int len = read(s, buf, sizeof(buf));
-          	  //printf("our buffer is= %s,", buf);
+        int len = read(s, buf, sizeof(buf));
 
-          	  /* error handling */
+        /* error handling */
 
-          	  sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
+        sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
 
-          	  if (ftest != '!' || entrytest < 0 || newlinetest != '\n' || sizetest < 0) {
-          	  printf("Improper server message, exiting");
-          	  }
-
-
-          	  if(ctest != 'c')
-          	     if(ctest != 'e')
-          		if(ctest != 'p'){
-          			 printf("Improper server message2, exiting");
-          		}
-
-
-
-
-                    // decryption
+        if (ftest != '!' || entrytest < 0 || newlinetest != '\n' || sizetest < 0) {
+          printf("Improper server message, exiting");
+        }
+        if(ctest != 'c' || ctest != 'e' || ctest != 'p'){
+          printf("Improper server message2, exiting");
+        }
         // decryption
         if(buf[2] == 'c'){
           printf("message is decrpyted\n");
@@ -281,47 +256,30 @@ int main(int argc, char *argv[]) {
             printf("no keyfile to decode message\n");
             break;
           }
-
-          int i = 0; //
-          char* a, b;
-
+          int i = 0; 
+          char* a, *b;
           sscanf(buf, "%c%d%c%d%c", a, &entrytest, b, &sizetest, &newlinetest);
-	        printf("size = %d\n", sizetest);
- 	        //char buf2[1000];
           int premessage2;
   	      int premessage = 2;
 	        int nDigits1 = floor(log10(abs(entrytest))) + 1;
           int nDigits2 = floor(log10(abs(sizetest))) + 1;
 
           if(sizetest != 0){
-         nDigits2 = floor(log10(abs(sizetest))) + 1;
-         }
+            nDigits2 = floor(log10(abs(sizetest))) + 1;
+          }
+          else{
+            nDigits2 = 0;
+          }
 
-         else{
-         nDigits2 = 0;
-         }
-
-         if(sizetest >0){
-         sizetest--;
-         }
-
-
-         //char *buf2 = malloc(sizetest * sizeof *buf2 + 10);
-
-
-         premessage2 = premessage + nDigits1 + nDigits2 + sizetest;
-                printf("%d %d %d", nDigits1, nDigits2, premessage);
-         i=0;
-         i = premessage + nDigits1 +nDigits2;
-
-           printf("about to decrpy: %s\n,", buf);
-           //char* decpoint = malloc(sizeof(char*));
-           decpoint= buf;
-           decpoint += i;
-
-            decpoint[nDigits2+nDigits1+sizetest-1] = '\0';
-            printf("pointer to %s?\n", decpoint);
-
+          if(sizetest >0){
+            sizetest--;
+          }
+          premessage2 = premessage + nDigits1 + nDigits2 + sizetest;
+          i=0;
+          i = premessage + nDigits1 +nDigits2;
+          decpoint= buf;
+          decpoint += i;
+          decpoint[nDigits2+nDigits1+sizetest-1] = '\0';
           decrypt(decpoint, keyfile_name);
           break;
         }
@@ -332,143 +290,105 @@ int main(int argc, char *argv[]) {
         int i = 0; //
 
         sscanf(buf, "%c%d%c%d%c", &ftest, &entrytest, &ctest, &sizetest, &newlinetest);
-       int premessage = 0;
-       printf("ftest = %c, ctest = %c", ftest, ctest);
-       premessage = sizeof(ftest) + sizeof(ctest)+3;
-       int nDigits1 = floor(log10(abs(entrytest))) + 1;
-       int nDigits2;
+        int premessage = 0;
+        printf("ftest = %c, ctest = %c", ftest, ctest);
+        premessage = sizeof(ftest) + sizeof(ctest)+3;
+        int nDigits1 = floor(log10(abs(entrytest))) + 1;
+        int nDigits2;
 
-  if(sizetest != 0){
-  nDigits2 = floor(log10(abs(sizetest))) + 1;
-  }
-  else{
-  nDigits2 = 0;
-  }
+        if(sizetest != 0){
+          nDigits2 = floor(log10(abs(sizetest))) + 1;
+        }
+        else{
+          nDigits2 = 0;
+        }
 
-  //char *messagepointer;
-  //messagepointer = buf;
-  //messagepointer = messagepointer + premessage;
-
-  //printf("%d, %d, %d", premessage, nDigits1, nDigits2);
-  if(sizetest >0){
-  sizetest--;
-  }
-  printf("premessage = %d %d %d %d %d %d", premessage, nDigits1, nDigits2, sizetest, ftest, ctest);
-  premessage = premessage + nDigits1 + nDigits2 + sizetest;
-  printf("premessage = %d %d %d %d", premessage, nDigits1, nDigits2, sizetest);
-  printf("Here is the entry: [");
-  while(i < premessage){
-  printf("%c", buf[i]);
-  i++;
-
-  }
-  printf("]\n");
+        if(sizetest >0){
+          sizetest--;
+        }
+        premessage = premessage + nDigits1 + nDigits2 + sizetest;
+        printf("Here is the entry: [");
+        while(i < premessage){
+          printf("%c", buf[i]);
+          i++;
+        }
+        printf("]\n");
       }
-        if(n == 2){
-          unsigned char tempstring[1000];
-          memset(tempstring, 0, 1000);
-          int ENTRY_NUMBER;
-
-          //printf("What entry would you like to change: \n");
-          //while(1) {
-          ///scanf("%d", &ENTRY_NUMBER);
-          //}
-          char *p, t[100];
-
-
-          while (fgets(t, sizeof(t), stdin)) {
+      if(n == 2){
+        unsigned char tempstring[1000];
+        memset(tempstring, 0, 1000);
+        int ENTRY_NUMBER;
+        char *p, t[100];
+        while (fgets(t, sizeof(t), stdin)) {
             ENTRY_NUMBER = strtol(t, &p, 10);
             if (p == t || *p != '\n') {
-              printf("Please enter an integer entry: ");
+                printf("Please enter an integer entry: ");
             } else {break;}
           }
-          //printf("Enter a string to be sent\nEnter NULL for a blank entry:\n");
           char *text = calloc(1,1), buffer[BUFFERSIZE];
-          //getchar();
-
           printf("Enter a message: Ctrl D to exit, Last Enter is ignored:\n");
           while( fgets(buffer, BUFFERSIZE , stdin) ) /* break with ^D or ^Z */ {
             text = realloc( text, strlen(text)+1+strlen(buffer) );
-            //if(strcmp(buffer, "quit\n") ==0) {
-            //break;
-            //}/* error handling */
             strcat( text, buffer ); /* note a '\n' is appended here everytime */
-            //printf("%s", buffer);
           }
-        char* pointer;
-        pointer = text;
-        //pointer++;
-        //char deststring[100];
-        //printf("%s", pointer);
+          char* pointer;
+          pointer = text;
 
-        memcpy(tempstring, pointer, strlen(text)-1);
-
-        //printf("\ntext:%s",tempstring);
-        //printf("test2");
-        //scanf("%s",tempstring);
-
-        int flagNULL = 0;
-        if(tempstring[0] == 'N' && tempstring[1] == 'U' && tempstring[2] == 'L' && tempstring[3] == 'L'){
-          flagNULL = 1;
-          bzero(tempstring, strlen(tempstring));
-        }
-        if(flagNULL != 1) {
-          printf("please enter 0 for non-encrypted and 1 for encrypted: ");
-          scanf("%d", &n);
-        }
-        else{
-          n = 0;
-          flagNULL = 0;
-        }
-        char *updateQuery;
-        if(n == 1){
-          pointer = tempstring;
-          printf("encrypting message %s\n", tempstring);
-          unsigned char* encoded_message= encrypt(pointer, keyfile_name);
-          printf("final encrypted message is= %s\n", encoded_message );
-
-          //move our message into temp string
-          //memset(tempstring,0,sizeof(tempstring));
-          //memcpy(tempstring, encoded_message, sizeof(encoded_message));
-          int xy = strlen(encoded_message);
-
-          updateQuery = malloc(xy+20);
-          if(updateQuery == NULL) {
-            printf("Could not alocate enough memory for an entry of that size!\n");
+          memcpy(tempstring, pointer, strlen(text)-1);
+          int flagNULL = 0;
+          if(tempstring[0] == 'N' && tempstring[1] == 'U' && tempstring[2] == 'L' && tempstring[3] == 'L'){
+              flagNULL = 1;
+              bzero(tempstring, strlen(tempstring));
+            }
+            if(flagNULL != 1) {
+              printf("please enter 0 for non-encrypted and 1 for encrypted: ");
+              scanf("%d", &n);
+            }
+            else{
+              n = 0;
+              flagNULL = 0;
+            }
+            char *updateQuery;
+            if(n == 1){
+              pointer = tempstring;
+              unsigned char* encoded_message= encrypt(pointer, keyfile_name);
+              int xy = strlen(encoded_message);
+              updateQuery = malloc(xy+20);
+              if(updateQuery == NULL) {
+                printf("Could not alocate enough memory for an entry of that size!\n");
+              }
+      
+              memset(updateQuery, 0, xy+20);
+              sprintf(updateQuery, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
+              write (s, updateQuery, strlen(updateQuery));
+              printf("sending: %s\n", updateQuery);
+              memset(message, 0, sizeof(buf));
+              read(s, buf, sizeof(buf));
+              printf("Reponse: %s\n", buf);
+              break;
+            }
+            else {
+              int xy = strlen(tempstring);
+              updateQuery = malloc(xy+20);
+              if(updateQuery == NULL) {
+                printf("Could not alocate enough memory for an entry of that size!\n");
+              }
+              memset(updateQuery, 0, xy+20);
+              sprintf(updateQuery, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
+            }
+            write (s, updateQuery, strlen(updateQuery));
+            printf("sending: %s\n", updateQuery);
+            memset(buf, 0, sizeof(buf));
+            read(s, buf, sizeof(buf));
+            printf("Reponse: %s\n", buf);
+            free(updateQuery);
+            break;
+            }
+            else {
+               printf("enter a valid option\n: ");
+              break;
+            }
           }
-
-          memset(updateQuery, 0, xy+20);
-          sprintf(updateQuery, "@%dc%d\n%s\n", ENTRY_NUMBER, xy, encoded_message);
-          write (s, updateQuery, strlen(updateQuery));
-          printf("sending: %s\n", updateQuery);
-          memset(message, 0, sizeof(buf));
-          read(s, buf, sizeof(buf));
-          printf("Reponse: %s\n", buf);
-          break;
-        }
-        else {
-          int xy = strlen(tempstring);
-          updateQuery = malloc(xy+20);
-          if(updateQuery == NULL) {
-            printf("Could not alocate enough memory for an entry of that size!\n");
-          }
-          memset(updateQuery, 0, xy+20);
-          sprintf(updateQuery, "@%dp%d\n%s\n", ENTRY_NUMBER, xy, tempstring);
-        }
-        write (s, updateQuery, strlen(updateQuery));
-        printf("sending: %s\n", updateQuery);
-        memset(message, 0, sizeof(buf));
-        read(s, buf, sizeof(buf));
-        printf("Reponse: %s\n", buf);
-        free(updateQuery);
-        break;
-        }
-
-        else {
-          printf("enter a valid option\n: ");
-          break;
-        }
-    }
       i++;
       continue;
   }
@@ -484,14 +404,10 @@ int main(int argc, char *argv[]) {
 unsigned char* encrypt(unsigned char* message, char* filename) {
 
   memset(outbuf, 0, strlen(outbuf));
-  //memset(message, 0, sizeof(encrypted_message_full));
-
   FILE * fp;
   char * line = NULL;
   size_t len = 0;
   ssize_t read;
-
-  //printf("getting key");
 
   fp = fopen (filename,"r");
   if (fp == NULL) {
@@ -502,199 +418,113 @@ unsigned char* encrypt(unsigned char* message, char* filename) {
   char testkey[128];
   char c;
 
-
-
   int i =0;
- base64_decoded_key = malloc(128);
+  base64_decoded_key = malloc(128);
   while((c=fgetc(fp))!=EOF){
-
        // try the key
        if(c == '\n'){
-
-
-
          key_bytes = strlen(testkey);
-         //printf("%s\n",line);//
-
          base64_decoded_key = base64decode(testkey, key_bytes);
          printf("our key = %s\n", base64_decoded_key);
          break;
        }
        testkey[i] = c;
        i++;
-
        // found no key that works
-     }
+  }
 
-
-
-     // DELETE AFTER
-        unsigned char key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-    //
-
-	//EVP_CIPHER_CTX_init(&ctx);
 	EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
-
-        //memcpy(encrypted_message_full, message, strlen(message)); // co
   encrypted_message_full=  malloc(strlen(message)+strlen(encryption_addon));
-
 	memset(encrypted_message_full, 0, strlen(encrypted_message_full));
+  memmove(encrypted_message_full, encryption_addon, strlen(encryption_addon));
+  strcat(encrypted_message_full, message);
 
-	//printf("adding on %s", encrypted_message_full);
+	if(!EVP_EncryptUpdate(&ctx, outbuf, &outlen, encrypted_message_full, strlen(encrypted_message_full))) {
+    /* Error */
+    printf("Error encoding");
+    return 0;
+  }
 
-  	memmove(encrypted_message_full, encryption_addon, strlen(encryption_addon));
-
-  	strcat(encrypted_message_full, message);
-
-	//encrypted_message_full[strlen(encrypted_message_full)] = 0;
-
-    	printf("new message = %s\n", encrypted_message_full);
-
-	if(!EVP_EncryptUpdate(&ctx, outbuf, &outlen, encrypted_message_full, strlen(encrypted_message_full)))
-    {
-        /* Error */
-	printf("Error encoding");
-        return 0;
-    }
-
-	if(!EVP_EncryptFinal_ex(&ctx, outbuf + outlen, &tmplen))
-    {
-	printf("Error encoding");
-        /* Error */
-        return 0;
-    }
-
+	if(!EVP_EncryptFinal_ex(&ctx, outbuf + outlen, &tmplen)) {
+    printf("Error encoding");
+    /* Error */
+    return 0;
+  }
 	outlen += tmplen;
-
-
-
 	EVP_CIPHER_CTX_cleanup(&ctx);
 
 	// buffer should contain ciphertext
-
-        printf("our encrypted message = %s\n", outbuf);
-
-  	int bytes_to_encode = outlen; //Number of bytes in string to base64 encode.
-      base64_encoded = malloc(bytes_to_encode*16);
-    	base64_encoded = base64encode(outbuf, bytes_to_encode);   //Base-64 encoding.
-
-    fclose(fp);
-    return base64_encoded;
-    free(base64_encoded);
-    free(base64_decoded_key);
+  int bytes_to_encode = outlen; //Number of bytes in string to base64 encode.
+  base64_encoded = malloc(bytes_to_encode*16);
+  base64_encoded = base64encode(outbuf, bytes_to_encode);   //Base-64 encoding.
+  fclose(fp);
+  return base64_encoded;
 }
 
 
 int decrypt(char *encrpyted_message, char* filename ) {
+  unsigned char testkey[128];
+  FILE *fp;
+  memset(testkey, 0, sizeof(testkey));
+
+  fp = fopen (filename,"r");
+
+  int remainingBytes;
+  char c;
+
+  int x;
+
+  int bytes_to_decode = strlen(encrpyted_message); //Number of bytes in string to base64 decode.
+  unsigned char *base64_decoded = base64decode(encrpyted_message, bytes_to_decode);   //Base-64 decoding.
+
+  printf("decoded message= %s\n",base64_decoded);
 
 
-    unsigned char testkey[128];
-    FILE *fp;
-    memset(testkey, 0, sizeof(testkey));
+  while((c=fgetc(fp))!=EOF){
+    // try the key
+    if(c == '\n'){
+      key_bytes = strlen(testkey);
+      base64_decoded_key = base64decode(testkey, key_bytes);
 
-    fp = fopen (filename,"r");
-
-    int remainingBytes;
-    char c;
-
-    int x;
-
-    int bytes_to_decode = strlen(encrpyted_message); //Number of bytes in string to base64 decode.
-    //unsigned char *base64_decoded = malloc(sizeof (unsigned char));
-    unsigned char *base64_decoded = base64decode(encrpyted_message, bytes_to_decode);   //Base-64 decoding.
-
-    printf("decoded message= %s\n",base64_decoded);
-
-    //outlen = strlen(base64_decoded);
-
-
-
-
-    //bzero(debuf,1024);
-    //memset(testkey, 0, sizeof(testkey));
-
-
-
- while((c=fgetc(fp))!=EOF){
-
-
-       // try the key
-       if(c == '\n'){
-
-         key_bytes = strlen(testkey);
-         //printf("%s\n",line);
-         base64_decoded_key = base64decode(testkey, key_bytes);
-         printf("test key: = %s, our key = %s\n", testkey, base64_decoded_key);
-
-	  delen = 0;
-
-          memset(debuf, 0, strlen(debuf));
-
-          // DELETE AFTER
-                  unsigned char key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-        	//
-
-          EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
-
-
-
-          bzero (&debuf, sizeof(base64_decoded));
-
-          if(!EVP_DecryptUpdate(&ctx, debuf, &delen, base64_decoded, outlen))
-          {printf("Error1\n");return 0;}
-
-	  printf("first decrypt = %s", debuf);
-
+      delen = 0;
+      memset(debuf, 0, strlen(debuf));
+      EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, base64_decoded_key, iv);
+      bzero (&debuf, sizeof(base64_decoded));
+      if(!EVP_DecryptUpdate(&ctx, debuf, &delen, base64_decoded, outlen))
+      {printf("Error1\n");return 0;}
+      printf("first decrypt = %s", debuf);
 	    for (x = 0; i< 25; i++){
-              printf("%c", debuf[i]);
-            }
-
-           if(!EVP_DecryptFinal_ex(&ctx, debuf + delen, &remainingBytes)){
-             memset(testkey, 0, sizeof(testkey));
-             printf("decrypt failed\n");
-	     ERR_print_errors_fp(stderr);
-
+        printf("%c", debuf[i]);
+      }
+      if(!EVP_DecryptFinal_ex(&ctx, debuf + delen, &remainingBytes)){
+        memset(testkey, 0, sizeof(testkey));
+        printf("decrypt failed\n");
+        ERR_print_errors_fp(stderr);
              //continue;
-           }
-
-            delen+=remainingBytes;
-            EVP_CIPHER_CTX_cleanup(&ctx);
-
-
-            char check[34];
-
-            for(x = 0; i < delen; i++){
-              check[i] = debuf[i];
-            }
-
-	    //printf("attempted decrpytion produces = ");
-
-            /*if (check != "CMPUT379 Whiteboard Encrypted v0\n") {
-             printf("no key was able to decrypt the message\n");
-              return 0;
-            }*/
-
-            for (x = 0; i< 25; i++){
-              printf("%c", debuf[i]);
-            }
-
+      }
+      delen+=remainingBytes;
+      EVP_CIPHER_CTX_cleanup(&ctx);
+      char check[34];
+      for(x = 0; i < delen; i++){
+        check[i] = debuf[i];
+      }
+      for (x = 0; i< 25; i++){
+        printf("%c", debuf[i]);
+      }
 	    memset(testkey, 0, strlen(testkey));
-            i=0;
-           continue;
+      i=0;
+      continue;
        }
-       else
-	{
-	 testkey[i] = c;
-         testkey[i+1] = '\0';
-       }
-	i++;
-
+    else {
+      testkey[i] = c;
+      testkey[i+1] = '\0';
+    }
+    i++;
        // found no key that works
-
      }
 
-	      fclose(fp);
-       printf("no key was able to decrypt the message\n");
+    fclose(fp);
+    printf("no key was able to decrypt the message\n");
 
     /*
     i =0;

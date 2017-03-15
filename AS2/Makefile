@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -pthread -m32 
+CFLAGS = -pthread
 
 all: wbc379 wbs379
 
