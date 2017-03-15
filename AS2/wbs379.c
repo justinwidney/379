@@ -286,7 +286,7 @@ void *thread_connections( void* acc_socket) {
     memset(lengthStr, '\0', sizeof(lengthStr));
     // get entry query (without entry)
     while(1) {
-      read(sock, c, 1);
+      if(read(sock, c, 1) <= 0) {close(sock); return 0;}
       if(c[0] == '\n') {lengthStr[i] = c[0]; break;}
       lengthStr[i] = c[0]; i++;
     }

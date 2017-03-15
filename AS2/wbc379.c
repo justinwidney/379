@@ -121,9 +121,9 @@ int main(int argc, char *argv[]) {
 	char* hostname;
 	int entrynumber;
 	char ctest, ftest, newlinetest, newlinetest2;
-        int sizetest, entrytest;
-  	int keyfile_flag = 0, encrypt_flag = 0;
-  	char* keyfile_name;
+  int sizetest, entrytest;
+  int keyfile_flag = 0, encrypt_flag = 0;
+  char* keyfile_name;
 
 	struct	sockaddr_in	server;
 	struct	hostent		*host;
