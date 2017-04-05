@@ -28,11 +28,16 @@ int main(int argc, char *argv[]) {
       memset(buffer, 0, sizeof(buffer));
       printf("temp = %x\n", address[0]);
       }
-      //int shift = buffer[0] >> 3;
+
+
+      int shift = address[0] >> 12;
+      int offset = address[0] << 20;
+      //printf("? %d ?", offset);
+      offset = offset >> 20;
 
       //printf("%x\n", shift);
       printf("final %04x\n", address[0]);
-      printf("value %d\n",address[0]);
+      printf("PN %d && offset %d\n",shift, offset);
       memset(address, 0, sizeof(address));
 
 

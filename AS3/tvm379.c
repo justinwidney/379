@@ -8,6 +8,11 @@
 int* stack;
 int gp_Mode, fl_Mode;
 
+// Arrays for stats at the end.
+int* tlbHits;
+int* pfX;
+int* avs;
+
 int TLB_top = -1;   // for stacks
 int PT_Top = -1;
 
@@ -58,6 +63,18 @@ int updatePT(int PN){
   }
 
   return HIT;
+}
+
+// locate the entry int the Page Table
+int findPTMatch(int PN){
+
+}
+
+// locate the PN in the TLB
+int findTLBMatch(int PN, int PID){
+
+
+
 }
 
 /*
@@ -156,6 +173,10 @@ int main(int argc, char *argv[]) {
 
   int traceFileAmount = argc - 6;
   int x;
+
+  tlbHits = (int*) malloc(traceFileAmount * sizeof(int)); // Hits for stats per process
+  pfX = (int*) malloc(traceFileAmount * sizeof(int)); // Page faults per process
+  avsX = (int*) malloc(traceFileAmount * sizeof(int)); // average of Page
 
   char **traceFiles;
   traceFiles = malloc(traceFileAmount * sizeof(char*));
