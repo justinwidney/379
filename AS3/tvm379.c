@@ -15,7 +15,7 @@ int PT_Front = 0;  // for queue
 
 int* free_frames_list;
 
-std::vector<int> Page_Table(10);
+std::vector<int> Page_Table(10);  // 32bits - 2^Xpagesize = Xbits   2^xbits size
 
 
 // for use of quantom pages
