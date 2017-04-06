@@ -5,6 +5,27 @@
 #define FIFO 2
 #define LRU 3
 
+
+
+/*
+1. Read BYTE && GET PN
+2. Check if it is TLB
+2a) HIT, move on
+2b) Miss, check if it is in PT
+3a) Hit, Update TLB_top
+3b) Miss, Update TLB and page in
+4a) free memory frame, swap it in
+4b) replace frame using LRU
+5) loop quantom times per file
+*/
+
+
+
+
+
+
+
+
 int* stack;
 int gp_Mode, fl_Mode;
 
