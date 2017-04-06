@@ -10,16 +10,70 @@ int Page_Table_count;
 
 int UpdatePT(int PN);
 int searchPT(int PN);
-
-
 int getFrame();
 
+
+int front;
+int rear;
+int itemCount;
+
+
+// queue stuff
+void insert(int data) {
+
+   if(!isFull()) {
+
+      if(rear == MAX-1) {
+         rear = -1;
+      }
+
+      Page_Table[++rear] = data;
+      itemCount++;
+   }
+}
+
+int removeData() {
+   int data = Page_Table[front++];
+
+   if(front == MAX) {
+      front = 0;
+   }
+
+   itemCount--;
+   return data;
+}
+
+// stack stuff
+int pop() {
+   int data;
+
+   if(!isempty()) {
+      data = stack[top];
+      top = top - 1;
+      return data;
+   } else {
+      printf("Could not retrieve data, Stack is empty.\n");
+   }
+}
+
+int push(int data) {
+
+   if(!isfull()) {
+      top = top + 1;
+      stack[top] = data;
+   } else {
+      printf("Could not insert data, Stack is full.\n");
+   }
+}
+
+
+
+
+
+
+
 int getFrame(){
-
-
-
     return free_frames_count;
-
 }
 
 int UpdatePT(int PN){
@@ -34,10 +88,10 @@ int UpdatePT(int PN){
     if(free_frames_count == 100){
       printf("LRU OR FIFO");
 
-      //LRU queue, remove array[0]
+      //LRU stack, remove array[0]
 
 
-      //FIFO stack, remove bottom of stack array[sizeof(array)-1]
+      //FIFO QUEUE, remove bottom of stack array[sizeof(array)-1]
 
 
       exit(1);
@@ -45,26 +99,27 @@ int UpdatePT(int PN){
 
     int PageNumber = PN;
     int FrameNumber = getFrame();
-    int Entry = FrameNumber & 0xFFFFFFFE  // set invalid bit
+    int Entry = FrameNumber & 0xFFFFFFFE;  // set invalid bit
 
     Page_Table[Page_Table_count] = Entry;
     Page_Table_count++;
-    free_frames_count;
+    free_frames_count++;
 
 }
 
-
+// binary search for our Page Table
 int searchPT(int PN){
 
+    int middle, first, last, search, n;
     // binary search
     first = 0;
     last = n - 1;
     middle = (first+last)/2;
 
     while (first <= last) {
-      if (array[middle] < search)
+      if (Page_Table[middle] < search)
          first = middle + 1;
-      else if (array[middle] == search) {
+      else if (Page_Table[middle] == search) {
          printf("%d found at location %d.\n", search, middle+1);
 
          return 1;  //HIT
@@ -89,10 +144,24 @@ int main(int argc, char *argv[]) {
 
     fp = fopen("heapsort-trace.bin", "r");
     int *buffer;
+    int y;
 
     int* Page_Table;
     free_frames_count = 0;
     Page_Table_count = 0;
+
+    // QUEUE or FIFO
+    front = 0;
+    rear = -1;
+    itemCount = 0;
+
+    // STACK or LRU
+
+    // int* Page_Table_temp = malloc(200 * sizeof(int));
+    // change to dynamic after
+    for(y=0; y< 100; y++){
+      Page_Table[y]=0;
+    }
 
     buffer = (int *)malloc(1*sizeof(int));
 
