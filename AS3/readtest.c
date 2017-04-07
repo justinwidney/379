@@ -6,10 +6,13 @@ int free_frames_list[100]; // size of physpages
 int free_frames_count;
 int Page_Table[100];      // 2^32 - 2^x of pagesize
 int Page_Table_count;
-
+int TLB[100];
+int TLB_count;
 
 int UpdatePT(int PN);
+int updateTLB(int PN);
 int searchPT(int PN);
+int searchTLB(int PN);
 int getFrame();
 
 
@@ -17,6 +20,7 @@ int front;
 int rear;
 int itemCount;
 
+int valid_bit = 0;
 
 // queue stuff
 void insert(int data) {
@@ -120,6 +124,25 @@ int searchPT(int PN){
       if (Page_Table[middle] < search)
          first = middle + 1;
       else if (Page_Table[middle] == search) {
+
+        // PAGE FAULT
+        if(valid_bit == 1){
+
+        int frame = free_frames_count;
+
+        if(free_frames_count == 100){
+          // Page Replacement
+          // int freeded_frame = evictFrame()
+          // updatePTFrame()
+          // updateTLBFrame()
+
+        }
+        //updatePT()
+        //setPTbit
+        //setTLBbit   *search and then update
+
+        }
+
          printf("%d found at location %d.\n", search, middle+1);
 
          return 1;  //HIT
@@ -132,10 +155,69 @@ int searchPT(int PN){
    if (first > last)
       printf("Not found! %d is not present in the list.\n", search);
 
-   return 0; // MISS
+      if(free_frames_count == 100){
+        //swap out an entry in the PT
+        swap();
+      }
+
+      if(Page_Table_count == 100){
+          pop();  // but from the bottom
+      }
+
+
+      push(PN); // push onto the top of stack
+
+
+      return 0; // MISS
 
 }
 
+//example LOCAL_MODE
+int searchTLB(int PN){
+
+  int middle, first, last, search, n;
+  // binary search
+  first = 0;
+  last = n - 1;
+  middle = (first+last)/2;
+
+  while (first <= last) {
+    if (TLB[middle] < search)
+       first = middle + 1;
+    else if (TLB[middle] == search) {
+       printf("%d found at location %d.\n", search, middle+1);
+
+       return 1;  //HIT
+    }
+    else
+       last = middle - 1;
+
+    middle = (first + last)/2;
+ }
+ if (first > last)
+    //printf("Not found! %d is not present in the list.\n", search);
+
+    searchPT(PN);
+    updateTLB(PN);
+
+
+    }
+
+
+    return 0; // MISS
+
+
+
+}
+int updateTLB(int PN){
+
+    if(TLB_count == 100){
+    removeData();
+    }
+
+    insert(PN); // give PN, FrameNumber, v/i
+
+}
 
 
 int main(int argc, char *argv[]) {
