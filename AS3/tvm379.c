@@ -171,8 +171,15 @@ page_Table_Entry *lookupByKey(page_Table_Entry **hashTable, int key)
     return traverseLinkedListAndReturnObjectWithKey(...);
 }
 
+int searchPT(int PN, int PID){
+  // search hash Table for our entry
 
-int searchMatch(int PN, int PID){
+  // found -- > do nothing
+
+  //else: --> updatePT
+}
+
+int searchTLB(int PN, int PID){
 
   int hashIndex = hashCode(PN, PID);
 
@@ -180,18 +187,14 @@ int searchMatch(int PN, int PID){
 }
 
 /*
-* Update using LRU
+*  Either, no entry Found, add into TLB
+*  Or, TLB full:
+*   Update using LRU
 */
 
 int updateTLB(int PN){
     int HIT;
 
-      //search
-
-
-
-
-      //FOUND
 
 
       //PAGE # () | Frame # () | ASID PID | V/I
@@ -303,9 +306,10 @@ int main(int argc, char *argv[]) {
   // read
   int finish = 0 ;
   int HIT =0, PT_HIT=0;
-  // loop until end of last tracefile
+
   x = 0;
 
+  // loop until end of last tracefile
   while(1){
 
     for(x=0; x<4; x++){
@@ -343,36 +347,28 @@ int main(int argc, char *argv[]) {
         continue;
       }
       else{
-        PT_HIT = PT(PN);
+        PT_HIT = searchPT(PN);
       }
 
-      // start of PT
-      if(PT_HIT){
-        updateTLB();
-      }
-
-      else{
-        updatePT();
-        updateTLB();
+        // flush the TLB
+      if(gp_Mode == LOCAL_MODE){
 
       }
 
-    }
-
-    // flush the TLB
-    if(gp_Mode == LOCAL_MODE){
-
-    }
-
-    x++;
-    if(array[x]->finish == 1){
       x++;
+      if(array[x]->finish == 1){
+        x++;
+      }
+
+      // update our page file pointer 
+      x = x%traceFileAmount; // loop back around
+
+
     }
 
-    x = x%traceFileAmount; // loop back around
 
 
-  }
+
 
 
 
