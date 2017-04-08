@@ -36,7 +36,7 @@ int* avs;
 
 int TLB_top = -1;   // for stacks
 int PT_Top = -1;
-
+int free_frames_count = 0;
 int PT_Front = 0;  // for queue
 
 int* free_frames_list;
@@ -47,8 +47,68 @@ std::vector<int> Page_Table(10);  // 32bits - 2^Xpagesize = Xbits   2^xbits size
 // for use of quantom pages
 typedef struct file_struct {
   FILE fp*;
-  int finish;
+  int finished;
+  int process_id;
+
 };
+
+// https://gist.github.com/mycodeschool/7429492 for double linked list
+// store for a page table entry
+// *Note can be used for TLB as well
+
+typdef struct page_Table_Entry{
+  int PageNumber;
+  int FrameNumber;
+  int valid_bit;
+  int process_id;
+  struct page_Table_Entry* next;
+  struct page_Table_Entry* prev;
+  int key; // for hashing
+}
+
+typedef struct TLB_
+
+
+
+struct page_Table_Entry* head;  // our first entry
+
+struct page_Table_Entry* createNewNode(int PT, int FrameNumber){
+  struct page_Table_Entry* newEntry =
+  (struct page_Table_Entry*)malloc(sizeof(struct page_Table_Entry));
+  newEntry->PageNumber = PT;
+  newEntry->FrameNumber = FrameNumber;
+  newEntry->next = NULL;
+  newEntry->prev = NULL;
+  return newEntry
+
+}
+
+//Inserts a Node at head of doubly linked list
+void InsertAtHead(int PT, int FrameNumber) {
+	struct Node* newNode = GetNewNode(PT, FrameNumber);
+	if(head == NULL) {
+		head = newNode;
+		return;
+	}
+	head->prev = newNode;
+	newNode->next = head;
+	head = newNode;
+}
+
+//Inserts a Node at tail of Doubly linked list
+void InsertAtTail(int PT, int FrameNumber) {
+	struct Node* temp = head;
+	struct Node* newNode = GetNewNode(PT, FrameNumber);
+	if(head == NULL) {
+		head = newNode;
+		return;
+	}
+	while(temp->next != NULL) temp = temp->next; // Go To last Node
+	temp->next = newNode;
+	newNode->prev = temp;
+}
+
+
 
 // create our structure for the file
 struct file_struct *newStruct (char* text){
@@ -61,8 +121,6 @@ struct file_struct *newStruct (char* text){
   retVal->finish = 0;
 
   return retVal;
-
-
 }
 
 /*
@@ -92,8 +150,31 @@ int findPTMatch(int PN){
 }
 
 // locate the PN in the TLB
-int findTLBMatch(int PN, int PID){
+// http://stackoverflow.com/questions/24353707/hash-table-with-linked-list
 
+page_Table_Entry **createHashTable(int hashSize)
+{
+    ValueObjectType **table = malloc( sizeof(page_Table_Entry *) * hashSize);
+    return table;
+}
+
+void hashInsert(page_Table_Entry **hashTable, int key, page_Table_Entry *value)
+{
+    int arrayIndex = hashingFunction(key);
+    if ( hashTable[arrayIndex] != NULL ) traverseLinkedListAndAdd(...);
+    else hashTable[arrayIndex] = value;
+}
+
+page_Table_Entry *lookupByKey(page_Table_Entry **hashTable, int key)
+{
+    int arrayIndex = hashingFunction(key);
+    return traverseLinkedListAndReturnObjectWithKey(...);
+}
+
+
+int searchMatch(int PN, int PID){
+
+  int hashIndex = hashCode(PN, PID);
 
 
 }
@@ -210,6 +291,7 @@ int main(int argc, char *argv[]) {
     traceFiles[x] = malloc(strlen(argv[x+6]) * sizeof(char));
     strcpy(traceFiles[x],argv[x+6]);
 
+
     // create the structs
     file_struct *struct = newStruct(argv[x+6]);
     array[x] = file_struct;
@@ -226,11 +308,36 @@ int main(int argc, char *argv[]) {
 
   while(1){
 
-    for(i =0; i < quantom_Pages; i++){
+    for(x=0; x<4; x++){
+    fread(buffer, 1, 1, fp);
+    address[0]+=buffer[0];
 
-      int PN = read_file(array[x]->fp); // read the file
+    memset(buffer, 0, sizeof(buffer));
+    printf("temp = %x\n", address[0]);
+    }
 
-      Hit = TLB(PN);
+
+    int shift = address[0] >> 12;
+    int PageNumber = shift >> 12; //20xbits 10 0's
+
+    //int offset = address[0] << 20;
+    //offset = offset >> 20;  // ignore
+
+
+      if(gp_Mode== GLOBAl_MODE){
+        process_id = 0;
+      }
+      else{
+
+      for(x=0; x<argc-6; x++){
+        continue;
+        // search struct for fp* and get process_id
+      }
+
+      }
+
+
+      Hit = searchTLB(PageNumber, process_id);  // see if it is in the TLB
 
       if(HIT){
         continue;
