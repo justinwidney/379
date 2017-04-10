@@ -1,6 +1,14 @@
 #include <stdio.h>
-#include<stdlib.h>
+#include <stdlib.h>
 
+
+#define GLOBAl_MODE 0
+#define LOCAL_MODE 1
+#define FIFO 2
+#define LRU 3
+
+
+int fl_Mode,gp_Mode;
 
 struct page_Table_Entry{
   int PageNumber;
@@ -11,6 +19,39 @@ struct page_Table_Entry{
   struct page_Table_Entry* prev;
   int key; // for hashing
 };
+
+
+// For using Files:
+//////////////////
+struct file_struct {
+  FILE* fp;
+  int finished;
+  int process_id;
+
+};
+
+struct file_struct* newFileStruct (char* text){
+
+  struct file_struct *retVal = malloc(sizeof(struct file_struct));
+  if(retVal == NULL){
+    return NULL;
+  }
+
+  retVal->fp = fopen(text, "r");
+  retVal->finished = 0;
+
+  return retVal;
+}
+
+void delFileStruct (struct file_struct* structure){
+  if( structure != NULL){
+    fclose(structure->fp);
+    free(structure);
+  }
+}
+
+
+////////////
 
 
 struct page_Table_Entry* head;  // our first entry
@@ -164,12 +205,6 @@ struct page_Table_Entry *lookup(struct page_Table_Entry **hashtable, int PN){
 
 
 
-
-
-
-
-
-
 //void remove(int PN){
     //int hash_val = HashFunc(PN);
     //page_Table_Entry *entry = htable[hash_val];
@@ -187,37 +222,92 @@ void Print() {
 	printf("\n");
 }
 
-
-
-
-
 int main(int argc, char *argv[]) {
 
-  int PageNumber, value;
+  int PageNumber, value, x;
   head = NULL;
   tail = NULL;
 
-  //InsertAtTail(2,3);
-  //InsertAtTail(4,5);
-  //InsertAtTail(5,6);
-  //InsertAtHead(1,7);
 
-  struct page_Table_Entry** table = createHashTable(25);
+  if (argc<=6){
+    printf("Enter correct params:\n");
+    return(0);
 
-  hashInsert(table, 5,4);
-  hashInsert(table, 1,2);
-  hashInsert(table, 2,3);
-  hashInsert(table, 3,4);
-  deleteEntryFifo();
-  deleteEntryLru();
+  }
 
-  Print();
-
-  //struct page_Table_Entry* temp = lookup(table, 2);
-
-  //printf("found: %d\n", temp->PageNumber );
+  int pgsize = atof(argv[1]);
+  int tlbentries = atof(argv[2]);
 
 
+  char* tlbentries_Mode = (char*) malloc(2);
+  tlbentries_Mode = argv[3];
+
+  if (*tlbentries_Mode == 'g'){gp_Mode = GLOBAl_MODE;}
+  else if(*tlbentries_Mode == 'l'){gp_Mode = LOCAL_MODE;}
+
+  else{
+    printf("{g|p} wasn't entered\n");
+    return 1;
+    }
+
+
+
+  int quantom_Pages = atof(argv[4]);
+  char* pageTable_Mode = (char*) malloc(2);
+  pageTable_Mode = argv[5];
+
+
+
+  if (*pageTable_Mode == 'f'){
+    fl_Mode = FIFO;
+  }
+  else if(*pageTable_Mode == 'l'){
+    fl_Mode = LRU;
+  }
+
+  else{
+
+    printf("{f|l} wasn't entered\n");
+    return 1;
+    }
+
+   int traceFileAmount = argc - 6;
+
+   //printf("%d\n",traceFileAmount);
+
+
+   struct file_struct *array = malloc(traceFileAmount * sizeof(struct file_struct));
+
+
+   // get the file names and allocate the struct
+   for(x =0; x < traceFileAmount; x++){
+     // create the structs
+
+     struct file_struct *retVal = malloc(sizeof(struct file_struct));
+
+     array[x] = *retVal;
+
+     //array[x].fp = fopen(argv[x+6], "r");
+     array[x].finished = 0;
+
+
+     }
+
+
+
+
+
+   struct page_Table_Entry** table = createHashTable(quantom_Pages);
+
+
+
+   // Free all memory
+
+
+   //free(pageTable_Mode);
+   //free(tlbentries_Mode);
+
+   exit(1);
 
 
 

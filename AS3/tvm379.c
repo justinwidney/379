@@ -360,7 +360,7 @@ int main(int argc, char *argv[]) {
         x++;
       }
 
-      // update our page file pointer 
+      // update our page file pointer
       x = x%traceFileAmount; // loop back around
 
 
