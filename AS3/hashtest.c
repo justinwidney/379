@@ -81,13 +81,14 @@ void InsertAtTail(int PT, int FrameNumber) {
 void deleteEntryFifo()
 {
   /* base case */
-  if(*head_ref == NULL)
+  if(head == NULL)
     return;
 
   /* If node to be deleted is head node */
-
-
-  *head = head->next;
+  head = head->next;
+  free(head->prev);
+  head->prev = NULL;
+  
 
   return;
 }
@@ -95,11 +96,14 @@ void deleteEntryFifo()
 // delete the end
 void deleteEntryLru(){
 
-  struct page_Table_Entry temp = tail;
-  struct page_Table_Entry prev = temp->prev;
+  struct page_Table_Entry* temp = tail;
+  struct page_Table_Entry* prev = temp->prev;
+
   prev->next = NULL;
-  temp->prev = NULL;
+  //temp->prev = NULL;
+
   tail = prev;
+  free(temp);
 
 }
 
@@ -110,7 +114,7 @@ int HashFunc(int PN){
 }
 
 // allocate some memory for our hashtable
-struct page_Table_Entry **createHashTable(int hashSize){
+  struct page_Table_Entry **createHashTable(int hashSize){
   struct page_Table_Entry **table = malloc( sizeof(struct page_Table_Entry)*hashSize);
   return table;
 }
@@ -200,14 +204,18 @@ int main(int argc, char *argv[]) {
 
   struct page_Table_Entry** table = createHashTable(25);
 
+  hashInsert(table, 5,4);
   hashInsert(table, 1,2);
   hashInsert(table, 2,3);
   hashInsert(table, 3,4);
+  deleteEntryFifo();
+  deleteEntryLru();
+
   Print();
 
-  struct page_Table_Entry* temp = lookup(table, 2);
+  //struct page_Table_Entry* temp = lookup(table, 2);
 
-  printf("found: %d\n", temp->PageNumber );
+  //printf("found: %d\n", temp->PageNumber );
 
 
 
