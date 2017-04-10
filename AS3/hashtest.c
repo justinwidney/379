@@ -14,6 +14,8 @@ struct page_Table_Entry{
 
 
 struct page_Table_Entry* head;  // our first entry
+struct page_Table_Entry* tail;
+
 
 
 struct page_Table_Entry* createNewNode(int PT, int FrameNumber){
@@ -38,6 +40,7 @@ void InsertAtHead(int PN, int FrameNumber) {
 	struct page_Table_Entry* newNode = createNewNode(PN, FrameNumber);
 	if(head == NULL) {
 		head = newNode;
+    tail = newNode;
 		return;
 	}
 
@@ -69,10 +72,36 @@ void InsertAtTail(int PT, int FrameNumber) {
 	while(temp->next != NULL) temp = temp->next; // Go To last Node
 	temp->next = newNode;
 	newNode->prev = temp;
+  tail = newNode;
 
 
 }
 
+// delete the first in
+void deleteEntryFifo()
+{
+  /* base case */
+  if(*head_ref == NULL)
+    return;
+
+  /* If node to be deleted is head node */
+
+
+  *head = head->next;
+
+  return;
+}
+
+// delete the end
+void deleteEntryLru(){
+
+  struct page_Table_Entry temp = tail;
+  struct page_Table_Entry prev = temp->prev;
+  prev->next = NULL;
+  temp->prev = NULL;
+  tail = prev;
+
+}
 
 
 
@@ -162,6 +191,7 @@ int main(int argc, char *argv[]) {
 
   int PageNumber, value;
   head = NULL;
+  tail = NULL;
 
   //InsertAtTail(2,3);
   //InsertAtTail(4,5);
