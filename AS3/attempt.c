@@ -243,7 +243,7 @@ int main(int argc, char *argv[]) {
   tlbentries_Mode = argv[3];
 
   if (*tlbentries_Mode == 'g'){gp_Mode = GLOBAl_MODE;}
-  else if(*tlbentries_Mode == 'l'){gp_Mode = LOCAL_MODE;}
+  else if(*tlbentries_Mode == 'p'){gp_Mode = LOCAL_MODE;}
 
   else{
     printf("{g|p} wasn't entered\n");
@@ -253,9 +253,9 @@ int main(int argc, char *argv[]) {
 
 
   int quantom_Pages = atof(argv[4]);
+  int phys_Pages = atof(argv[5]);
   char* pageTable_Mode = (char*) malloc(2);
-  pageTable_Mode = argv[5];
-
+  pageTable_Mode = argv[6];
 
 
   if (*pageTable_Mode == 'f'){
@@ -266,10 +266,9 @@ int main(int argc, char *argv[]) {
   }
 
   else{
-
     printf("{f|l} wasn't entered\n");
     return 1;
-    }
+  }
 
    int traceFileAmount = argc - 6;
 
@@ -280,26 +279,17 @@ int main(int argc, char *argv[]) {
 
 
    // get the file names and allocate the struct
-   for(x =0; x < traceFileAmount; x++){
+   for(x = 0; x < traceFileAmount; x++){
      // create the structs
-
      struct file_struct *retVal = malloc(sizeof(struct file_struct));
 
      array[x] = *retVal;
 
      //array[x].fp = fopen(argv[x+6], "r");
      array[x].finished = 0;
-
-
-     }
-
-
-
-
+   }
 
    struct page_Table_Entry** table = createHashTable(quantom_Pages);
-
-
 
    // Free all memory
 
@@ -308,7 +298,4 @@ int main(int argc, char *argv[]) {
    //free(tlbentries_Mode);
 
    exit(1);
-
-
-
 }
