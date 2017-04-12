@@ -125,38 +125,42 @@ struct page_Table_Entry* InsertAtTail(int PT, int FrameNumber) {
 }
 
 // delete the first in
-int deleteEntryFifo()
+struct page_Table_Entry* deleteEntryFifo()
 {
   /* base case */
   if(head == NULL)
-    return -1;
+    return NULL;
+
 
   /* If node to be deleted is head node */
   int freed_frame = head->FrameNumber;
 
   head = head->next;
-  free(head->prev);
+  //free(head->prev);
   head->prev = NULL;
 
 
-  return freed_frame;
+  return head->prev;
 }
 
 // delete the end
-int deleteEntryLru(){
+struct page_Table_Entry* deleteEntryLru(){
 
   struct page_Table_Entry* temp = tail;
 
   int freed_frame = temp-> FrameNumber;
+  int PageNumber = temp-> PageNumber;
+
+
   struct page_Table_Entry* prev = temp->prev;
 
   prev->next = NULL;
   //temp->prev = NULL;
 
   tail = prev;
-  free(temp);
+  //free(temp);
 
-  return freed_frame;
+  return prev;
 
 }
 
@@ -300,6 +304,52 @@ void print_preorder(node * tree)
 
 }
 
+node* del(node* root, int item)
+{
+    node*savetemp=NULL;
+
+    if(item== root->PageNumber)
+    {
+        if(root->left==NULL&&root->right==NULL) //no child
+        {
+            root=NULL;
+
+        }
+        else if(root->left==NULL||root->right==NULL) //one child
+        {
+            if(root->left!=NULL) //left child
+            {
+                root=root->left;
+            }
+            else               //right child
+            {
+                root=root->right;
+            }
+        }
+        else  if(root->left!=NULL&&root->right!=NULL) //both child
+        {
+            node* temp;
+            savetemp=root->right->left;
+            temp=root;
+            root=root->right;
+            root->left=temp->left;
+        }
+    }
+    else
+    {
+            if(root->PageNumber<item)
+            {
+                root->right=del(root->right,item);
+            }
+            else
+            {
+                root->left=del(root->left,item);
+            }
+    }
+    return(root);
+}
+
+
 
 //////////////////////////
 
@@ -332,13 +382,25 @@ int PageOut(int PageNumber){
 
     if( fl_Mode == LRU){
 
-        freed_frame = deleteEntryLru();
+        struct page_Table_Entry *tmp = deleteEntryLru();
+
+        //node* tmp = search(&root,tmp->PageNumber );
+        del(root, PageNumber);
+
+        freed_frame = tmp->FrameNumber;
+
         // TODO update v/i bit of TLB
     }
 
       else if(fl_Mode == FIFO){
 
-       freed_frame = deleteEntryFifo();
+      struct page_Table_Entry *tmp = deleteEntryFifo();
+      //node* tmp = search(&root,tmp->PageNumber );
+      freed_frame = tmp->FrameNumber;
+      
+      del(root, PageNumber);
+
+
        // TODO update v/i bit of TLB
     }
 
@@ -532,6 +594,8 @@ int main(int argc, char *argv[]) {
    pageTableLookUp(2, table);
    pageTableLookUp(3, table);
    pageTableLookUp(3, table);
+
+   del(root, 2);
 
 
    //insert(&root, 1);
