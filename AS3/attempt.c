@@ -11,7 +11,7 @@
 
 
 int fl_Mode,gp_Mode;
-int tlb_MaxSize; int tlbTreeSize = 0;
+int tlb_MaxSize; int tlbTreeSize = 0; int physpages;
 
 int* tlbHits, pageFaults, pageOuts, avs;
 
@@ -571,7 +571,7 @@ int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
     // Isn't in PageTable
     if (value == -1){
       // Page Out
-      if(free_frame_count == 100){
+      if(free_frame_count == physpages){
           int index = PageOut(PageNumber);
           struct page_Table_Entry* tmp = InsertAtTail(PageNumber, index);
           insert(&root, PageNumber, tmp);
@@ -658,7 +658,7 @@ int main(int argc, char *argv[]) {
   }
 
   int quantom_Pages = atof(argv[4]);
-  int phys_Pages = atof(argv[5]);
+  physpages = atof(argv[5]);
   char* pageTable_Mode = (char*) malloc(2);
   pageTable_Mode = argv[6];
 
@@ -753,7 +753,7 @@ int main(int argc, char *argv[]) {
 
 
   // tests for hash table of size 2
-  TLBSerach(tlbQueue, tlbHash, 10, table, 0);
+  /*TLBSerach(tlbQueue, tlbHash, 10, table, 0);
   TLBSerach(tlbQueue, tlbHash, 11, table, 0);
   TLBSerach(tlbQueue, tlbHash, 1, table, 0);
   TLBSerach(tlbQueue, tlbHash, 135, table, 0);
@@ -770,14 +770,21 @@ int main(int argc, char *argv[]) {
   TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
   TLBSerach(tlbQueue, tlbHash, 43, table, 0);
   TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
-  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
-
-
-  tlbQueue = TLBFlushQueue(tlbQueue, tlb_MaxSize);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);*/
+  
+  
+  /* does a bunch of searches, all tlb should fail, then look into pt
+   * which should then insert into pt */
+  int j;
+  for(j = 0; j < 10000; j++) {
+    TLBSerach(tlbQueue, tlbHash, j, table, 0);
+  }
+  
+  /*tlbQueue = TLBFlushQueue(tlbQueue, tlb_MaxSize);
   tlbHash = TLBFlushHash(tlbHash, tlb_MaxSize);
   TLBSerach(tlbQueue, tlbHash, 10, table, 0);
   TLBSerach(tlbQueue, tlbHash, 11, table, 0);
-  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);*/
   //printf("root: %d, lchild: %d, rchild: %d\n", tlbRoot->PageNumber, tlbRoot->left->PageNumber, tlbRoot->right->PageNumber);
 
 
