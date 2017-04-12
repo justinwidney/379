@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 
 
 #define GLOBAl_MODE 0
@@ -308,6 +310,12 @@ void Print() {
 int main(int argc, char *argv[]) {
 
   int PageNumber, value, x;
+
+  int *buffer;
+  buffer = (int *)malloc(10*sizeof(int));
+
+  int* address = (int*)malloc(1*sizeof(int));
+
   head = NULL;
   tail = NULL;
 
@@ -373,6 +381,38 @@ int main(int argc, char *argv[]) {
    }
 
    struct page_Table_Entry** table = createHashTable(quantom_Pages);
+
+   FILE* fp = fopen(argv[7], "r");
+
+
+   int i=0;
+
+   while(i++<20){
+
+     for(x=0; x<4; x++){
+     fread(buffer, 1, 1, fp);
+     address[0]+=buffer[0];
+
+     memset(buffer, 0, sizeof(buffer));
+     }
+
+
+     int shift = address[0] >> 12;
+     int offset = address[0] << 20;
+
+     int PageNumber = shift >> 12; //20xbits 10 0's
+
+     //printf("? %d ?", offset);
+     offset = offset >> 20;  // ignore
+
+
+
+     //printf("%x\n", shift);
+     //printf("final %04x\n", address[0]);
+     printf("PN %d && offset %d\n",shift, offset);
+     memset(address, 0, sizeof(address));
+   }
+
 
    pageTableLookUp(1, table);
    pageTableLookUp(2, table);
