@@ -771,6 +771,7 @@ int main(int argc, char *argv[]) {
 
   int i=0;
 
+   int doneflag = 1;
   while(doneflag){
   while(i++<quantom_Pages){
 
@@ -799,8 +800,8 @@ int main(int argc, char *argv[]) {
 
    }
 
-   int doneflag = 0;
-   
+
+   doneflag = 0;
    for(x = 0; x < traceFileAmount; x++){
      if(  array[x].finished == 0; ){
       doneflag = 1;
