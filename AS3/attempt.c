@@ -256,6 +256,7 @@ struct bin_tree *root;     // root
 
 void insert(node ** tree, int val, struct page_Table_Entry* match) {
     node *temp = NULL;
+
     if(!(*tree))
     {
         temp = (node *)malloc(sizeof(node));
@@ -316,35 +317,59 @@ void print_preorder(node * tree) {
 
 }
 
+void print_postorder(node * tree)
+{
+    if (tree)
+    {
+        print_postorder(tree->left);
+        print_postorder(tree->right);
+        printf("%d\n",tree->PageNumber);
+    }
+}
+
+int t =0;
+
 node* del(node* root, int item) {
 
     node*savetemp=NULL;
 
 
+    //print_postorder(root);
+    //exit(1);
+    if(root == NULL)
+        printf("\nValue does not exist in tree!");
+
+
+
     if(item == root->PageNumber)
     {
-        printf("check\n");
+
         if(root->left==NULL&&root->right==NULL) //no child
         {
 
             root=NULL;
 
+
         }
         else if(root->left==NULL||root->right==NULL) //one child
         {
+
             if(root->left!=NULL) //left child
             {
-                printf("check\n");
+
                 root=root->left;
+
             }
             else               //right child
             {
-                printf("check2\n");
+
                 root=root->right;
+
             }
         }
         else  if(root->left!=NULL&&root->right!=NULL) //both child
         {
+            printf("?1\n");
             node* temp;
             savetemp=root->right->left;
             temp=root;
@@ -356,20 +381,25 @@ node* del(node* root, int item) {
     else
     {
 
+
             if(root->PageNumber < item)
             {
-                printf("check3\n");
+
+
+
+
                 root->right = del(root->right, item);
+
             }
             else
             {
+
 
                 root->left=del(root->left, item);
             }
     }
 
-    printf("return\n");
-    return(root);
+    return root;
 }
 
 
@@ -564,21 +594,24 @@ int PageOut(int PageNumber){
 
       else if(fl_Mode == FIFO){
 
+
+
       struct page_Table_Entry *tmp = deleteEntryFifo();
 
 
 
       //node* tmp = search(&root,tmp->PageNumber );
       freed_frame = tmp->FrameNumber;
+      int delete_Page = tmp->PageNumber;
 
 
       free(tmp);
 
-      printf("Free Frame %d\n",freed_frame );
+      printf("Free Frame %d, %d\n",freed_frame, PageNumber);
 
-      del(root, PageNumber);
+      del(root, delete_Page);
 
-      printf("second Got here\n");
+      //printf("second Got here\n");
 
        // TODO update v/i bit of TLB
     }
@@ -768,13 +801,13 @@ int main(int argc, char *argv[]) {
 
    table = realloc(table, sizeof (struct page_Table_Entry) * physpages);   // change later
 
-  pageTableLookUp(1, table);
-  pageTableLookUp(2, table);
-  pageTableLookUp(3, table);
-  pageTableLookUp(3, table);
+  //pageTableLookUp(1, table);
+  //pageTableLookUp(2, table);
+  //pageTableLookUp(3, table);
+  //pageTableLookUp(3, table);
 
 
-  del(root, 2);
+  //del(root, 2);
 
   TLBQueue* tlbQueue = createTLBQueue(tlb_MaxSize);
   TLBHashMap* tlbHash = createTLBHash(tlb_MaxSize);
@@ -823,7 +856,7 @@ int main(int argc, char *argv[]) {
 
 
 
-  for(x=0; traceFileAmount; x++){
+  for(x=0; x< traceFileAmount; x++){
 
     printf("Tlbhits%d: pf%d: \n pageouts%d avs%d\n",x,x,x,x);
 
