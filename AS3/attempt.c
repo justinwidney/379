@@ -161,7 +161,7 @@ struct page_Table_Entry* deleteEntryLru(){
   tail = prev;
   //free(temp);
 
-  return prev;
+  return temp;
 
 }
 
@@ -536,7 +536,7 @@ int PageOut(int PageNumber){
         del(root, PageNumber);
 
         freed_frame = tmp->FrameNumber;
-        free(tmp);  // Don't run out of mem. 
+        free(tmp);  // Don't run out of mem.
 
         // TODO update v/i bit of TLB
     }
