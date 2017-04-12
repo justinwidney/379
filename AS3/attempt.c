@@ -13,7 +13,7 @@
 int fl_Mode,gp_Mode;
 int tlb_MaxSize; int tlbTreeSize = 0; int physpages;
 
-int* tlbHits, pageFaults, pageOuts, avs;
+int* tlbHits, *pageFaults, *pageOuts, *avs;
 
 int free_frame_count =0;
 int pageTable_count = 0;
@@ -135,15 +135,21 @@ struct page_Table_Entry* deleteEntryFifo()
     return NULL;
 
 
+
   /* If node to be deleted is head node */
   int freed_frame = head->FrameNumber;
 
+  struct page_Table_Entry* temp = head;
+
   head = head->next;
+
+
   //free(head->prev);
   head->prev = NULL;
 
+  printf("got HERE\n");
 
-  return head->prev;
+  return temp;
 }
 
 // delete the end
@@ -153,6 +159,7 @@ struct page_Table_Entry* deleteEntryLru(){
 
   int freed_frame = temp-> FrameNumber;
   int PageNumber = temp-> PageNumber;
+
 
 
   struct page_Table_Entry* prev = temp->prev;
@@ -310,12 +317,16 @@ void print_preorder(node * tree) {
 }
 
 node* del(node* root, int item) {
+
     node*savetemp=NULL;
 
-    if(item== root->PageNumber)
+
+    if(item == root->PageNumber)
     {
+        printf("check\n");
         if(root->left==NULL&&root->right==NULL) //no child
         {
+
             root=NULL;
 
         }
@@ -323,10 +334,12 @@ node* del(node* root, int item) {
         {
             if(root->left!=NULL) //left child
             {
+                printf("check\n");
                 root=root->left;
             }
             else               //right child
             {
+                printf("check2\n");
                 root=root->right;
             }
         }
@@ -339,17 +352,23 @@ node* del(node* root, int item) {
             root->left=temp->left;
         }
     }
+
     else
     {
-            if(root->PageNumber<item)
+
+            if(root->PageNumber < item)
             {
-                root->right=del(root->right,item);
+                printf("check3\n");
+                root->right = del(root->right, item);
             }
             else
             {
-                root->left=del(root->left,item);
+
+                root->left=del(root->left, item);
             }
     }
+
+    printf("return\n");
     return(root);
 }
 
@@ -547,12 +566,19 @@ int PageOut(int PageNumber){
 
       struct page_Table_Entry *tmp = deleteEntryFifo();
 
+
+
       //node* tmp = search(&root,tmp->PageNumber );
       freed_frame = tmp->FrameNumber;
+
+
       free(tmp);
+
+      printf("Free Frame %d\n",freed_frame );
 
       del(root, PageNumber);
 
+      printf("second Got here\n");
 
        // TODO update v/i bit of TLB
     }
@@ -567,6 +593,7 @@ int PageOut(int PageNumber){
 }
 
 int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
+
     int value = pageTableScan(PageNumber);
     // Isn't in PageTable
     if (value == -1){
@@ -739,6 +766,8 @@ int main(int argc, char *argv[]) {
 
    }
 
+   table = realloc(table, sizeof (struct page_Table_Entry) * physpages);   // change later
+
   pageTableLookUp(1, table);
   pageTableLookUp(2, table);
   pageTableLookUp(3, table);
@@ -771,15 +800,15 @@ int main(int argc, char *argv[]) {
   TLBSerach(tlbQueue, tlbHash, 43, table, 0);
   TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
   TLBSerach(tlbQueue, tlbHash, 43, table, 0);*/
-  
-  
+
+
   /* does a bunch of searches, all tlb should fail, then look into pt
    * which should then insert into pt */
   int j;
   for(j = 0; j < 10000; j++) {
     TLBSerach(tlbQueue, tlbHash, j, table, 0);
   }
-  
+
   /*tlbQueue = TLBFlushQueue(tlbQueue, tlb_MaxSize);
   tlbHash = TLBFlushHash(tlbHash, tlb_MaxSize);
   TLBSerach(tlbQueue, tlbHash, 10, table, 0);
