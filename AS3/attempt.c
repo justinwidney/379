@@ -358,6 +358,7 @@ typedef struct TLBNode {
     struct TLBNode *next;
     struct TLBNode *prev;
     int pageNumber;
+    int pid;
 } TLBNode;
 
 
@@ -375,10 +376,14 @@ typedef struct TLBHashMap {
 } TLBHashMap;
 
 
-TLBNode* newTLBNode(int pageNumber) {
+TLBNode* newTLBNode(int pageNumber, int pid) {
     TLBNode *temp = (TLBNode *)malloc(sizeof(TLBNode));
     temp->pageNumber = pageNumber;
     temp->prev = temp->next = NULL;
+
+
+
+    temp->pid = pid;
 
     return temp;
 }
@@ -431,13 +436,13 @@ void delTLBPage(TLBQueue *queue) {
 }
 
 
-void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
+void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber, int pid) {
     if (TLBFull(queue)) {
         //printf("tlb full deleting\n");
         hash->entries[TLBHasher(queue->last->pageNumber, hash->tlbSize)] = NULL;
         delTLBPage(queue);
     }
-    TLBNode *temp = newTLBNode(pageNumber);
+    TLBNode *temp = newTLBNode(pageNumber, pid);
     temp->next = queue->first;
 
     if (TLBEmpty(queue)) {
@@ -453,19 +458,21 @@ void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
 }
 
 
-void TLBSerach(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
+void TLBSerach(TLBQueue *queue, TLBHashMap *hash, int pageNumber, struct page_Table_Entry** PageTable, int pid) {
     TLBNode *page = hash->entries[TLBHasher(pageNumber, hash->tlbSize)];
     if (page == NULL) {
-        //printf("New reference inserted, %d\n", pageNumber);
-        insertTLB(queue, hash, pageNumber);
+        printf("TLB Miss! New reference inserted, %d\n", pageNumber);
+        pageTableLookUp(pageNumber, PageTable);
+        insertTLB(queue, hash, pageNumber, pid);
     }
     // for collisions in table
     else if (page->pageNumber != pageNumber) {
-        //printf("New reference inserted, %d\n", pageNumber);
-        insertTLB(queue, hash, pageNumber);
+        printf("TLB Miss! New reference inserted, %d\n", pageNumber);
+        pageTableLookUp(pageNumber, PageTable);
+        insertTLB(queue, hash, pageNumber, pid);
     }
     else {
-      //printf("found %d\n", pageNumber);
+      printf("TLB hit! PN: %d\n", pageNumber);
       if(page != queue->first) {
         page->prev->next = page->next;
         if (page->next) {
@@ -485,7 +492,19 @@ void TLBSerach(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
     }
 }
 
+
+TLBQueue *TLBFlushQueue(TLBQueue *queue, int size) {
+  free(queue);
+  return createTLBQueue(tlb_MaxSize);
+}
+
+TLBHashMap *TLBFlushHash(TLBHashMap *hash, int size) {
+  free(hash);
+  return createTLBHash(tlb_MaxSize);
+}
 /* End of TLB structure */
+
+
 
 // look up said entry, add it
 // Return -1 for PageFault, or X for position in struct
@@ -543,47 +562,30 @@ int PageOut(int PageNumber){
 }
 
 int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
-
-
     int value = pageTableScan(PageNumber);
-
-
-
     // Isn't in PageTable
     if (value == -1){
-
       // Page Out
       if(free_frame_count == 100){
-
           int index = PageOut(PageNumber);
-
           struct page_Table_Entry* tmp = InsertAtTail(PageNumber, index);
           insert(&root, PageNumber, tmp);
-
       }
-
       // proceed
       else{
       //struct page_Table_Entry* newNode = createNewNode(PN, free_frame_count);
-
       struct page_Table_Entry* tmp = InsertAtTail(PageNumber, free_frame_count);
       insert(&root, PageNumber, tmp);
 
       free_frame_count++;
       //table[pageTable_count] =
       }
-
     }
-
     else{
       printf("found %d inside PT\n", PageNumber);
       //TODO update TLB, can be done inside TLB function
 
     }
-
-
-
-
 }
 
 
@@ -698,9 +700,11 @@ int main(int argc, char *argv[]) {
 
   int i=0;
 
-  while(i++ <20){
+
+  while(i++<20){
 
     fp = array[rotation].fp;
+
 
     for(x=0; x<4; x++){
       fread(buffer, 1, 1, fp);
@@ -729,31 +733,40 @@ int main(int argc, char *argv[]) {
   pageTableLookUp(3, table);
   pageTableLookUp(3, table);
 
+
   del(root, 2);
 
   TLBQueue* tlbQueue = createTLBQueue(tlb_MaxSize);
-  TLBHashMap* hash = createTLBHash(tlb_MaxSize);
+  TLBHashMap* tlbHash = createTLBHash(tlb_MaxSize);
+
 
 
   // tests for hash table of size 2
-  TLBSerach(tlbQueue, hash, 10);
-  TLBSerach(tlbQueue, hash, 11);
-  TLBSerach(tlbQueue, hash, 1);
-  TLBSerach(tlbQueue, hash, 135);
-  TLBSerach(tlbQueue, hash, 654);
-  TLBSerach(tlbQueue, hash, 43);
-  TLBSerach(tlbQueue, hash, 655344);
-  TLBSerach(tlbQueue, hash, 10);
-  TLBSerach(tlbQueue, hash, 11);
-  TLBSerach(tlbQueue, hash, 1);
-  TLBSerach(tlbQueue, hash, 135);
-  TLBSerach(tlbQueue, hash, 654);
-  TLBSerach(tlbQueue, hash, 43);
-  TLBSerach(tlbQueue, hash, 655344);
-  TLBSerach(tlbQueue, hash, 655344);
-  TLBSerach(tlbQueue, hash, 43);
-  TLBSerach(tlbQueue, hash, 655344);
-  TLBSerach(tlbQueue, hash, 43);
+  TLBSerach(tlbQueue, tlbHash, 10, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 11, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 1, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 135, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 654, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 10, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 11, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 1, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 135, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 654, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
+
+
+  tlbQueue = TLBFlushQueue(tlbQueue, tlb_MaxSize);
+  tlbHash = TLBFlushHash(tlbHash, tlb_MaxSize);
+  TLBSerach(tlbQueue, tlbHash, 10, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 11, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
   //printf("root: %d, lchild: %d, rchild: %d\n", tlbRoot->PageNumber, tlbRoot->left->PageNumber, tlbRoot->right->PageNumber);
 
 
