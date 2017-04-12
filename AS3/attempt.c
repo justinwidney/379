@@ -771,8 +771,8 @@ int main(int argc, char *argv[]) {
 
   int i=0;
 
-
-  while(i++<20){
+  while(doneflag){
+  while(i++<quantom_Pages){
 
     fp = array[rotation].fp;
 
@@ -799,7 +799,18 @@ int main(int argc, char *argv[]) {
 
    }
 
-   table = realloc(table, sizeof (struct page_Table_Entry) * physpages);   // change later
+   int doneflag = 0;
+   
+   for(x = 0; x < traceFileAmount; x++){
+     if(  array[x].finished == 0; ){
+      doneflag = 1;
+     }
+
+   }
+
+ }
+
+   //table = realloc(table, sizeof (struct page_Table_Entry) * physpages);   // change later
 
   //pageTableLookUp(1, table);
   //pageTableLookUp(2, table);
@@ -837,10 +848,11 @@ int main(int argc, char *argv[]) {
 
   /* does a bunch of searches, all tlb should fail, then look into pt
    * which should then insert into pt */
-  int j;
-  for(j = 0; j < 10000; j++) {
-    TLBSerach(tlbQueue, tlbHash, j, table, 0);
-  }
+
+  //int j;
+  //for(j = 0; j < 10000; j++) {
+  //  TLBSerach(tlbQueue, tlbHash, j, table, 0);
+  //}
 
   /*tlbQueue = TLBFlushQueue(tlbQueue, tlb_MaxSize);
   tlbHash = TLBFlushHash(tlbHash, tlb_MaxSize);
