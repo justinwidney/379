@@ -11,6 +11,7 @@
 
 
 int fl_Mode,gp_Mode;
+int tlb_Size;
 
 int free_frame_count =0;
 int pageTable_count = 0;
@@ -166,36 +167,36 @@ struct page_Table_Entry* deleteEntryLru(){
 
 
 
-int HashFunc(int PN){
-  return PN % 25;
+int tlbHashFunc(int PN){
+  return PN % tlb_Size;
 }
 
 // allocate some memory for our hashtable
-  struct page_Table_Entry **createHashTable(int hashSize){
+struct page_Table_Entry **createHashTable(int hashSize){
   struct page_Table_Entry **table = malloc( sizeof (struct page_Table_Entry) *hashSize);
   return table;
 }
 
 void hashInsert(struct page_Table_Entry **hashtable,  int PN, int FN){
-int arrayIndex = HashFunc(PN);
+  int arrayIndex = tlbHashFunc(PN);
+  struct page_Table_Entry* newNode = createNewNode(PN, FN);
+  hashtable[arrayIndex] = newNode;
+}
 
-  if(hashtable[arrayIndex]!= NULL){
-  InsertAtTail(PN,FN);
+struct page_Table_Entry *TLBlookup(struct page_Table_Entry **hashtable, int PN){
+  int arrayIndex = tlbHashFunc(PN);
+  if(hashtable[arrayIndex] != NULL) {
+    if(hashtable[arrayIndex]->PageNumber == PN) {
+      return hashtable[arrayIndex];
+    }
   }
-  else{
-    printf("creating new node\n");
-    struct page_Table_Entry* newNode = createNewNode(PN, FN);
-    InsertAtTail(PN,FN);
-    hashtable[arrayIndex] = newNode;
-  }
-
+  return NULL;
 }
 
 // may need some work
 
 struct page_Table_Entry *lookup(struct page_Table_Entry **hashtable, int PN){
-  int arrayIndex = HashFunc(PN);
-
+  //int arrayIndex = HashFunc(PN);
   struct page_Table_Entry* newNode;
 
 
@@ -207,17 +208,15 @@ struct page_Table_Entry *lookup(struct page_Table_Entry **hashtable, int PN){
 	}
 
 	while(temp->next != NULL) {
-
-  if(temp->PageNumber == PN){
-    printf("found it\n");
+    if(temp->PageNumber == PN){
+      return temp;
+    }
+    temp = temp->next;
+  }
+  if(temp->PageNumber == PN) {
     return temp;
   }
-
-  temp = temp->next;
-  }
-
   return NULL;
-
 }
 
 
@@ -501,7 +500,7 @@ int main(int argc, char *argv[]) {
   }
 
   int pgsize = atof(argv[1]);
-  int tlbentries = atof(argv[2]);
+  tlb_Size = atof(argv[2]);
 
 
   char* tlbentries_Mode = (char*) malloc(2);
@@ -513,7 +512,7 @@ int main(int argc, char *argv[]) {
   else{
     printf("{g|p} wasn't entered\n");
     return 1;
-    }
+  }
 
 
 
@@ -554,7 +553,7 @@ int main(int argc, char *argv[]) {
      array[x].finished = 0;
    }
 
-   struct page_Table_Entry** table = createHashTable(quantom_Pages);
+   struct page_Table_Entry** table = createHashTable(tlb_Size);
 
    //struct page_Table_Entry** tree = createHashTable(quantom_Pages);
 
