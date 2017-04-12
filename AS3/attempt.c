@@ -425,6 +425,7 @@ void delTLBPage(TLBQueue *queue) {
 
 void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
     if (TLBFull(queue)) {
+        //printf("tlb full deleting\n");
         hash->entries[TLBHasher(queue->last->pageNumber, hash->tlbSize)] = NULL;
         delTLBPage(queue);
     }
@@ -446,27 +447,32 @@ void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
 
 void TLBSerach(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
     TLBNode *page = hash->entries[TLBHasher(pageNumber, hash->tlbSize)];
- 
     if (page == NULL) {
         printf("New reference inserted, %d\n", pageNumber);
         insertTLB(queue, hash, pageNumber);
     }
-    else if (page != queue->first) {
+    else if (page->pageNumber != pageNumber) {
+        printf("New reference inserted, %d\n", pageNumber);
+        insertTLB(queue, hash, pageNumber);
+    }
+    else if (page->pageNumber == pageNumber) {
       printf("found %d\n", pageNumber);
-      page->prev->next = page->next;
-      if (page->next) {
-        page->next->prev = page->prev;
-      }
-      if (page == queue->last) {
-        queue->last = page->prev;
-        queue->last->next = NULL;
-      }
-      page->next = queue->first;
-      page->prev = NULL;
+      if(page != queue->first) {
+        page->prev->next = page->next;
+        if (page->next) {
+          page->next->prev = page->prev;
+        }
+        if (page == queue->last) {
+          queue->last = page->prev;
+          queue->last->next = NULL;
+        }
+        page->next = queue->first;
+        page->prev = NULL;
 
-      page->next->prev = page;
+        page->next->prev = page;
 
-      queue->first = page;
+        queue->first = page;
+      }
     }
 }
 
@@ -705,12 +711,8 @@ int main(int argc, char *argv[]) {
   TLBQueue* tlbQueue = createTLBQueue(tlb_MaxSize);
   TLBHashMap* hash = createTLBHash(tlb_MaxSize);
   
-  insertTLB(tlbQueue, hash, 10);
-  insertTLB(tlbQueue, hash, 11);
-  insertTLB(tlbQueue, hash, 1);
-  insertTLB(tlbQueue, hash, 135);
-  insertTLB(tlbQueue, hash, 654);
   
+  // tests for hash table of size 2
   TLBSerach(tlbQueue, hash, 10);
   TLBSerach(tlbQueue, hash, 11);
   TLBSerach(tlbQueue, hash, 1);
@@ -718,6 +720,17 @@ int main(int argc, char *argv[]) {
   TLBSerach(tlbQueue, hash, 654);
   TLBSerach(tlbQueue, hash, 43);
   TLBSerach(tlbQueue, hash, 655344);
+  TLBSerach(tlbQueue, hash, 10);
+  TLBSerach(tlbQueue, hash, 11);
+  TLBSerach(tlbQueue, hash, 1);
+  TLBSerach(tlbQueue, hash, 135);
+  TLBSerach(tlbQueue, hash, 654);
+  TLBSerach(tlbQueue, hash, 43);
+  TLBSerach(tlbQueue, hash, 655344);
+  TLBSerach(tlbQueue, hash, 655344);
+  TLBSerach(tlbQueue, hash, 43);
+  TLBSerach(tlbQueue, hash, 655344);
+  TLBSerach(tlbQueue, hash, 43);
   //printf("root: %d, lchild: %d, rchild: %d\n", tlbRoot->PageNumber, tlbRoot->left->PageNumber, tlbRoot->right->PageNumber);
   
   
