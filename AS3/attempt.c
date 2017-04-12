@@ -773,12 +773,21 @@ int main(int argc, char *argv[]) {
 
    int doneflag = 1;
   while(doneflag){
+    i =0;
   while(i++<quantom_Pages){
 
+    if(array[rotation].finished != 1){
     fp = array[rotation].fp;
+    }
 
     for(x=0; x<4; x++){
-      fread(buffer, 1, 1, fp);
+      int check = fread(buffer, 1, 1, fp);
+
+      if(check == 0){
+        array[rotation].finished = 1; // if no more ytes read
+        break;
+      }
+
       address[0]+=buffer[0];
       memset(buffer, 0, sizeof(buffer));
     }
@@ -789,7 +798,7 @@ int main(int argc, char *argv[]) {
     offset = offset >> 20;  // ignore
     //printf("%x\n", shift);
     //printf("final %04x\n", address[0]);
-    printf("PN %d && offset %d\n",PageNumber, offset); // Page Number will be 0 for a while as shift pageSize bits over
+    //printf("PN %d && offset %d\n",PageNumber, offset); // Page Number will be 0 for a while as shift pageSize bits over
     memset(address, 0, sizeof(address));
 
     rotation = rotation++;
@@ -803,9 +812,12 @@ int main(int argc, char *argv[]) {
 
    doneflag = 0;
    for(x = 0; x < traceFileAmount; x++){
-     if(  array[x].finished == 0; ){
+     if(  array[x].finished == 0 ){
       doneflag = 1;
      }
+     else{
+         printf("%d file closed\n",x);
+       }
 
    }
 
