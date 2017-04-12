@@ -448,15 +448,16 @@ void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
 void TLBSerach(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
     TLBNode *page = hash->entries[TLBHasher(pageNumber, hash->tlbSize)];
     if (page == NULL) {
-        printf("New reference inserted, %d\n", pageNumber);
+        //printf("New reference inserted, %d\n", pageNumber);
         insertTLB(queue, hash, pageNumber);
     }
+    // for collisions in table
     else if (page->pageNumber != pageNumber) {
-        printf("New reference inserted, %d\n", pageNumber);
+        //printf("New reference inserted, %d\n", pageNumber);
         insertTLB(queue, hash, pageNumber);
     }
-    else if (page->pageNumber == pageNumber) {
-      printf("found %d\n", pageNumber);
+    else {
+      //printf("found %d\n", pageNumber);
       if(page != queue->first) {
         page->prev->next = page->next;
         if (page->next) {
