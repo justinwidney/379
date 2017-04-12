@@ -424,13 +424,13 @@ void delTLBPage(TLBQueue *queue) {
 }
  
 
-void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
+void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber, int pid) {
     if (TLBFull(queue)) {
         //printf("tlb full deleting\n");
         hash->entries[TLBHasher(queue->last->pageNumber, hash->tlbSize)] = NULL;
         delTLBPage(queue);
     }
-    TLBNode *temp = newTLBNode(pageNumber, 0);
+    TLBNode *temp = newTLBNode(pageNumber, pid);
     temp->next = queue->first;
  
     if (TLBEmpty(queue)) {
@@ -446,18 +446,18 @@ void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
 }
  
 
-void TLBSerach(TLBQueue *queue, TLBHashMap *hash, int pageNumber, struct page_Table_Entry** PageTable) {
+void TLBSerach(TLBQueue *queue, TLBHashMap *hash, int pageNumber, struct page_Table_Entry** PageTable, int pid) {
     TLBNode *page = hash->entries[TLBHasher(pageNumber, hash->tlbSize)];
     if (page == NULL) {
         printf("TLB Miss! New reference inserted, %d\n", pageNumber);
         pageTableLookUp(pageNumber, PageTable);
-        insertTLB(queue, hash, pageNumber);
+        insertTLB(queue, hash, pageNumber, pid);
     }
     // for collisions in table
     else if (page->pageNumber != pageNumber) {
         printf("TLB Miss! New reference inserted, %d\n", pageNumber);
         pageTableLookUp(pageNumber, PageTable);
-        insertTLB(queue, hash, pageNumber);
+        insertTLB(queue, hash, pageNumber, pid);
     }
     else {
       printf("TLB hit! PN: %d\n", pageNumber);
@@ -478,6 +478,17 @@ void TLBSerach(TLBQueue *queue, TLBHashMap *hash, int pageNumber, struct page_Ta
         queue->first = page;
       }
     }
+}
+
+
+TLBQueue *TLBFlushQueue(TLBQueue *queue, int size) {
+  free(queue);
+  return createTLBQueue(tlb_MaxSize);
+}
+
+TLBHashMap *TLBFlushHash(TLBHashMap *hash, int size) {
+  free(hash);
+  return createTLBHash(tlb_MaxSize);
 }
 /* End of TLB structure */
 
@@ -672,7 +683,7 @@ int main(int argc, char *argv[]) {
 
   int i=0;
 
-  while(i++<20){
+  /*while(i++<20){
     for(x=0; x<4; x++){
       fread(buffer, 1, 1, fp);
       address[0]+=buffer[0];
@@ -694,31 +705,38 @@ int main(int argc, char *argv[]) {
   pageTableLookUp(3, table);
   pageTableLookUp(3, table);
 
-   del(root, 2);
+   del(root, 2);*/
   
   TLBQueue* tlbQueue = createTLBQueue(tlb_MaxSize);
-  TLBHashMap* hash = createTLBHash(tlb_MaxSize);
+  TLBHashMap* tlbHash = createTLBHash(tlb_MaxSize);
   
   
   // tests for hash table of size 2
-  TLBSerach(tlbQueue, hash, 10, table);
-  TLBSerach(tlbQueue, hash, 11, table);
-  TLBSerach(tlbQueue, hash, 1, table);
-  TLBSerach(tlbQueue, hash, 135, table);
-  TLBSerach(tlbQueue, hash, 654, table);
-  TLBSerach(tlbQueue, hash, 43, table);
-  TLBSerach(tlbQueue, hash, 655344, table);
-  TLBSerach(tlbQueue, hash, 10, table);
-  TLBSerach(tlbQueue, hash, 11, table);
-  TLBSerach(tlbQueue, hash, 1, table);
-  TLBSerach(tlbQueue, hash, 135, table);
-  TLBSerach(tlbQueue, hash, 654, table);
-  TLBSerach(tlbQueue, hash, 43, table);
-  TLBSerach(tlbQueue, hash, 655344, table);
-  TLBSerach(tlbQueue, hash, 655344, table);
-  TLBSerach(tlbQueue, hash, 43, table);
-  TLBSerach(tlbQueue, hash, 655344, table);
-  TLBSerach(tlbQueue, hash, 43, table);
+  TLBSerach(tlbQueue, tlbHash, 10, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 11, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 1, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 135, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 654, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 10, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 11, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 1, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 135, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 654, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
+  
+  
+  tlbQueue = TLBFlushQueue(tlbQueue, tlb_MaxSize);
+  tlbHash = TLBFlushHash(tlbHash, tlb_MaxSize);
+  TLBSerach(tlbQueue, tlbHash, 10, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 11, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
   //printf("root: %d, lchild: %d, rchild: %d\n", tlbRoot->PageNumber, tlbRoot->left->PageNumber, tlbRoot->right->PageNumber);
   
   
