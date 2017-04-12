@@ -745,7 +745,7 @@ int main(int argc, char *argv[]) {
 
 
   // tests for hash table of size 2
-  TLBSerach(tlbQueue, tlbHash, 10, table, 0);
+  /*TLBSerach(tlbQueue, tlbHash, 10, table, 0);
   TLBSerach(tlbQueue, tlbHash, 11, table, 0);
   TLBSerach(tlbQueue, tlbHash, 1, table, 0);
   TLBSerach(tlbQueue, tlbHash, 135, table, 0);
@@ -762,14 +762,21 @@ int main(int argc, char *argv[]) {
   TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
   TLBSerach(tlbQueue, tlbHash, 43, table, 0);
   TLBSerach(tlbQueue, tlbHash, 655344, table, 0);
-  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
-
-
-  tlbQueue = TLBFlushQueue(tlbQueue, tlb_MaxSize);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);*/
+  
+  
+  /* does a bunch of searches, all tlb should fail, then look into pt
+   * which should then insert into pt */
+  int j;
+  for(j = 0; j < 10000; j++) {
+    TLBSerach(tlbQueue, tlbHash, j, table, 0);
+  }
+  
+  /*tlbQueue = TLBFlushQueue(tlbQueue, tlb_MaxSize);
   tlbHash = TLBFlushHash(tlbHash, tlb_MaxSize);
   TLBSerach(tlbQueue, tlbHash, 10, table, 0);
   TLBSerach(tlbQueue, tlbHash, 11, table, 0);
-  TLBSerach(tlbQueue, tlbHash, 43, table, 0);
+  TLBSerach(tlbQueue, tlbHash, 43, table, 0);*/
   //printf("root: %d, lchild: %d, rchild: %d\n", tlbRoot->PageNumber, tlbRoot->left->PageNumber, tlbRoot->right->PageNumber);
 
 
