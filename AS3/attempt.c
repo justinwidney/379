@@ -708,7 +708,6 @@ int main(int argc, char *argv[]) {
 
     fp = array[rotation].fp;
 
-
     for(x=0; x<4; x++){
       fread(buffer, 1, 1, fp);
       address[0]+=buffer[0];
@@ -727,6 +726,7 @@ int main(int argc, char *argv[]) {
     rotation = rotation++;
     rotation = rotation % (argc-7); // rotate through the files 0,1, .. 0,1
 
+    if(quantom_Pages* i <= pgsize)
     table = realloc(table, sizeof (struct page_Table_Entry) * quantom_Pages * i );  // resizePageTable every runthrough
 
    }
