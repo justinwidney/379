@@ -11,7 +11,7 @@
 
 
 int fl_Mode,gp_Mode;
-int tlb_Size;
+int tlb_MaxSize; int tlbTreeSize = 0;
 
 int free_frame_count =0;
 int pageTable_count = 0;
@@ -168,7 +168,7 @@ struct page_Table_Entry* deleteEntryLru(){
 
 
 int tlbHashFunc(int PN){
-  return PN % tlb_Size;
+  return PN % tlb_MaxSize;
 }
 
 // allocate some memory for our hashtable
@@ -229,7 +229,6 @@ struct bin_tree {
   struct bin_tree * right, * left;
   int PageNumber;
   struct page_Table_Entry* match; // pointer to page table entry
-
 };
 
 typedef struct bin_tree node;
@@ -237,8 +236,8 @@ typedef struct bin_tree node;
 struct bin_tree *root;     // root
 
 
-void insert(node ** tree, int val, struct page_Table_Entry* match)
-{
+
+void insert(node ** tree, int val, struct page_Table_Entry* match) {
     node *temp = NULL;
     if(!(*tree))
     {
@@ -261,8 +260,7 @@ void insert(node ** tree, int val, struct page_Table_Entry* match)
 
 }
 
-void deltree(node * tree)
-{
+void deltree(node * tree) {
     if (tree)
     {
         deltree(tree->left);
@@ -271,8 +269,7 @@ void deltree(node * tree)
     }
 }
 
-node* search(node ** tree, int val)
-{
+node* search(node ** tree, int val) {
     if(!(*tree))
     {
         return NULL;
@@ -292,8 +289,7 @@ node* search(node ** tree, int val)
     }
 }
 
-void print_preorder(node * tree)
-{
+void print_preorder(node * tree) {
     if (tree)
     {
         printf("%d\n",tree->PageNumber);
@@ -303,8 +299,7 @@ void print_preorder(node * tree)
 
 }
 
-node* del(node* root, int item)
-{
+node* del(node* root, int item) {
     node*savetemp=NULL;
 
     if(item== root->PageNumber)
@@ -351,11 +346,56 @@ node* del(node* root, int item)
 
 
 //////////////////////////
+struct tlbNode {
+  int PageNumber;
+  int FrameNumber;
+  int valid_bit;
+  int process_id;
+  struct tlbNode* left;
+  struct tlbNode* right;
+};
 
+struct tlbNode *tlbRoot = 0;
+void flush_TLB(struct tlbNode *leaf) {
+  if( leaf != 0 ) {
+      flush_TLB(leaf->left);
+      flush_TLB(leaf->right);
+      free(leaf);
+  }
+}
 
+void insertTLB(int PN, struct tlbNode **leaf) {
+  
+  if (*leaf == 0) {
+    *leaf = (struct tlbNode*) malloc(sizeof(struct tlbNode));
+    (*leaf)->PageNumber = PN;
+    (*leaf)->left = 0;    
+    (*leaf)->right = 0;
+  }
+  else if(PN < (*leaf)->PageNumber) {
+    insertTLB(PN, &(*leaf)->left);
+  }
+  else if(PN > (*leaf)->PageNumber) {
+    insertTLB(PN, &(*leaf)->right);
+  }
+  tlbTreeSize++;
+}
 
-
-
+struct tlbNode * searchTLB(int PN, struct tlbNode *leaf) {
+  if( leaf != 0 ) {
+    if(PN==leaf->PageNumber) {
+      printf("found %d\n", PN);
+      return leaf;
+    }
+    else if(PN<leaf->PageNumber) {
+      return searchTLB(PN, leaf->left);
+    }
+    else {
+      return searchTLB(PN, leaf->right);
+    }
+  }
+  else {return NULL;}
+}
 
 // look up said entry, add it
 // Return -1 for PageFault, or X for position in struct
@@ -459,6 +499,14 @@ int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
 
 
 
+
+
+
+
+
+
+
+
 //void remove(int PN){
     //int hash_val = HashFunc(PN);
     //page_Table_Entry *entry = htable[hash_val];
@@ -488,10 +536,7 @@ int main(int argc, char *argv[]) {
   head = NULL;
   tail = NULL;    // doubly linked lists
 
-
   node *tmp;
-
-
 
   if (argc<=6){
     printf("Enter correct params:\n");
@@ -500,8 +545,7 @@ int main(int argc, char *argv[]) {
   }
 
   int pgsize = atof(argv[1]);
-  tlb_Size = atof(argv[2]);
-
+  tlb_MaxSize = atof(argv[2]);
 
   char* tlbentries_Mode = (char*) malloc(2);
   tlbentries_Mode = argv[3];
@@ -514,13 +558,10 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-
-
   int quantom_Pages = atof(argv[4]);
   int phys_Pages = atof(argv[5]);
   char* pageTable_Mode = (char*) malloc(2);
   pageTable_Mode = argv[6];
-
 
   if (*pageTable_Mode == 'f'){
     fl_Mode = FIFO;
@@ -534,67 +575,81 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-   int traceFileAmount = argc - 6;
+  int traceFileAmount = argc - 6;
 
-   //printf("%d\n",traceFileAmount);
-
-
-   struct file_struct *array = malloc(traceFileAmount * sizeof(struct file_struct));
+  //printf("%d\n",traceFileAmount);
 
 
-   // get the file names and allocate the struct
-   for(x = 0; x < traceFileAmount; x++){
-     // create the structs
-     struct file_struct *retVal = malloc(sizeof(struct file_struct));
+  struct file_struct *array = malloc(traceFileAmount * sizeof(struct file_struct));
 
-     array[x] = *retVal;
 
-     //array[x].fp = fopen(argv[x+6], "r");
-     array[x].finished = 0;
+  // get the file names and allocate the struct
+  for(x = 0; x < traceFileAmount; x++){
+    // create the structs
+    struct file_struct *retVal = malloc(sizeof(struct file_struct));
+
+    array[x] = *retVal;
+
+    //array[x].fp = fopen(argv[x+6], "r");
+    array[x].finished = 0;
+  }
+
+  struct page_Table_Entry** table = createHashTable(tlb_MaxSize);
+
+  //struct page_Table_Entry** tree = createHashTable(quantom_Pages);
+
+  FILE* fp = fopen(argv[7], "r");
+
+
+  int i=0;
+
+  while(i++<20){
+    for(x=0; x<4; x++){
+      fread(buffer, 1, 1, fp);
+      address[0]+=buffer[0];
+      memset(buffer, 0, sizeof(buffer));
+    } 
+    int shift = address[0] >> 12;
+    int offset = address[0] << 20;
+    int PageNumber = shift >> 12; //20xbits 10 0's
+    //printf("? %d ?", offset);
+    offset = offset >> 20;  // ignore
+    //printf("%x\n", shift);
+    //printf("final %04x\n", address[0]);
+    printf("PN %d && offset %d\n",PageNumber, offset); // Page Number will be 0 for a while as shift pageSize bits over
+    memset(address, 0, sizeof(address));
    }
 
-   struct page_Table_Entry** table = createHashTable(tlb_Size);
-
-   //struct page_Table_Entry** tree = createHashTable(quantom_Pages);
-
-   FILE* fp = fopen(argv[7], "r");
-
-
-   int i=0;
-
-   while(i++<20){
-
-     for(x=0; x<4; x++){
-     fread(buffer, 1, 1, fp);
-     address[0]+=buffer[0];
-
-     memset(buffer, 0, sizeof(buffer));
-     }
-
-
-     int shift = address[0] >> 12;
-     int offset = address[0] << 20;
-
-     int PageNumber = shift >> 12; //20xbits 10 0's
-
-     //printf("? %d ?", offset);
-     offset = offset >> 20;  // ignore
-
-
-
-     //printf("%x\n", shift);
-     //printf("final %04x\n", address[0]);
-     printf("PN %d && offset %d\n",PageNumber, offset); // Page Number will be 0 for a while as shift pageSize bits over
-     memset(address, 0, sizeof(address));
-   }
-
-
-   pageTableLookUp(1, table);
-   pageTableLookUp(2, table);
-   pageTableLookUp(3, table);
-   pageTableLookUp(3, table);
+  pageTableLookUp(1, table);
+  pageTableLookUp(2, table);
+  pageTableLookUp(3, table);
+  pageTableLookUp(3, table);
 
    del(root, 2);
+
+  insertTLB(10, &tlbRoot);
+  insertTLB(11, &tlbRoot);
+  insertTLB(1, &tlbRoot);
+  insertTLB(135, &tlbRoot);
+  insertTLB(654, &tlbRoot);
+  
+  searchTLB(10, tlbRoot);
+  searchTLB(11, tlbRoot);
+  searchTLB(1, tlbRoot);
+  searchTLB(135, tlbRoot);
+  searchTLB(654, tlbRoot);
+  searchTLB(43, tlbRoot);
+  searchTLB(655344, tlbRoot);
+  printf("root: %d, lchild: %d, rchild: %d\n", tlbRoot->PageNumber, tlbRoot->left->PageNumber, tlbRoot->right->PageNumber);
+  
+  
+
+
+
+
+
+
+
 
 
    //insert(&root, 1);
