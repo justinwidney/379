@@ -13,6 +13,8 @@
 int fl_Mode,gp_Mode;
 int tlb_MaxSize; int tlbTreeSize = 0;
 
+int* tlbHits, pageFaults, pageOuts, avs;
+
 int free_frame_count =0;
 int pageTable_count = 0;
 
@@ -626,6 +628,8 @@ int main(int argc, char *argv[]) {
   int *buffer;
   buffer = (int *)malloc(10*sizeof(int));
 
+
+
   int* address = (int*)malloc(1*sizeof(int));
 
   head = NULL;
@@ -674,6 +678,10 @@ int main(int argc, char *argv[]) {
 
   //printf("%d\n",traceFileAmount);
 
+  tlbHits = (int *)malloc(traceFileAmount*sizeof(int));
+  pageFaults = (int *)malloc(traceFileAmount*sizeof(int));
+  pageOuts = (int *)malloc(traceFileAmount*sizeof(int));
+  avs = (int *)malloc(traceFileAmount*sizeof(int));
 
   struct file_struct *array = malloc(traceFileAmount * sizeof(struct file_struct));
 
@@ -779,7 +787,11 @@ int main(int argc, char *argv[]) {
 
 
 
+  for(x=0; traceFileAmount; x++){
 
+    printf("Tlbhits%d: pf%d: \n pageouts%d avs%d\n",x,x,x,x);
+
+  }
 
 
    //insert(&root, 1);
