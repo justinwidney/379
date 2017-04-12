@@ -100,7 +100,7 @@ void InsertAtHead(int PN, int FrameNumber) {
 
 
 //Inserts a Node at tail of Doubly linked list
-void InsertAtTail(int PT, int FrameNumber) {
+struct page_Table_Entry* InsertAtTail(int PT, int FrameNumber) {
 
   //int hash_val = HashFunc(PN);
   //page_Table_Entry *entry = htable[hash_val];
@@ -113,13 +113,14 @@ void InsertAtTail(int PT, int FrameNumber) {
 
 	if(head == NULL) {
 		head = newNode;
-		return;
+		return newNode;
 	}
 	while(temp->next != NULL) temp = temp->next; // Go To last Node
 	temp->next = newNode;
 	newNode->prev = temp;
   tail = newNode;
 
+  return newNode;
 
 }
 
@@ -215,12 +216,112 @@ struct page_Table_Entry *lookup(struct page_Table_Entry **hashtable, int PN){
 
 }
 
+
+/////////////////////////
+// To Allow Effictive Searching
+// modified http://www.thegeekstuff.com/2013/02/c-binary-tree
+
+struct bin_tree {
+  struct page_Table_Entry** entry;
+  struct bin_tree * right, * left;
+  int PageNumber;
+  struct page_Table_Entry* match; // pointer to page table entry
+
+};
+
+typedef struct bin_tree node;
+
+struct bin_tree *root;     // root
+
+
+void insert(node ** tree, int val, struct page_Table_Entry* match)
+{
+    node *temp = NULL;
+    if(!(*tree))
+    {
+        temp = (node *)malloc(sizeof(node));
+        temp->left = temp->right = NULL;
+        temp->PageNumber= val;
+        temp->match = match;
+        *tree = temp;
+        return;
+    }
+
+    if(val < (*tree)->PageNumber)
+    {
+        insert(&(*tree)->left, val, match);
+    }
+    else if(val > (*tree)->PageNumber)
+    {
+        insert(&(*tree)->right, val, match);
+    }
+
+}
+
+void deltree(node * tree)
+{
+    if (tree)
+    {
+        deltree(tree->left);
+        deltree(tree->right);
+        free(tree);
+    }
+}
+
+node* search(node ** tree, int val)
+{
+    if(!(*tree))
+    {
+        return NULL;
+    }
+
+    if(val < (*tree)->PageNumber)
+    {
+        search(&((*tree)->left), val);
+    }
+    else if(val > (*tree)->PageNumber)
+    {
+        search(&((*tree)->right), val);
+    }
+    else if(val == (*tree)->PageNumber)
+    {
+        return *tree; // Return pointer to a Entry
+    }
+}
+
+void print_preorder(node * tree)
+{
+    if (tree)
+    {
+        printf("%d\n",tree->PageNumber);
+        print_preorder(tree->left);
+        print_preorder(tree->right);
+    }
+
+}
+
+
+//////////////////////////
+
+
+
+
+
+
 // look up said entry, add it
 // Return -1 for PageFault, or X for position in struct
-int pageTableScan(int PageNumber, struct page_Table_Entry** PageTable){
+int pageTableScan(int PageNumber){
 
+  node* tmp = search(&root, PageNumber);
 
-  return -1;
+  if (tmp)
+    {
+    struct page_Table_Entry * found = tmp->match;
+    return found->FrameNumber;
+    }
+
+  else{ return -1; }
+
 
 }
 
@@ -235,7 +336,7 @@ int PageOut(int PageNumber){
         // TODO update v/i bit of TLB
     }
 
-    else if(fl_Mode == FIFO){
+      else if(fl_Mode == FIFO){
 
        freed_frame = deleteEntryFifo();
        // TODO update v/i bit of TLB
@@ -253,7 +354,9 @@ int PageOut(int PageNumber){
 int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
 
 
-    int value = pageTableScan(PageNumber, PageTable);
+    int value = pageTableScan(PageNumber);
+
+
 
     // Isn't in PageTable
     if (value == -1){
@@ -263,14 +366,18 @@ int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
 
           int index = PageOut(PageNumber);
 
-          InsertAtTail(PageNumber, index);
+          struct page_Table_Entry* tmp = InsertAtTail(PageNumber, index);
+          insert(&root, PageNumber, tmp);
 
       }
 
       // proceed
       else{
       //struct page_Table_Entry* newNode = createNewNode(PN, free_frame_count);
-      InsertAtTail(PageNumber,free_frame_count);
+
+      struct page_Table_Entry* tmp = InsertAtTail(PageNumber, free_frame_count);
+      insert(&root, PageNumber, tmp);
+
       free_frame_count++;
       //table[pageTable_count] =
       }
@@ -278,8 +385,9 @@ int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
     }
 
     else{
-
+      printf("found inside PT\n");
       //TODO update TLB, can be done inside TLB function
+
     }
 
 
@@ -317,7 +425,11 @@ int main(int argc, char *argv[]) {
   int* address = (int*)malloc(1*sizeof(int));
 
   head = NULL;
-  tail = NULL;
+  tail = NULL;    // doubly linked lists
+
+
+  node *tmp;
+
 
 
   if (argc<=6){
@@ -382,6 +494,8 @@ int main(int argc, char *argv[]) {
 
    struct page_Table_Entry** table = createHashTable(quantom_Pages);
 
+   //struct page_Table_Entry** tree = createHashTable(quantom_Pages);
+
    FILE* fp = fopen(argv[7], "r");
 
 
@@ -409,7 +523,7 @@ int main(int argc, char *argv[]) {
 
      //printf("%x\n", shift);
      //printf("final %04x\n", address[0]);
-     printf("PN %d && offset %d\n",shift, offset);
+     printf("PN %d && offset %d\n",PageNumber, offset); // Page Number will be 0 for a while as shift pageSize bits over
      memset(address, 0, sizeof(address));
    }
 
@@ -417,6 +531,13 @@ int main(int argc, char *argv[]) {
    pageTableLookUp(1, table);
    pageTableLookUp(2, table);
    pageTableLookUp(3, table);
+
+   //insert(&root, 1);
+   //insert(&root, 2);
+   //insert(&root, 3);
+
+   printf("Pre Order Display Bit Tree\n");
+   print_preorder(root);
 
    printf("Printing our PageTable\n");
    Print();
