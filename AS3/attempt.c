@@ -172,9 +172,17 @@ int tlbHashFunc(int PN){
 }
 
 // allocate some memory for our hashtable
-struct page_Table_Entry **createHashTable(int hashSize){
-  struct page_Table_Entry **table = malloc( sizeof (struct page_Table_Entry) *hashSize);
+struct page_Table_Entry **createPageTable(int Size){
+  struct page_Table_Entry **table = malloc( sizeof (struct page_Table_Entry) *Size);
   return table;
+}
+
+struct page_Table_Entry **resizePageTable(struct page_Table_Entry Table, int Size){
+
+  struct page_Table_Entry **table = realloc(table, sizeof (struct page_Table_Entry) *Size);
+  return table;
+
+
 }
 
 void hashInsert(struct page_Table_Entry **hashtable,  int PN, int FN){
@@ -351,30 +359,30 @@ typedef struct TLBNode {
     struct TLBNode *prev;
     int pageNumber;
 } TLBNode;
- 
+
 
 typedef struct TLBQueue {
-    int size; 
-    int maxSize; 
+    int size;
+    int maxSize;
     TLBNode *first;
     TLBNode *last;
 } TLBQueue;
- 
+
 
 typedef struct TLBHashMap {
     int tlbSize;
     TLBNode **entries;
 } TLBHashMap;
- 
+
 
 TLBNode* newTLBNode(int pageNumber) {
     TLBNode *temp = (TLBNode *)malloc(sizeof(TLBNode));
     temp->pageNumber = pageNumber;
     temp->prev = temp->next = NULL;
- 
+
     return temp;
 }
- 
+
 TLBQueue *createTLBQueue(int size) {
     TLBQueue *queue = (TLBQueue *)malloc(sizeof(TLBQueue));
     queue->size = 0;
@@ -382,14 +390,14 @@ TLBQueue *createTLBQueue(int size) {
     queue->maxSize = size;
     return queue;
 }
- 
+
 TLBHashMap *createTLBHash(int size) {
     TLBHashMap *hash = (TLBHashMap *) malloc(sizeof(TLBHashMap));
     hash->tlbSize = size;
     hash->entries = (TLBNode **) malloc(hash->tlbSize * sizeof(TLBNode*));
     return hash;
 }
- 
+
 int TLBHasher(int PN, int tlbSize) {
   return PN % tlbSize;
 }
@@ -397,12 +405,12 @@ int TLBHasher(int PN, int tlbSize) {
 int TLBFull(TLBQueue *queue){
     return queue->size == queue->maxSize;
 }
- 
+
 
 int TLBEmpty(TLBQueue *queue) {
     return queue->last == NULL;
 }
- 
+
 
 void delTLBPage(TLBQueue *queue) {
     if(TLBEmpty(queue)) {
@@ -411,17 +419,17 @@ void delTLBPage(TLBQueue *queue) {
     if (queue->first == queue->last) {
         queue->first = NULL;
     }
-    
+
     TLBNode* temp = queue->last;
     queue->last = queue->last->prev;
- 
+
     if (queue->last)
         queue->last->next = NULL;
- 
+
     free(temp);
     queue->size--;
 }
- 
+
 
 void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
     if (TLBFull(queue)) {
@@ -431,7 +439,7 @@ void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
     }
     TLBNode *temp = newTLBNode(pageNumber);
     temp->next = queue->first;
- 
+
     if (TLBEmpty(queue)) {
         queue->last = queue->first = temp;
     }
@@ -439,11 +447,11 @@ void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
         queue->first->prev = temp;
         queue->first = temp;
     }
- 
+
     hash->entries[TLBHasher(pageNumber, hash->tlbSize)] = temp;
     queue->size++;
 }
- 
+
 
 void TLBSerach(TLBQueue *queue, TLBHashMap *hash, int pageNumber) {
     TLBNode *page = hash->entries[TLBHasher(pageNumber, hash->tlbSize)];
@@ -518,7 +526,7 @@ int PageOut(int PageNumber){
       struct page_Table_Entry *tmp = deleteEntryFifo();
       //node* tmp = search(&root,tmp->PageNumber );
       freed_frame = tmp->FrameNumber;
-      
+
       del(root, PageNumber);
 
 
@@ -657,7 +665,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  int traceFileAmount = argc - 6;
+  int traceFileAmount = argc - 7;
 
   //printf("%d\n",traceFileAmount);
 
@@ -672,25 +680,33 @@ int main(int argc, char *argv[]) {
 
     array[x] = *retVal;
 
-    //array[x].fp = fopen(argv[x+6], "r");
+    array[x].fp = fopen(argv[x+7], "r");
     array[x].finished = 0;
+    printf("opened file %s\n",argv[x+7]);
   }
 
-  struct page_Table_Entry** table = createHashTable(tlb_MaxSize);
+
+
+  struct page_Table_Entry** table = createPageTable(quantom_Pages);
+  //struct page_Table_Entry** pageTable = createHashTable()
 
   //struct page_Table_Entry** tree = createHashTable(quantom_Pages);
 
-  FILE* fp = fopen(argv[7], "r");
+  FILE* fp;
 
+  int rotation =0;
 
   int i=0;
 
-  while(i++<20){
+  while(i++ <20){
+
+    fp = array[rotation].fp;
+
     for(x=0; x<4; x++){
       fread(buffer, 1, 1, fp);
       address[0]+=buffer[0];
       memset(buffer, 0, sizeof(buffer));
-    } 
+    }
     int shift = address[0] >> 12;
     int offset = address[0] << 20;
     int PageNumber = shift >> 12; //20xbits 10 0's
@@ -700,6 +716,12 @@ int main(int argc, char *argv[]) {
     //printf("final %04x\n", address[0]);
     printf("PN %d && offset %d\n",PageNumber, offset); // Page Number will be 0 for a while as shift pageSize bits over
     memset(address, 0, sizeof(address));
+
+    rotation = rotation++;
+    rotation = rotation % (argc-7); // rotate through the files 0,1, .. 0,1
+
+    table = realloc(table, sizeof (struct page_Table_Entry) * quantom_Pages * i );  // resizePageTable every runthrough
+
    }
 
   pageTableLookUp(1, table);
@@ -707,12 +729,12 @@ int main(int argc, char *argv[]) {
   pageTableLookUp(3, table);
   pageTableLookUp(3, table);
 
-   del(root, 2);
-  
+  del(root, 2);
+
   TLBQueue* tlbQueue = createTLBQueue(tlb_MaxSize);
   TLBHashMap* hash = createTLBHash(tlb_MaxSize);
-  
-  
+
+
   // tests for hash table of size 2
   TLBSerach(tlbQueue, hash, 10);
   TLBSerach(tlbQueue, hash, 11);
@@ -733,8 +755,8 @@ int main(int argc, char *argv[]) {
   TLBSerach(tlbQueue, hash, 655344);
   TLBSerach(tlbQueue, hash, 43);
   //printf("root: %d, lchild: %d, rchild: %d\n", tlbRoot->PageNumber, tlbRoot->left->PageNumber, tlbRoot->right->PageNumber);
-  
-  
+
+
 
 
 
