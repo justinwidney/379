@@ -536,6 +536,7 @@ int PageOut(int PageNumber){
         del(root, PageNumber);
 
         freed_frame = tmp->FrameNumber;
+        free(tmp);  // Don't run out of mem. 
 
         // TODO update v/i bit of TLB
     }
@@ -543,8 +544,10 @@ int PageOut(int PageNumber){
       else if(fl_Mode == FIFO){
 
       struct page_Table_Entry *tmp = deleteEntryFifo();
+
       //node* tmp = search(&root,tmp->PageNumber );
       freed_frame = tmp->FrameNumber;
+      free(tmp);
 
       del(root, PageNumber);
 
