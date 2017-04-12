@@ -11,7 +11,7 @@
 
 
 int fl_Mode,gp_Mode;
-int tlb_MaxSize; int tlbTreeSize = 0;
+int tlb_MaxSize; int tlbTreeSize = 0; int physpages;
 
 int free_frame_count =0;
 int pageTable_count = 0;
@@ -569,7 +569,7 @@ int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
     // Isn't in PageTable
     if (value == -1){
       // Page Out
-      if(free_frame_count == 100){
+      if(free_frame_count == physpages){
           int index = PageOut(PageNumber);
           struct page_Table_Entry* tmp = InsertAtTail(PageNumber, index);
           insert(&root, PageNumber, tmp);
@@ -654,7 +654,7 @@ int main(int argc, char *argv[]) {
   }
 
   int quantom_Pages = atof(argv[4]);
-  int phys_Pages = atof(argv[5]);
+  physpages = atof(argv[5]);
   char* pageTable_Mode = (char*) malloc(2);
   pageTable_Mode = argv[6];
 
