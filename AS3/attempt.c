@@ -10,6 +10,9 @@
 
 int fl_Mode,gp_Mode;
 
+int free_frame_count =0;
+int pageTable_count = 0;
+
 struct page_Table_Entry{
   int PageNumber;
   int FrameNumber;
@@ -119,25 +122,29 @@ void InsertAtTail(int PT, int FrameNumber) {
 }
 
 // delete the first in
-void deleteEntryFifo()
+int deleteEntryFifo()
 {
   /* base case */
   if(head == NULL)
-    return;
+    return -1;
 
   /* If node to be deleted is head node */
+  int freed_frame = head->FrameNumber;
+
   head = head->next;
   free(head->prev);
   head->prev = NULL;
 
 
-  return;
+  return freed_frame;
 }
 
 // delete the end
-void deleteEntryLru(){
+int deleteEntryLru(){
 
   struct page_Table_Entry* temp = tail;
+
+  int freed_frame = temp-> FrameNumber;
   struct page_Table_Entry* prev = temp->prev;
 
   prev->next = NULL;
@@ -145,6 +152,8 @@ void deleteEntryLru(){
 
   tail = prev;
   free(temp);
+
+  return freed_frame;
 
 }
 
@@ -156,7 +165,7 @@ int HashFunc(int PN){
 
 // allocate some memory for our hashtable
   struct page_Table_Entry **createHashTable(int hashSize){
-  struct page_Table_Entry **table = malloc( sizeof(struct page_Table_Entry)*hashSize);
+  struct page_Table_Entry **table = malloc( sizeof (struct page_Table_Entry) *hashSize);
   return table;
 }
 
@@ -174,6 +183,8 @@ int arrayIndex = HashFunc(PN);
   }
 
 }
+
+// may need some work
 
 struct page_Table_Entry *lookup(struct page_Table_Entry **hashtable, int PN){
   int arrayIndex = HashFunc(PN);
@@ -199,6 +210,78 @@ struct page_Table_Entry *lookup(struct page_Table_Entry **hashtable, int PN){
   }
 
   return NULL;
+
+}
+
+// look up said entry, add it
+// Return -1 for PageFault, or X for position in struct
+int pageTableScan(int PageNumber, struct page_Table_Entry** PageTable){
+
+
+  return -1;
+
+}
+
+// proceed using mode
+int PageOut(int PageNumber){
+
+    int freed_frame = 0;
+
+    if( fl_Mode == LRU){
+
+        freed_frame = deleteEntryLru();
+        // TODO update v/i bit of TLB
+    }
+
+    else if(fl_Mode == FIFO){
+
+       freed_frame = deleteEntryFifo();
+       // TODO update v/i bit of TLB
+    }
+
+    else{
+      printf("What did we do?\n");
+      exit(1);
+    }
+
+    return freed_frame;
+
+}
+
+int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
+
+
+    int value = pageTableScan(PageNumber, PageTable);
+
+    // Isn't in PageTable
+    if (value == -1){
+
+      // Page Out
+      if(free_frame_count == 100){
+
+          int index = PageOut(PageNumber);
+
+          InsertAtTail(PageNumber, index);
+
+      }
+
+      // proceed
+      else{
+      //struct page_Table_Entry* newNode = createNewNode(PN, free_frame_count);
+      InsertAtTail(PageNumber,free_frame_count);
+      free_frame_count++;
+      //table[pageTable_count] =
+      }
+
+    }
+
+    else{
+
+      //TODO update TLB, can be done inside TLB function
+    }
+
+
+
 
 }
 
@@ -291,7 +374,16 @@ int main(int argc, char *argv[]) {
 
    struct page_Table_Entry** table = createHashTable(quantom_Pages);
 
+   pageTableLookUp(1, table);
+   pageTableLookUp(2, table);
+   pageTableLookUp(3, table);
+
+   printf("Printing our PageTable\n");
+   Print();
+
    // Free all memory
+
+
 
 
    //free(pageTable_Mode);
