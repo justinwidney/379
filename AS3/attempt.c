@@ -385,7 +385,7 @@ int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
     }
 
     else{
-      printf("found inside PT\n");
+      printf("found %d inside PT\n", PageNumber);
       //TODO update TLB, can be done inside TLB function
 
     }
@@ -531,6 +531,8 @@ int main(int argc, char *argv[]) {
    pageTableLookUp(1, table);
    pageTableLookUp(2, table);
    pageTableLookUp(3, table);
+   pageTableLookUp(3, table);
+
 
    //insert(&root, 1);
    //insert(&root, 2);
