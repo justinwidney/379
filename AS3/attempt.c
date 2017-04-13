@@ -18,6 +18,10 @@ int* tlbHits, *pageFaults, *pageOuts, *avs;
 int free_frame_count =0;
 int pageTable_count = 0;
 
+int rotation =0;
+
+
+
 struct page_Table_Entry{
   int PageNumber;
   int FrameNumber;
@@ -72,6 +76,7 @@ struct page_Table_Entry* createNewNode(int PT, int FrameNumber){
   (struct page_Table_Entry*)malloc(sizeof(struct page_Table_Entry));
   newEntry->PageNumber = PT;
   newEntry->FrameNumber = FrameNumber;
+  newEntry->process_id = rotation;
   newEntry->next = NULL;
   newEntry->prev = NULL;
   return newEntry;
@@ -583,6 +588,13 @@ int PageOut(int PageNumber){
 
         struct page_Table_Entry *tmp = deleteEntryLru();
 
+        int process_id = tmp->process_id;
+
+        //pf[process_id]++;
+        pageOuts[process_id]++;
+
+
+
         //node* tmp = search(&root,tmp->PageNumber );
         del(root, PageNumber);
 
@@ -598,6 +610,10 @@ int PageOut(int PageNumber){
 
       struct page_Table_Entry *tmp = deleteEntryFifo();
 
+      int process_id = tmp->process_id;
+
+      //pf[process_id]++;
+      pageOuts[process_id]++;
 
 
       //node* tmp = search(&root,tmp->PageNumber );
@@ -683,7 +699,7 @@ void Print() {
 
 int main(int argc, char *argv[]) {
 
-  int PageNumber, value, x;
+  int PageNumber, value, x, TotalAvs;
 
   int *buffer;
   buffer = (int *)malloc(10*sizeof(int));
@@ -767,7 +783,6 @@ int main(int argc, char *argv[]) {
 
   FILE* fp;
 
-  int rotation =0;
 
   int i=0;
 
@@ -810,6 +825,8 @@ int main(int argc, char *argv[]) {
     //printf("final %04x, %d\n", address[0], rotation);
     //printf("PN %d && offset %d\n",PageNumber, offset); // Page Number will be 0 for a while as shift pageSize bits over
     memset(address, 0, sizeof(address));
+    avs[rotation]++;
+    TotalAvs++;
 
    }
 
@@ -818,7 +835,7 @@ int main(int argc, char *argv[]) {
 
    rotation = rotation % (argc-7); // rotate through the files 0,1, .. 0,1
 
-   if(quantom_Pages* i <= pgsize)
+   if(quantom_Pages* i <= physpages)
    table = realloc(table, sizeof (struct page_Table_Entry) * quantom_Pages * i );  // resizePageTable every runthrough
 
    doneflag = 0;
@@ -895,7 +912,8 @@ int main(int argc, char *argv[]) {
 
   for(x=0; x< traceFileAmount; x++){
 
-    printf("Tlbhits%d: pf%d: \n pageouts%d avs%d\n",x,x,x,x);
+    printf("Tlbhits%d: %d pf%d: %d \npageouts%d: %d avs%d: ",x, tlbHits[x], x, pageFaults[x], x, pageOuts[x], x);
+    printf("%d / %d\n", avs[x], TotalAvs);
 
   }
 
