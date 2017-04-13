@@ -259,7 +259,7 @@ struct bin_tree *root;     // root
 
 
 
-void insert(node ** tree, int val, struct page_Table_Entry* match) {
+void insert(node ** tree, unsigned int val, struct page_Table_Entry* match) {
     node *temp = NULL;
 
     if(!(*tree))
@@ -378,17 +378,17 @@ node* del(node* root, int item) {
 
             node* temp;
             savetemp=root->right->left;
-            if(root->right == NULL){
-              printf("hmm\n");
-            }
+
 
             temp=root;
 
             root=root->right;
 
-            printf("%d\n",root->right->PageNumber);
+            printf(" checking %d\n",root->right->PageNumber);
 
             root->left=temp->left;
+
+            printf("?\n");
         }
     }
 
@@ -667,11 +667,14 @@ int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
 
           int index = PageOut(PageNumber);
           struct page_Table_Entry* tmp = InsertAtTail(PageNumber, index);
+          printf("Got HERE\n");
           insert(&root, PageNumber, tmp);
+
       }
       // proceed
       else{
       printf("free_frame_count: %d\n",free_frame_count);
+
       //printf("Adding\n");
 
       //struct page_Table_Entry* newNode = createNewNode(PN, free_frame_count);
@@ -722,7 +725,7 @@ int main(int argc, char *argv[]) {
   int PageNumber, value, x, TotalAvs;
 
   int *buffer;
-  buffer = (int *)malloc(10*sizeof(int));
+  buffer = (int *)malloc(1*sizeof(int));
 
 
 
@@ -792,6 +795,7 @@ int main(int argc, char *argv[]) {
     array[x].fp = fopen(argv[x+7], "r");
     array[x].finished = 0;
     printf("opened file %s\n",argv[x+7]);
+    fread(buffer, 1, 3, array[x].fp);
   }
 
 
@@ -808,6 +812,7 @@ int main(int argc, char *argv[]) {
   int i=0;
 
   int doneflag = 1;
+  int addressx = 0;
 
   int shift_amount = pow(x,pgsize);
 
@@ -823,23 +828,35 @@ int main(int argc, char *argv[]) {
     else{
       continue;
     }
+    addressx = 0;
 
-    for(x=0; x<4; x++){
-      int check = fread(buffer, 1, 1, fp);
+    for(x=0; x<1; x++){
 
-      if(check != 1){
+      int check = fread(buffer, 1, 4, fp);
+
+
+      if(check != 4){
         //printf("fileclosed %d\n", rotation);
-        //getchar();
+
+
         array[rotation].finished = 1; // if no more ytes read
         fclose(fp);
         break;
       }
+      //printf("%x\n",* buffer);
+      //getchar();
 
-      address[0]+=buffer[0];
+      addressx += buffer[0];
       memset(buffer, 0, sizeof(buffer));
     }
 
-    int PageNumber = address[0] / pgsize;
+    //printf("%x\n",addressx );
+    //getchar();
+
+    unsigned int PageNumber = addressx / pgsize;
+
+    //printf("our number %x\n", PageNumber );
+
     //PageNumber = PageNumber << shift_amount;
     //20xbits 10 0's
 
