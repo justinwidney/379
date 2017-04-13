@@ -517,21 +517,25 @@ void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber, int pid) {
 void TLBSerach(TLBQueue *queue, TLBHashMap *hash, int pageNumber, struct page_Table_Entry** PageTable, int pid) {
     TLBNode *page = hash->entries[TLBHasher(pageNumber, hash->tlbSize)];
     if (page == NULL) {
-        printf("TLB Miss! New reference inserted, %d\n", pageNumber);
+        //printf("TLB Miss! New reference inserted, %d\n", pageNumber);
         pageTableLookUp(pageNumber, PageTable);
         insertTLB(queue, hash, pageNumber, pid);
     }
     // for collisions in table
     else if (page->pageNumber != pageNumber) {
-        printf("TLB Miss! New reference inserted, %d\n", pageNumber);
+        //printf("TLB Miss! New reference inserted, %d\n", pageNumber);
         pageTableLookUp(pageNumber, PageTable);
         insertTLB(queue, hash, pageNumber, pid);
     }
     else {
 
+
       tlbHits[rotation]++;  // TODO possibly change to account for v/i bits
 
-      printf("TLB hit! PN: %d\n", pageNumber);
+       printf("TLB hit! PN: %d\n", pageNumber);
+
+      //printf("TLB hit! PN: %d\n", pageNumber);
+
       if(page != queue->first) {
         page->prev->next = page->next;
         if (page->next) {
@@ -626,7 +630,7 @@ int PageOut(int PageNumber){
 
       free(tmp);
 
-      printf("Free Frame %d, %d\n",freed_frame, PageNumber);
+      //printf("Free Frame %d, %d\n",freed_frame, PageNumber);
 
       del(root, delete_Page);
 
@@ -666,7 +670,7 @@ int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
       }
     }
     else{
-      printf("found %d inside PT\n", PageNumber);
+      //printf("found %d inside PT\n", PageNumber);
       //TODO update TLB, can be done inside TLB function
 
     }
@@ -785,7 +789,8 @@ int main(int argc, char *argv[]) {
   //struct page_Table_Entry** tree = createHashTable(quantom_Pages);
 
   FILE* fp;
-
+  TLBQueue* tlbQueue = createTLBQueue(tlb_MaxSize);
+  TLBHashMap* tlbHash = createTLBHash(tlb_MaxSize);
 
   int i=0;
 
@@ -819,14 +824,9 @@ int main(int argc, char *argv[]) {
       memset(buffer, 0, sizeof(buffer));
     }
 
-    int shift = address[0] >> 12;
-    int offset = address[0] << 20;
+    int shift = address[0] << 12;
     int PageNumber = shift >> 12; //20xbits 10 0's
-    //printf("? %d ?", offset);
-    offset = offset >> 20;  // ignore
-    //printf("%x\n", shift);
-    //printf("final %04x, %d\n", address[0], rotation);
-    //printf("PN %d && offset %d\n",PageNumber, offset); // Page Number will be 0 for a while as shift pageSize bits over
+    TLBSerach(tlbQueue, tlbHash, PageNumber, table, 0);
     memset(address, 0, sizeof(address));
     avs[rotation]++;
     TotalAvs++;
@@ -865,8 +865,7 @@ int main(int argc, char *argv[]) {
 
   //del(root, 2);
 
-  TLBQueue* tlbQueue = createTLBQueue(tlb_MaxSize);
-  TLBHashMap* tlbHash = createTLBHash(tlb_MaxSize);
+
 
 
 
