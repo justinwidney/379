@@ -23,7 +23,7 @@ int rotation =0;
 
 
 struct page_Table_Entry{
-  int PageNumber;
+  unsigned int PageNumber;
   int FrameNumber;
   int valid_bit;
   int process_id;
@@ -163,7 +163,7 @@ struct page_Table_Entry* deleteEntryLru(){
   struct page_Table_Entry* temp = tail;
 
   int freed_frame = temp-> FrameNumber;
-  int PageNumber = temp-> PageNumber;
+  unsigned int PageNumber = temp-> PageNumber;
 
 
 
@@ -264,7 +264,7 @@ void insert(node ** tree, unsigned int val, struct page_Table_Entry* match) {
 
     if(!(*tree))
     {
-        printf(" our value %x\n", val );
+        //printf(" our value %x\n", val );
         temp = (node *)malloc(sizeof(node));
         temp->left = temp->right = NULL;
         temp->PageNumber= val;
@@ -281,6 +281,7 @@ void insert(node ** tree, unsigned int val, struct page_Table_Entry* match) {
     {
         insert(&(*tree)->right, val, match);
     }
+
 
 }
 
@@ -335,15 +336,17 @@ void print_postorder(node * tree)
 
 int t =0;
 
-node* del(node* root, int item) {
+node* del(node* root, unsigned int item) {
 
     node*savetemp=NULL;
 
 
     //print_postorder(root);
     //exit(1);
-    if(root == NULL)
-        printf("\nValue does not exist in tree!");
+    if(root == NULL){
+      //  printf("Value does not exist in tree!\n");
+        return root;
+      }
 
 
 
@@ -384,11 +387,11 @@ node* del(node* root, int item) {
 
             root=root->right;
 
-            printf(" checking %d\n",root->right->PageNumber);
+            //printf(" checking %d\n",root->right->PageNumber);
 
             root->left=temp->left;
 
-            printf("?\n");
+            //printf("?\n");
         }
     }
 
@@ -400,9 +403,12 @@ node* del(node* root, int item) {
             {
 
 
+                //printf("%u PageNumber, %u\n", root->PageNumber, item );
+
 
 
                 root->right = del(root->right, item);
+              //del(root->right, item);
 
             }
             else
@@ -410,6 +416,7 @@ node* del(node* root, int item) {
 
 
                 root->left=del(root->left, item);
+                //del(root->left, item);
             }
     }
 
@@ -441,7 +448,7 @@ typedef struct TLBHashMap {
 } TLBHashMap;
 
 
-TLBNode* newTLBNode(int pageNumber, int pid) {
+TLBNode* newTLBNode(unsigned int pageNumber, int pid) {
     TLBNode *temp = (TLBNode *)malloc(sizeof(TLBNode));
     temp->pageNumber = pageNumber;
     temp->prev = temp->next = NULL;
@@ -501,7 +508,7 @@ void delTLBPage(TLBQueue *queue) {
 }
 
 
-void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber, int pid) {
+void insertTLB(TLBQueue *queue, TLBHashMap *hash, unsigned int pageNumber, int pid) {
     if (TLBFull(queue)) {
         //printf("tlb full deleting\n");
         hash->entries[TLBHasher(queue->last->pageNumber, hash->tlbSize)] = NULL;
@@ -523,18 +530,29 @@ void insertTLB(TLBQueue *queue, TLBHashMap *hash, int pageNumber, int pid) {
 }
 
 
-void TLBSerach(TLBQueue *queue, TLBHashMap *hash, int pageNumber, struct page_Table_Entry** PageTable, int pid) {
+void TLBSerach(TLBQueue *queue, TLBHashMap *hash, unsigned int pageNumber, struct page_Table_Entry** PageTable, int pid) {
+
+
+
+
     TLBNode *page = hash->entries[TLBHasher(pageNumber, hash->tlbSize)];
     if (page == NULL) {
         //printf("TLB Miss! New reference inserted, %d\n", pageNumber);
         pageTableLookUp(pageNumber, PageTable);
         insertTLB(queue, hash, pageNumber, pid);
+
     }
     // for collisions in table
     else if (page->pageNumber != pageNumber) {
         //printf("TLB Miss! New reference inserted, %d\n", pageNumber);
+
+
+
         pageTableLookUp(pageNumber, PageTable);
+
+
         insertTLB(queue, hash, pageNumber, pid);
+
     }
     else {
 
@@ -579,7 +597,7 @@ TLBHashMap *TLBFlushHash(TLBHashMap *hash, int size) {
 
 // look up said entry, add it
 // Return -1 for PageFault, or X for position in struct
-int pageTableScan(int PageNumber){
+int pageTableScan(unsigned int PageNumber){
 
   node* tmp = search(&root, PageNumber);
 
@@ -595,7 +613,7 @@ int pageTableScan(int PageNumber){
 }
 
 // proceed using mode
-int PageOut(int PageNumber){
+int PageOut(unsigned int PageNumber){
 
     int freed_frame = 0;
 
@@ -609,9 +627,9 @@ int PageOut(int PageNumber){
         pageOuts[process_id]++;
 
 
-
+        int delete_Page = tmp->PageNumber;
         //node* tmp = search(&root,tmp->PageNumber );
-        del(root, PageNumber);
+        del(root, delete_Page);
 
         freed_frame = tmp->FrameNumber;
         free(tmp);  // Don't run out of mem.
@@ -625,6 +643,8 @@ int PageOut(int PageNumber){
 
       struct page_Table_Entry *tmp = deleteEntryFifo();
 
+
+
       int process_id = tmp->process_id;
 
       //pf[process_id]++;
@@ -637,10 +657,11 @@ int PageOut(int PageNumber){
 
       free(tmp);
 
+
+
       //printf("Free Frame %d, %d\n",freed_frame, PageNumber);
 
       del(root, delete_Page);
-
       //printf("second Got here\n");
 
        // TODO update v/i bit of TLB
@@ -655,7 +676,7 @@ int PageOut(int PageNumber){
 
 }
 
-int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
+int pageTableLookUp(unsigned int PageNumber, struct page_Table_Entry** PageTable){
 
     int value = pageTableScan(PageNumber);
     // Isn't in PageTable
@@ -666,14 +687,15 @@ int pageTableLookUp(int PageNumber, struct page_Table_Entry** PageTable){
 
 
           int index = PageOut(PageNumber);
+
           struct page_Table_Entry* tmp = InsertAtTail(PageNumber, index);
-          printf("Got HERE\n");
+          //printf("Got HERE\n");
           insert(&root, PageNumber, tmp);
 
       }
       // proceed
       else{
-      printf("free_frame_count: %d\n",free_frame_count);
+      //printf("free_frame_count: %d\n",free_frame_count);
 
       //printf("Adding\n");
 
@@ -722,7 +744,7 @@ void Print() {
 
 int main(int argc, char *argv[]) {
 
-  int PageNumber, value, x, TotalAvs;
+  unsigned int PageNumber, value, x, TotalAvs;
 
   int *buffer;
   buffer = (int *)malloc(1*sizeof(int));
@@ -848,6 +870,7 @@ int main(int argc, char *argv[]) {
 
       addressx += buffer[0];
       memset(buffer, 0, sizeof(buffer));
+
     }
 
     //printf("%x\n",addressx );
@@ -860,12 +883,14 @@ int main(int argc, char *argv[]) {
     //PageNumber = PageNumber << shift_amount;
     //20xbits 10 0's
 
+
     TLBSerach(tlbQueue, tlbHash, PageNumber, table, 0);
     memset(address, 0, sizeof(address));
 
 
    }
-  
+
+
   if(gp_Mode == LOCAL_MODE) {
     tlbQueue = TLBFlushQueue(tlbQueue, tlb_MaxSize);
     tlbHash = TLBFlushHash(tlbHash, tlb_MaxSize);
@@ -877,7 +902,7 @@ int main(int argc, char *argv[]) {
 
    if(quantom_Pages* i <= physpages)
    table = realloc(table, sizeof (struct page_Table_Entry) * quantom_Pages * i );  // resizePageTable every runthrough
-    
+
    doneflag = 0;
    for(x = 0; x < traceFileAmount; x++){
      if(  array[x].finished == 0 ){
