@@ -528,6 +528,9 @@ void TLBSerach(TLBQueue *queue, TLBHashMap *hash, int pageNumber, struct page_Ta
         insertTLB(queue, hash, pageNumber, pid);
     }
     else {
+
+      tlbHits[rotation]++;  // TODO possibly change to account for v/i bits
+
       printf("TLB hit! PN: %d\n", pageNumber);
       if(page != queue->first) {
         page->prev->next = page->next;
@@ -805,7 +808,7 @@ int main(int argc, char *argv[]) {
       int check = fread(buffer, 1, 1, fp);
 
       if(check != 1){
-        printf("fileclosed %d\n", rotation);
+        //printf("fileclosed %d\n", rotation);
         //getchar();
         array[rotation].finished = 1; // if no more ytes read
         fclose(fp);
@@ -908,14 +911,26 @@ int main(int argc, char *argv[]) {
 
 
 
+  while(head->next != NULL){
+   struct page_Table_Entry* temp = head;
+   int q = temp->process_id;
+   avs[q]++;
+   head = head->next;
+  }
 
+   struct page_Table_Entry* temp2 = head;
+   int q = temp2->process_id;
+   avs[q]++;
 
   for(x=0; x< traceFileAmount; x++){
 
     printf("Tlbhits%d: %d pf%d: %d \npageouts%d: %d avs%d: ",x, tlbHits[x], x, pageFaults[x], x, pageOuts[x], x);
-    printf("%d / %d\n", avs[x], TotalAvs);
+    printf("%d ", avs[x]);
+
 
   }
+
+
 
 
    //insert(&root, 1);
