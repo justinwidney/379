@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -lm 
+CFLAGS = -lm -g
 
 all: tvm379
 

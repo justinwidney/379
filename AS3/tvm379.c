@@ -449,7 +449,7 @@ void TLBSerach(TLBQueue *queue, TLBHashMap *hash, unsigned int pageNumber, struc
         pageTableLookUp(pageNumber, PageTable);
         insertTLB(queue, hash, pageNumber, pid);
     }
-    // for collisions in table
+    // for collisions in table 
     else if (page->pageNumber != pageNumber) {
         pageTableLookUp(pageNumber, PageTable);
         insertTLB(queue, hash, pageNumber, pid);
@@ -642,7 +642,7 @@ int main(int argc, char *argv[]) {
   int oldsize = quantom_Pages;
 
 
-  struct page_Table_Entry** table = createPageTable(quantom_Pages);
+  struct page_Table_Entry** table = createPageTable(pgsize);
 
 
   FILE* fp;
