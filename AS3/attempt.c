@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <math.h>
 
 
 #define GLOBAl_MODE 0
@@ -796,6 +796,8 @@ int main(int argc, char *argv[]) {
 
   int doneflag = 1;
 
+  int shift_amount = pow(x,pgsize);
+
   while(doneflag){
   i =0;
 
@@ -824,8 +826,9 @@ int main(int argc, char *argv[]) {
       memset(buffer, 0, sizeof(buffer));
     }
 
-    int shift = address[0] << 12;
-    int PageNumber = shift >> 12; //20xbits 10 0's
+    int shift = address[0] << shift_amount;
+    int PageNumber = shift >> shift_amount; //20xbits 10 0's
+    
     TLBSerach(tlbQueue, tlbHash, PageNumber, table, 0);
     memset(address, 0, sizeof(address));
     avs[rotation]++;
