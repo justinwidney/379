@@ -781,6 +781,7 @@ int main(int argc, char *argv[]) {
     if(array[rotation].finished == 0){
     fp = array[rotation].fp;
     }
+
     else{
       continue;
     }
@@ -788,7 +789,7 @@ int main(int argc, char *argv[]) {
     for(x=0; x<4; x++){
       int check = fread(buffer, 1, 1, fp);
 
-      if(check != 4){
+      if(check != 1){
         printf("fileclosed %d\n", rotation);
         //getchar();
         array[rotation].finished = 1; // if no more ytes read
