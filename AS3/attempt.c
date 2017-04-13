@@ -778,16 +778,19 @@ int main(int argc, char *argv[]) {
 
   while(i++<quantom_Pages){
 
-    if(array[rotation].finished != 1){
+    if(array[rotation].finished == 0){
     fp = array[rotation].fp;
+    }
+    else{
+      continue;
     }
 
     for(x=0; x<4; x++){
       int check = fread(buffer, 1, 1, fp);
 
-      if(check == 0){
-        printf("fileclosed\n");
-        getchar();
+      if(check != 4){
+        printf("fileclosed %d\n", rotation);
+        //getchar();
         array[rotation].finished = 1; // if no more ytes read
         fclose(fp);
         break;
@@ -796,21 +799,21 @@ int main(int argc, char *argv[]) {
       address[0]+=buffer[0];
       memset(buffer, 0, sizeof(buffer));
     }
-    
+
     int shift = address[0] >> 12;
     int offset = address[0] << 20;
     int PageNumber = shift >> 12; //20xbits 10 0's
     //printf("? %d ?", offset);
     offset = offset >> 20;  // ignore
     //printf("%x\n", shift);
-    printf("final %04x, %d\n", address[0], rotation);
+    //printf("final %04x, %d\n", address[0], rotation);
     //printf("PN %d && offset %d\n",PageNumber, offset); // Page Number will be 0 for a while as shift pageSize bits over
     memset(address, 0, sizeof(address));
 
    }
 
    rotation++;
-   printf("rotation %d\n",rotation );
+   //printf("rotation %d\n",rotation );
 
    rotation = rotation % (argc-7); // rotate through the files 0,1, .. 0,1
 
@@ -824,7 +827,7 @@ int main(int argc, char *argv[]) {
      }
 
      else{
-         printf("%d file closed\n",x);
+         //printf("%d file closed\n",x);
      }
 
    }
