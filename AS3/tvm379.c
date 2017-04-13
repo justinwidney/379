@@ -14,6 +14,7 @@
 2b) Miss, check if it is in PT
 3a) Hit, Update TLB_top
 3b) Miss, Update TLB and page in
+
 4a) free memory frame, swap it in
 4b) replace frame using LRU
 5) loop quantom times per file
