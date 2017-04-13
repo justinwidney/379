@@ -771,9 +771,11 @@ int main(int argc, char *argv[]) {
 
   int i=0;
 
-   int doneflag = 1;
+  int doneflag = 1;
+
   while(doneflag){
-    i =0;
+  i =0;
+
   while(i++<quantom_Pages){
 
     if(array[rotation].finished != 1){
@@ -784,40 +786,46 @@ int main(int argc, char *argv[]) {
       int check = fread(buffer, 1, 1, fp);
 
       if(check == 0){
+        printf("fileclosed\n");
+        getchar();
         array[rotation].finished = 1; // if no more ytes read
+        fclose(fp);
         break;
       }
 
       address[0]+=buffer[0];
       memset(buffer, 0, sizeof(buffer));
     }
+    
     int shift = address[0] >> 12;
     int offset = address[0] << 20;
     int PageNumber = shift >> 12; //20xbits 10 0's
     //printf("? %d ?", offset);
     offset = offset >> 20;  // ignore
     //printf("%x\n", shift);
-    //printf("final %04x\n", address[0]);
+    printf("final %04x, %d\n", address[0], rotation);
     //printf("PN %d && offset %d\n",PageNumber, offset); // Page Number will be 0 for a while as shift pageSize bits over
     memset(address, 0, sizeof(address));
 
-    rotation = rotation++;
-    rotation = rotation % (argc-7); // rotate through the files 0,1, .. 0,1
-
-    if(quantom_Pages* i <= pgsize)
-    table = realloc(table, sizeof (struct page_Table_Entry) * quantom_Pages * i );  // resizePageTable every runthrough
-
    }
 
+   rotation++;
+   printf("rotation %d\n",rotation );
+
+   rotation = rotation % (argc-7); // rotate through the files 0,1, .. 0,1
+
+   if(quantom_Pages* i <= pgsize)
+   table = realloc(table, sizeof (struct page_Table_Entry) * quantom_Pages * i );  // resizePageTable every runthrough
 
    doneflag = 0;
    for(x = 0; x < traceFileAmount; x++){
      if(  array[x].finished == 0 ){
       doneflag = 1;
      }
+
      else{
          printf("%d file closed\n",x);
-       }
+     }
 
    }
 
