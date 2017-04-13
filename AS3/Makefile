@@ -1,12 +1,12 @@
 CC = gcc
-CFLAGS = 
+CFLAGS = -lm
 
 all: attempt
 
 attempt: attempt.c
-	$(CC) $(CFLAGS) attempt.c -o attempt	
+	$(CC)  attempt.c $(CFLAGS) -o attempt	
 tvm379: tvm379.c
-	$(CC) $(CFLAGS) tvm379.c -o tvm379
+	$(CC)  tvm379.c $(CFLAGS) -o tvm379
 
 
 clean:

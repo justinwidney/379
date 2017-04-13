@@ -865,7 +865,11 @@ int main(int argc, char *argv[]) {
 
 
    }
-
+  
+  if(gp_Mode == LOCAL_MODE) {
+    tlbQueue = TLBFlushQueue(tlbQueue, tlb_MaxSize);
+    tlbHash = TLBFlushHash(tlbHash, tlb_MaxSize);
+  }
    rotation++;
    //printf("rotation %d\n",rotation );
 
@@ -873,7 +877,7 @@ int main(int argc, char *argv[]) {
 
    if(quantom_Pages* i <= physpages)
    table = realloc(table, sizeof (struct page_Table_Entry) * quantom_Pages * i );  // resizePageTable every runthrough
-
+    
    doneflag = 0;
    for(x = 0; x < traceFileAmount; x++){
      if(  array[x].finished == 0 ){
